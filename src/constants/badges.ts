@@ -1,0 +1,68 @@
+import { Badge } from '../types';
+
+export const BADGES: Badge[] = [
+  {
+    id: 'first_star',
+    name: 'Première étoile',
+    icon: '⭐',
+    description: 'Tu as complété ta première étape !',
+    requirement: 1,
+    requirementType: 'stars',
+  },
+  {
+    id: 'first_routine',
+    name: 'Super départ',
+    icon: '🌟',
+    description: 'Tu as complété ta première routine !',
+    requirement: 1,
+    requirementType: 'routines',
+  },
+  {
+    id: 'streak_3',
+    name: 'En feu !',
+    icon: '🔥',
+    description: '3 jours de suite, bravo !',
+    requirement: 3,
+    requirementType: 'streak',
+  },
+  {
+    id: 'routines_10',
+    name: 'Champion',
+    icon: '🏆',
+    description: '10 routines complétées !',
+    requirement: 10,
+    requirementType: 'routines',
+  },
+  {
+    id: 'routines_50',
+    name: 'Diamant',
+    icon: '💎',
+    description: '50 routines, tu es incroyable !',
+    requirement: 50,
+    requirementType: 'routines',
+  },
+  {
+    id: 'streak_7',
+    name: 'Fusée',
+    icon: '🚀',
+    description: '7 jours de suite !',
+    requirement: 7,
+    requirementType: 'streak',
+  },
+  {
+    id: 'streak_30',
+    name: 'Légende',
+    icon: '👑',
+    description: '30 jours de suite, tu es une légende !',
+    requirement: 30,
+    requirementType: 'streak',
+  },
+  {
+    id: 'stars_100',
+    name: 'Collectionneur',
+    icon: '🌠',
+    description: '100 étoiles collectées !',
+    requirement: 100,
+    requirementType: 'stars',
+  },
+];
