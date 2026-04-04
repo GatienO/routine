@@ -17,7 +17,7 @@ Optionnel pour tester sur appareil mobile :
 ## 1. Cloner le projet
 
 ```bash
-git clone https://github.com/<votre-username>/routine.git
+git clone https://github.com/GatienO/routine.git
 cd routine
 ```
 
