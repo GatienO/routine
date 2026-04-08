@@ -8,6 +8,7 @@ export function encodeRoutine(routine: Routine): string {
     version: SHARE_VERSION,
     routine: {
       name: routine.name,
+      description: routine.description ?? '',
       icon: routine.icon,
       color: routine.color,
       category: routine.category,
@@ -43,6 +44,7 @@ export function importRoutine(
 ): Omit<Routine, 'id' | 'createdAt' | 'updatedAt'> {
   return {
     ...shareable.routine,
+    description: shareable.routine.description ?? '',
     childId,
     steps: shareable.routine.steps.map((s, i) => ({
       ...s,

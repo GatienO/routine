@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -20,17 +20,21 @@ import { Avatar } from '../../src/components/ui/Avatar';
 import { Card } from '../../src/components/ui/Card';
 import { Button } from '../../src/components/ui/Button';
 import { RoutineCard } from '../../src/components/routine/RoutineCard';
+import { DraggableList } from '../../src/components/ui/DraggableList';
 import { StarCounter } from '../../src/components/rewards/Counters';
 import { COLORS, SPACING, FONT_SIZE, RADIUS } from '../../src/constants/theme';
+import { HomeIcon, CatalogIcon, AddIcon, GiftIcon, MergeIcon, StatsIcon, ImportIcon } from '../../src/components/ui/ModernIcons';
 
 export default function ParentDashboard() {
   const router = useRouter();
   const { children } = useChildrenStore();
-  const { routines, toggleRoutine } = useRoutineStore();
+  const { routines, toggleRoutine, reorderRoutines, removeRoutine, duplicateRoutine } = useRoutineStore();
   const { getRewards } = useRewardStore();
   const { setParentMode, selectChild, weatherCity, useGeolocation, setWeatherCity, setUseGeolocation } = useAppStore();
   const { refresh: refreshWeather } = useWeatherStore();
   const [cityInput, setCityInput] = useState(weatherCity);
+  const [mergeMode, setMergeMode] = useState(false);
+  const [mergeSelection, setMergeSelection] = useState<string[]>([]);
 
   const handleSaveCity = () => {
     const trimmed = cityInput.trim();
@@ -51,6 +55,61 @@ export default function ParentDashboard() {
     router.replace('/');
   };
 
+  // Group routines by child for reorder & display
+  const routinesByChild = useMemo(() => {
+    const map: Record<string, typeof routines> = {};
+    routines.forEach((r) => {
+      if (!map[r.childId]) map[r.childId] = [];
+      map[r.childId].push(r);
+    });
+    return map;
+  }, [routines]);
+
+  const toggleMergeSelect = (id: string) => {
+    setMergeSelection((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  };
+
+  const handleDeleteRoutine = (routine: typeof routines[0]) => {
+    Alert.alert(
+      'Supprimer',
+      `Supprimer la routine « ${routine.name} » ?`,
+      [
+        { text: 'Annuler', style: 'cancel' },
+        { text: 'Supprimer', style: 'destructive', onPress: () => removeRoutine(routine.id) },
+      ],
+    );
+  };
+
+  const handleDuplicateRoutine = (routine: typeof routines[0]) => {
+    duplicateRoutine(routine.id, routine.childId);
+    Alert.alert('✅ Routine dupliquée !');
+  };
+
+  const handleMerge = () => {
+    if (mergeSelection.length < 2) {
+      Alert.alert('Sélection', 'Sélectionnez au moins 2 routines à fusionner.');
+      return;
+    }
+    const first = routines.find((r) => r.id === mergeSelection[0]);
+    if (!first) return;
+    const allSameChild = mergeSelection.every(
+      (id) => routines.find((r) => r.id === id)?.childId === first.childId,
+    );
+    if (!allSameChild) {
+      Alert.alert('Erreur', 'Les routines doivent appartenir au même enfant.');
+      return;
+    }
+    // Navigate to add-routine with merge params
+    router.push({
+      pathname: '/parent/add-routine',
+      params: { mergeIds: mergeSelection.join(',') },
+    });
+    setMergeMode(false);
+    setMergeSelection([]);
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
@@ -63,7 +122,7 @@ export default function ParentDashboard() {
             </Text>
           </View>
           <TouchableOpacity onPress={handleLogout} style={styles.homeButton}>
-            <Text style={styles.homeButtonText}>🏠 Accueil</Text>
+            <HomeIcon size={22} color={COLORS.textSecondary} />
           </TouchableOpacity>
         </View>
 
@@ -108,7 +167,7 @@ export default function ParentDashboard() {
                     >
                       <Card>
                         <View style={styles.childContent}>
-                          <Avatar emoji={child.avatar} color={child.color} size={48} />
+                          <Avatar emoji={child.avatar} color={child.color} size={48} avatarConfig={child.avatarConfig} />
                           <Text style={styles.childName}>{child.name}</Text>
                           <Text style={styles.childAge}>{child.age} ans</Text>
                           <StarCounter count={rewards.totalStars} size="sm" />
@@ -127,24 +186,42 @@ export default function ParentDashboard() {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Routines</Text>
             <View style={styles.routineActions}>
-              <Button
-                title="📚 Catalogue"
+              {routines.length >= 2 && (
+                <TouchableOpacity
+                  onPress={() => {
+                    setMergeMode(!mergeMode);
+                    setMergeSelection([]);
+                  }}
+                  style={{ marginRight: 8, opacity: routines.length >= 2 ? 1 : 0.5 }}
+                  disabled={routines.length < 2}
+                >
+                  <MergeIcon size={22} color={mergeMode ? COLORS.error : COLORS.textSecondary} />
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
                 onPress={() => router.push('/parent/catalog')}
-                variant="ghost"
-                size="sm"
-                color={COLORS.secondary}
+                style={{ marginRight: 8, opacity: children.length === 0 ? 0.5 : 1 }}
                 disabled={children.length === 0}
-              />
-              <Button
-                title="+ Créer"
+              >
+                <CatalogIcon size={22} color={COLORS.secondary} />
+              </TouchableOpacity>
+              <TouchableOpacity
                 onPress={() => router.push('/parent/add-routine')}
-                variant="ghost"
-                size="sm"
-                color={COLORS.primary}
+                style={{ opacity: children.length === 0 ? 0.5 : 1 }}
                 disabled={children.length === 0}
-              />
+              >
+                <AddIcon size={22} color={COLORS.primary} />
+              </TouchableOpacity>
             </View>
           </View>
+
+          {mergeMode && mergeSelection.length >= 2 && (
+            <TouchableOpacity style={styles.mergeBar} onPress={handleMerge}>
+              <Text style={styles.mergeBarText}>
+                Fusionner {mergeSelection.length} routines →
+              </Text>
+            </TouchableOpacity>
+          )}
 
           {routines.length === 0 ? (
             <Card>
@@ -167,20 +244,51 @@ export default function ParentDashboard() {
             </Card>
           ) : (
             <View style={styles.routinesList}>
-              {routines.map((routine) => {
-                const child = children.find((c) => c.id === routine.childId);
+              {children.map((child) => {
+                const childRoutines = routinesByChild[child.id] ?? [];
+                if (childRoutines.length === 0) return null;
                 return (
-                  <View key={routine.id}>
-                    {child && (
-                      <Text style={styles.routineChild}>
-                        {child.avatar} {child.name}
-                      </Text>
-                    )}
-                    <RoutineCard
-                      routine={routine}
-                      onPress={() => router.push(`/parent/edit-routine?id=${routine.id}`)}
-                      onToggle={() => toggleRoutine(routine.id)}
-                      showToggle
+                  <View key={child.id}>
+                    <Text style={styles.routineChild}>
+                      {child.avatar} {child.name}
+                    </Text>
+                    <DraggableList
+                      data={childRoutines}
+                      keyExtractor={(r) => r.id}
+                      onReorder={(newOrder) => {
+                        reorderRoutines(child.id, newOrder.map((r) => r.id));
+                      }}
+                      itemHeight={80}
+                      renderItem={(routine) => (
+                        <View style={styles.routineRow}>
+                          {/* Merge checkbox */}
+                          {mergeMode && (
+                            <TouchableOpacity
+                              style={[
+                                styles.mergeCheck,
+                                mergeSelection.includes(routine.id) && styles.mergeCheckActive,
+                              ]}
+                              onPress={() => toggleMergeSelect(routine.id)}
+                            >
+                              {mergeSelection.includes(routine.id) && (
+                                <Text style={styles.mergeCheckMark}>✓</Text>
+                              )}
+                            </TouchableOpacity>
+                          )}
+
+                          {/* Card */}
+                          <View style={styles.routineCardCol}>
+                            <RoutineCard
+                              routine={routine}
+                              onPress={() => router.push(`/parent/edit-routine?id=${routine.id}`)}
+                              onToggle={() => toggleRoutine(routine.id)}
+                              onDuplicate={() => handleDuplicateRoutine(routine)}
+                              onDelete={() => handleDeleteRoutine(routine)}
+                              showActions
+                            />
+                          </View>
+                        </View>
+                      )}
                     />
                   </View>
                 );
@@ -245,7 +353,7 @@ export default function ParentDashboard() {
               disabled={children.length === 0}
               activeOpacity={0.7}
             >
-              <Text style={styles.actionTileEmoji}>🎁</Text>
+              <GiftIcon size={28} color="#E65100" style={{ marginBottom: 4 }} />
               <Text style={[styles.actionTileLabel, { color: '#E65100' }]}>Récompenses</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -254,7 +362,7 @@ export default function ParentDashboard() {
               disabled={children.length === 0}
               activeOpacity={0.7}
             >
-              <Text style={styles.actionTileEmoji}>📊</Text>
+              <StatsIcon size={28} color="#2E7D32" style={{ marginBottom: 4 }} />
               <Text style={[styles.actionTileLabel, { color: '#2E7D32' }]}>Statistiques</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -262,7 +370,7 @@ export default function ParentDashboard() {
               onPress={() => router.push('/parent/import')}
               activeOpacity={0.7}
             >
-              <Text style={styles.actionTileEmoji}>📥</Text>
+              <ImportIcon size={28} color="#1565C0" style={{ marginBottom: 4 }} />
               <Text style={[styles.actionTileLabel, { color: '#1565C0' }]}>Importer</Text>
             </TouchableOpacity>
           </View>
@@ -363,10 +471,51 @@ const styles = StyleSheet.create({
     gap: SPACING.md,
   },
   routineChild: {
-    fontSize: FONT_SIZE.xs,
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '700',
     color: COLORS.textSecondary,
     marginBottom: SPACING.xs,
     marginLeft: SPACING.xs,
+    marginTop: SPACING.sm,
+  },
+  routineRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+  },
+  routineCardCol: {
+    flex: 1,
+  },
+  mergeBar: {
+    backgroundColor: COLORS.secondary,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    borderRadius: RADIUS.lg,
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+  },
+  mergeBarText: {
+    color: '#FFF',
+    fontWeight: '800',
+    fontSize: FONT_SIZE.md,
+  },
+  mergeCheck: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    borderWidth: 2,
+    borderColor: COLORS.textLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mergeCheckActive: {
+    backgroundColor: COLORS.secondary,
+    borderColor: COLORS.secondary,
+  },
+  mergeCheckMark: {
+    color: '#FFF',
+    fontWeight: '800',
+    fontSize: 14,
   },
   actionTiles: {
     flexDirection: 'row',

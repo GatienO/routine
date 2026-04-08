@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -34,6 +34,7 @@ import { CircularTimer } from '../../src/components/ui/CircularTimer';
 import { AnimatedPressable } from '../../src/components/ui/AnimatedPressable';
 import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../../src/constants/theme';
 import { useTimer } from '../../src/hooks/useTimer';
+import { OpenMoji } from '../../src/components/ui/OpenMoji';
 import * as Haptics from 'expo-haptics';
 
 function PulsingButton({ color, onPress, text, icon }: { color: string; onPress: () => void; text: string; icon?: React.ReactNode }) {
@@ -70,7 +71,7 @@ function PulsingButton({ color, onPress, text, icon }: { color: string; onPress:
 
 export default function RunRoutineScreen() {
   const router = useRouter();
-  const { currentExecution, completeStep, finishExecution, cancelExecution, getRoutine } =
+  const { currentExecution, completeStep, finishExecution, cancelExecution, getRoutine, chainQueue, nextInChain } =
     useRoutineStore();
   const { recordCompletion } = useRewardStore();
   const { selectedChildId } = useAppStore();
@@ -98,6 +99,9 @@ export default function RunRoutineScreen() {
   const isAllDone = currentStepIndex >= totalSteps;
   const currentStep = activeSteps[currentStepIndex];
   const progress = totalSteps > 0 ? completedCount / totalSteps : 0;
+
+  const lastCompletionTime = useRef(0);
+  const STEP_COOLDOWN_MS = 800;
 
   const timerDuration = currentStep ? currentStep.durationMinutes * 60 : 0;
   const timer = useTimer(timerDuration);
@@ -129,6 +133,10 @@ export default function RunRoutineScreen() {
   const handleComplete = useCallback(async () => {
     if (!currentStep || !routine) return;
 
+    const now = Date.now();
+    if (now - lastCompletionTime.current < STEP_COOLDOWN_MS) return;
+    lastCompletionTime.current = now;
+
     try {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch {}
@@ -140,6 +148,16 @@ export default function RunRoutineScreen() {
       const execution = finishExecution();
       if (execution) {
         const newBadges = recordCompletion(execution);
+
+        // Check if there are more routines in the chain
+        if (chainQueue.length > 0) {
+          const nextExec = nextInChain();
+          if (nextExec) {
+            // Continue to next routine — no navigation needed, component re-renders
+            return;
+          }
+        }
+
         router.replace({
           pathname: '/child/celebration',
           params: {
@@ -147,18 +165,19 @@ export default function RunRoutineScreen() {
             badges: newBadges.join(','),
             routineName: routine.name,
             routineIcon: routine.icon,
+            duration: Math.round(
+              (new Date(execution.completedAt!).getTime() - new Date(execution.startedAt).getTime()) / 60000
+            ).toString(),
           },
         });
       }
     }
-  }, [currentStep, currentStepIndex, totalSteps]);
+  }, [currentStep, currentStepIndex, totalSteps, chainQueue]);
 
   const handleQuit = () => {
     cancelExecution();
     router.replace('/child/home');
   };
-
-  if (!currentExecution || !routine || !currentStep || isAllDone) return null;
 
   const defaultEncouragements = [
     'C\'est parti ! 💪',
@@ -176,6 +195,18 @@ export default function RunRoutineScreen() {
     : moodConfig?.animationIntensity === 'energetic' ? 300
     : 400;
 
+  if (!currentExecution || !routine || !currentStep || isAllDone) return null;
+
+  // Calculate estimated end time from remaining steps
+  const remainingMinutes = activeSteps
+    .slice(currentStepIndex)
+    .reduce((sum, s) => sum + s.durationMinutes, 0);
+  const endTime = (() => {
+    const d = new Date();
+    d.setMinutes(d.getMinutes() + remainingMinutes);
+    return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  })();
+
   return (
     <LinearGradient colors={gradientColors} style={styles.gradient}>
       <SafeAreaView style={styles.safe}>
@@ -185,12 +216,21 @@ export default function RunRoutineScreen() {
             <TouchableOpacity onPress={handleQuit} style={styles.quitBtn}>
               <X size={22} weight="bold" color={COLORS.textLight} />
             </TouchableOpacity>
+            {chainQueue.length > 0 && (
+              <View style={styles.chainIndicator}>
+                <Text style={styles.chainIndicatorText}>
+                  ⛓️ +{chainQueue.length} à suivre
+                </Text>
+              </View>
+            )}
             <View style={styles.counterBadge}>
               <Text style={styles.counter}>
                 {completedCount + 1} / {totalSteps}
               </Text>
             </View>
-            <View style={{ width: 44 }} />
+            <View style={styles.endTimeBadge}>
+              <Text style={styles.endTimeText}>🏁 {endTime}</Text>
+            </View>
           </Reanimated.View>
 
           {/* Progress */}
@@ -203,12 +243,12 @@ export default function RunRoutineScreen() {
             exiting={FadeOutLeft.duration(animSpeed / 2)}
             style={styles.stepContainer}
           >
-            <Reanimated.Text
+            <Reanimated.View
               entering={BounceIn.delay(animSpeed / 2).duration(animSpeed)}
               style={styles.stepIcon}
             >
-              {currentStep.icon}
-            </Reanimated.Text>
+              <OpenMoji emoji={currentStep.icon} size={64} />
+            </Reanimated.View>
             <Text style={styles.stepTitle}>{currentStep.title}</Text>
             {currentStep.mediaUri ? (
               <Image source={{ uri: currentStep.mediaUri }} style={styles.stepMedia} />
@@ -297,6 +337,28 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.full,
   },
   counter: { fontSize: FONT_SIZE.md, fontWeight: '800', color: COLORS.textSecondary },
+  chainIndicator: {
+    backgroundColor: 'rgba(255,255,255,0.8)',
+    paddingVertical: SPACING.xs,
+    paddingHorizontal: SPACING.sm,
+    borderRadius: RADIUS.full,
+  },
+  chainIndicatorText: {
+    fontSize: FONT_SIZE.xs,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+  },
+  endTimeBadge: {
+    backgroundColor: 'rgba(255,255,255,0.8)',
+    paddingVertical: SPACING.xs,
+    paddingHorizontal: SPACING.sm,
+    borderRadius: RADIUS.full,
+  },
+  endTimeText: {
+    fontSize: FONT_SIZE.xs,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+  },
   stepContainer: {
     flex: 1,
     justifyContent: 'center',

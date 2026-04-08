@@ -20,17 +20,27 @@ import { AnimatedPressable } from '../../src/components/ui/AnimatedPressable';
 import { MOOD_CONFIG, POSITIVE_MOODS, NEGATIVE_MOODS } from '../../src/constants/moods';
 import { ChildMoodType } from '../../src/types';
 import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../../src/constants/theme';
+import { OpenMoji } from '../../src/components/ui/OpenMoji';
 
 export default function MoodScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ routineId: string }>();
+  const params = useLocalSearchParams<{ routineId: string; chainIds?: string }>();
   const { selectedChildId } = useAppStore();
   const { setMood } = useMoodStore();
-  const { startExecution } = useRoutineStore();
+  const { startExecution, startChain } = useRoutineStore();
 
   const handleSelectMood = (mood: ChildMoodType) => {
     if (!selectedChildId) return;
     setMood(selectedChildId, mood);
+
+    if (params.chainIds) {
+      const ids = params.chainIds.split(',').filter(Boolean);
+      if (ids.length >= 2) {
+        startChain(ids, selectedChildId);
+        router.replace('/child/run');
+        return;
+      }
+    }
 
     if (params.routineId) {
       startExecution(params.routineId, selectedChildId);
@@ -68,7 +78,7 @@ export default function MoodScreen() {
                       style={[styles.moodCard, { backgroundColor: config.color + '20', borderColor: config.color + '60' }]}
                       scaleDown={0.9}
                     >
-                      <Text style={styles.moodEmoji}>{config.emoji}</Text>
+                      <OpenMoji emoji={config.emoji} size={40} />
                       <Text style={[styles.moodLabel, { color: config.color }]}>{config.label}</Text>
                     </AnimatedPressable>
                   </Animated.View>
@@ -94,7 +104,7 @@ export default function MoodScreen() {
                       style={[styles.moodCard, { backgroundColor: config.color + '20', borderColor: config.color + '60' }]}
                       scaleDown={0.9}
                     >
-                      <Text style={styles.moodEmoji}>{config.emoji}</Text>
+                      <OpenMoji emoji={config.emoji} size={40} />
                       <Text style={[styles.moodLabel, { color: config.color }]}>{config.label}</Text>
                     </AnimatedPressable>
                   </Animated.View>

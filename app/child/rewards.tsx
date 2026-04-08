@@ -49,7 +49,7 @@ export default function RewardsScreen() {
 
         {/* Header */}
         <View style={styles.header}>
-          <Avatar emoji={child.avatar} color={child.color} size={64} />
+          <Avatar emoji={child.avatar} color={child.color} size={64} avatarConfig={child.avatarConfig} />
           <Text style={styles.title}>{child.name}</Text>
         </View>
 

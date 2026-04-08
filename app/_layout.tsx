@@ -3,6 +3,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import * as Linking from 'expo-linking';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { COLORS } from '../src/constants/theme';
 
 export default function RootLayout() {
@@ -30,7 +31,7 @@ export default function RootLayout() {
   }
 
   return (
-    <>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar style="dark" />
       <Stack
         screenOptions={{
@@ -39,6 +40,6 @@ export default function RootLayout() {
           animation: 'slide_from_right',
         }}
       />
-    </>
+    </GestureHandlerRootView>
   );
 }

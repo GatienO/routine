@@ -18,6 +18,7 @@ import { Button } from '../../src/components/ui/Button';
 import { Card } from '../../src/components/ui/Card';
 import { StarCounter } from '../../src/components/rewards/Counters';
 import { COLORS, SPACING, FONT_SIZE, RADIUS } from '../../src/constants/theme';
+import { OpenMoji } from '../../src/components/ui/OpenMoji';
 
 export default function ParentRewardsScreen() {
   const router = useRouter();
@@ -88,7 +89,7 @@ export default function ParentRewardsScreen() {
                   ]}
                   onPress={() => setSelectedChildId(c.id)}
                 >
-                  <Text style={styles.childChipEmoji}>{c.avatar}</Text>
+                  <OpenMoji emoji={c.avatar} size={18} />
                   <Text style={styles.childChipText}>{c.name}</Text>
                 </TouchableOpacity>
               ))}
@@ -100,7 +101,7 @@ export default function ParentRewardsScreen() {
         {child && childRewards && (
           <Card style={styles.starsCard}>
             <View style={styles.starsRow}>
-              <Avatar emoji={child.avatar} color={child.color} size={40} />
+              <Avatar emoji={child.avatar} color={child.color} size={40} avatarConfig={child.avatarConfig} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.starsName}>{child.name}</Text>
                 <StarCounter count={childRewards.totalStars} size="sm" />

@@ -23,9 +23,9 @@ import { COLORS, SPACING, FONT_SIZE, SHADOWS, RADIUS } from '../../src/constants
 import { ArrowLeft, HandTap } from 'phosphor-react-native';
 import { useWeatherStore } from '../../src/stores/weatherStore';
 import { getWeatherTheme, DEFAULT_WEATHER_THEME, getWeatherTextColor, getWeatherSecondaryTextColor } from '../../src/constants/weatherThemes';
-import { WeatherParticles } from '../../src/components/weather/WeatherParticles';
 
-function WobbleAvatar({ emoji, color, size, delay: d }: { emoji: string; color: string; size: number; delay: number }) {
+
+function WobbleAvatar({ emoji, color, size, delay: d, avatarConfig }: { emoji: string; color: string; size: number; delay: number; avatarConfig?: import('../../src/types').AvatarConfig }) {
   const wobble = useSharedValue(0);
 
   useEffect(() => {
@@ -49,7 +49,7 @@ function WobbleAvatar({ emoji, color, size, delay: d }: { emoji: string; color: 
 
   return (
     <Animated.View style={style}>
-      <Avatar emoji={emoji} color={color} size={size} />
+      <Avatar emoji={emoji} color={color} size={size} avatarConfig={avatarConfig} />
     </Animated.View>
   );
 }
@@ -79,7 +79,6 @@ export default function ChildSelectScreen() {
   if (children.length === 0) {
     return (
       <LinearGradient colors={wt.gradient} style={styles.gradient}>
-        <WeatherParticles theme={wt} />
         <SafeAreaView style={styles.safe}>
           <View style={styles.empty}>
             <Animated.Text entering={BounceIn.duration(600)} style={styles.emptyIcon}>😊</Animated.Text>
@@ -104,7 +103,6 @@ export default function ChildSelectScreen() {
     const child = children[0];
     return (
       <LinearGradient colors={[wt.gradient[0], wt.gradient[1], wt.gradient[1]]} style={styles.gradient}>
-        <WeatherParticles theme={wt} />
         <SafeAreaView style={styles.safe}>
           <View style={styles.center}>
             <Animated.Text entering={FadeIn.duration(500)} style={[styles.greeting, { color: secondaryColor }]}>Bonjour</Animated.Text>
@@ -115,7 +113,7 @@ export default function ChildSelectScreen() {
               scaleDown={0.9}
             >
               <Animated.View entering={BounceIn.delay(200).duration(600)}>
-                <WobbleAvatar emoji={child.avatar} color={child.color} size={130} delay={400} />
+                <WobbleAvatar emoji={child.avatar} color={child.color} size={130} delay={400} avatarConfig={child.avatarConfig} />
               </Animated.View>
               <Animated.Text entering={FadeInDown.delay(500)} style={[styles.singleName, { color: textColor }]}>{child.name} !</Animated.Text>
               <Animated.View entering={FadeInDown.delay(700)} style={[styles.tapBubble, isNight && { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
@@ -140,7 +138,6 @@ export default function ChildSelectScreen() {
 
   return (
     <LinearGradient colors={wt.gradient} style={styles.gradient}>
-      <WeatherParticles theme={wt} />
       <SafeAreaView style={styles.safe}>
         <View style={styles.container}>
           <Animated.Text entering={FadeInDown.duration(400)} style={[styles.title, { color: textColor }]}>Qui es-tu ? 😊</Animated.Text>
@@ -155,7 +152,7 @@ export default function ChildSelectScreen() {
                   onPress={() => handleSelect(child.id)}
                   scaleDown={0.88}
                 >
-                  <WobbleAvatar emoji={child.avatar} color={child.color} size={85} delay={index * 300} />
+                  <WobbleAvatar emoji={child.avatar} color={child.color} size={85} delay={index * 300} avatarConfig={child.avatarConfig} />
                   <Text style={[styles.childName, isNight ? { color: textColor } : undefined]}>{child.name}</Text>
                 </AnimatedPressable>
               </Animated.View>

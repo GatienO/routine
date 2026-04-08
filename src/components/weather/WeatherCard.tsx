@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { Text, StyleSheet, View } from 'react-native';
+import { ClothingIcon } from './ClothingIcon';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -173,8 +174,8 @@ export function WeatherCard({ weather }: Props) {
         </Text>
         <View style={styles.clothingIcons}>
           {tempInfo.emojis.map((e, i) => (
-            <View key={i} style={[styles.clothingBubble, isNight && { backgroundColor: 'rgba(255,255,255,0.18)' }]}>
-              <Text style={styles.clothingEmoji}>{e}</Text>
+            <View key={i} style={[styles.clothingBubble, isNight && { backgroundColor: 'rgba(255,255,255,0.18)' }]}> 
+              <ClothingIcon code={e} size={32} />
             </View>
           ))}
         </View>

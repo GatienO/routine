@@ -2,12 +2,30 @@ export type RoutineCategory = 'morning' | 'evening' | 'school' | 'home' | 'weeke
 
 export type ChildMoodType = 'playful' | 'happy' | 'motivated' | 'sad' | 'angry' | 'grumpy';
 
+export interface AvatarConfig {
+  skinColor: string;
+  hair: string;
+  hairColor: string;
+  hat: string;
+  hatColor: string;
+  face: string;
+  top: string;
+  topColor: string;
+  bottom: string;
+  bottomColor: string;
+  shoes: string;
+  shoesColor: string;
+}
+
 export interface Child {
   id: string;
   name: string;
   avatar: string;
+  avatarConfig?: AvatarConfig;
   color: string;
   age: number;
+  companion?: string;
+  passions?: string[];
   createdAt: string;
 }
 
@@ -33,6 +51,7 @@ export interface Routine {
   id: string;
   childId: string;
   name: string;
+  description?: string;
   icon: string;
   color: string;
   category: RoutineCategory;

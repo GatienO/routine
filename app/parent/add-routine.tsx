@@ -10,7 +10,7 @@ import {
   Alert,
   Image,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { useChildrenStore } from '../../src/stores/childrenStore';
 import { useRoutineStore } from '../../src/stores/routineStore';
@@ -28,20 +28,46 @@ import {
 } from '../../src/constants/theme';
 import { RoutineCategory, RoutineStep } from '../../src/types';
 import { generateId } from '../../src/utils/id';
+import { OpenMoji } from '../../src/components/ui/OpenMoji';
 
 const CATEGORIES = Object.entries(CATEGORY_CONFIG) as [RoutineCategory, typeof CATEGORY_CONFIG[string]][];
 
 export default function AddRoutineScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ mergeIds?: string }>();
   const { children } = useChildrenStore();
-  const { addRoutine } = useRoutineStore();
+  const { addRoutine, getRoutine: getRoutineById } = useRoutineStore();
 
-  const [childId, setChildId] = useState(children[0]?.id ?? '');
-  const [name, setName] = useState('');
-  const [icon, setIcon] = useState('🌅');
-  const [color, setColor] = useState<string>(CHILD_COLORS[0]);
-  const [category, setCategory] = useState<RoutineCategory>('morning');
-  const [steps, setSteps] = useState<RoutineStep[]>([]);
+  // Merge mode: pre-fill from selected routines
+  const mergeSources = React.useMemo(() => {
+    if (!params.mergeIds) return [];
+    return params.mergeIds.split(',').map((id) => getRoutineById(id)).filter(Boolean) as import('../../src/types').Routine[];
+  }, [params.mergeIds]);
+  const isMerge = mergeSources.length >= 2;
+
+  const mergedSteps = React.useMemo(() => {
+    if (!isMerge) return [];
+    let order = 0;
+    return mergeSources.flatMap((r) =>
+      r.steps.map((s) => ({ ...s, id: generateId(), order: order++ }))
+    );
+  }, [isMerge]);
+
+  const mergeNames = isMerge ? mergeSources.map((r) => r.name).join(' + ') : '';
+
+  const [childIds, setChildIds] = useState<string[]>(isMerge ? [mergeSources[0].childId] : children[0] ? [children[0].id] : []);
+
+  const toggleChild = (id: string) => {
+    setChildIds((prev) =>
+      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id],
+    );
+  };
+  const [name, setName] = useState(isMerge ? mergeNames : '');
+  const [description, setDescription] = useState('');
+  const [icon, setIcon] = useState(isMerge ? mergeSources[0].icon : '🌅');
+  const [color, setColor] = useState<string>(isMerge ? mergeSources[0].color : CHILD_COLORS[0]);
+  const [category, setCategory] = useState<RoutineCategory>(isMerge ? mergeSources[0].category : 'morning');
+  const [steps, setSteps] = useState<RoutineStep[]>(isMerge ? mergedSteps : []);
 
   // Step form
   const [showStepForm, setShowStepForm] = useState(false);
@@ -53,7 +79,7 @@ export default function AddRoutineScreen() {
   const [stepRequired, setStepRequired] = useState(true);
   const [stepMediaUri, setStepMediaUri] = useState('');
 
-  const canSave = name.trim().length > 0 && childId && steps.length > 0;
+  const canSave = name.trim().length > 0 && childIds.length > 0 && steps.length > 0;
 
   const addStep = () => {
     if (!stepTitle.trim()) return;
@@ -125,14 +151,17 @@ export default function AddRoutineScreen() {
   };
 
   const handleSave = () => {
-    addRoutine({
-      childId,
-      name: name.trim(),
-      icon,
-      color,
-      category,
-      steps,
-      isActive: true,
+    childIds.forEach((cid) => {
+      addRoutine({
+        childId: cid,
+        name: name.trim(),
+        description: description.trim(),
+        icon,
+        color,
+        category,
+        steps: steps.map((s) => ({ ...s, id: generateId() })),
+        isActive: true,
+      });
     });
     router.back();
   };
@@ -143,10 +172,10 @@ export default function AddRoutineScreen() {
         <TouchableOpacity onPress={() => router.back()}>
           <Text style={styles.back}>← Retour</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Nouvelle routine</Text>
+        <Text style={styles.title}>{isMerge ? '🔀 Fusionner des routines' : 'Nouvelle routine'}</Text>
 
         {/* Child selector */}
-        <Text style={styles.label}>Pour quel enfant ?</Text>
+        <Text style={styles.label}>Pour quel(s) enfant(s) ?</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.row}>
             {children.map((child) => (
@@ -154,11 +183,11 @@ export default function AddRoutineScreen() {
                 key={child.id}
                 style={[
                   styles.childChip,
-                  childId === child.id && { backgroundColor: child.color + '30', borderColor: child.color },
+                  childIds.includes(child.id) && { backgroundColor: child.color + '30', borderColor: child.color },
                 ]}
-                onPress={() => setChildId(child.id)}
+                onPress={() => toggleChild(child.id)}
               >
-                <Text style={styles.childChipEmoji}>{child.avatar}</Text>
+                <OpenMoji emoji={child.avatar} size={18} />
                 <Text style={styles.childChipText}>{child.name}</Text>
               </TouchableOpacity>
             ))}
@@ -176,6 +205,17 @@ export default function AddRoutineScreen() {
           maxLength={40}
         />
 
+        <Text style={styles.label}>Description</Text>
+        <TextInput
+          style={[styles.input, styles.inputMultiline]}
+          value={description}
+          onChangeText={setDescription}
+          placeholder="Ex: Une routine simple pour bien démarrer la journée sans stress."
+          placeholderTextColor={COLORS.textLight}
+          multiline
+          maxLength={140}
+        />
+
         {/* Category */}
         <Text style={styles.label}>Moment</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -189,7 +229,10 @@ export default function AddRoutineScreen() {
                 ]}
                 onPress={() => setCategory(key)}
               >
-                <Text>{config.icon} {config.label}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <OpenMoji emoji={config.icon} size={16} />
+                  <Text>{config.label}</Text>
+                </View>
               </TouchableOpacity>
             ))}
           </View>
@@ -213,7 +256,7 @@ export default function AddRoutineScreen() {
             <Card style={[styles.stepCard, editingStepId === step.id && styles.stepCardEditing]}>
               <View style={styles.stepRow}>
                 <Text style={styles.stepOrder}>{index + 1}</Text>
-                <Text style={styles.stepIcon}>{step.icon}</Text>
+                <OpenMoji emoji={step.icon} size={28} />
                 <View style={styles.stepInfo}>
                   <Text style={styles.stepTitle}>{step.title}</Text>
                   <Text style={styles.stepMeta}>

@@ -5,62 +5,14 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-  withDelay,
-  withRepeat,
-  withSequence,
-  withTiming,
-  Easing,
   FadeInDown,
   FadeInUp,
 } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { AnimatedPressable } from '../src/components/ui/AnimatedPressable';
 import { COLORS, SPACING, FONT_SIZE, SHADOWS, RADIUS } from '../src/constants/theme';
+import "app/child/home";
 
-const FLOATING_EMOJIS = ['🌟', '✨', '🎯', '🏆', '🎉', '💪'];
-
-function FloatingDecor({ emoji, index }: { emoji: string; index: number }) {
-  const translateY = useSharedValue(0);
-  const rotate = useSharedValue(0);
-  const opacity = useSharedValue(0);
-
-  useEffect(() => {
-    const delay = index * 200;
-    opacity.value = withDelay(delay, withTiming(0.4, { duration: 600 }));
-    translateY.value = withDelay(
-      delay,
-      withRepeat(
-        withSequence(
-          withTiming(-12, { duration: 1800 + index * 200, easing: Easing.inOut(Easing.sin) }),
-          withTiming(12, { duration: 1800 + index * 200, easing: Easing.inOut(Easing.sin) })
-        ),
-        -1,
-        true
-      )
-    );
-    rotate.value = withDelay(
-      delay,
-      withRepeat(
-        withSequence(
-          withTiming(10, { duration: 2000 }),
-          withTiming(-10, { duration: 2000 })
-        ),
-        -1,
-        true
-      )
-    );
-  }, []);
-
-  const style = useAnimatedStyle(() => ({
-    transform: [
-      { translateY: translateY.value },
-      { rotate: `${rotate.value}deg` },
-    ],
-    opacity: opacity.value,
-  }));
-
-  return <Animated.Text style={[styles.floatingEmoji, style]}>{emoji}</Animated.Text>;
-}
 
 export default function WelcomeScreen() {
   const router = useRouter();
@@ -82,13 +34,6 @@ export default function WelcomeScreen() {
     >
       <SafeAreaView style={styles.safe}>
         <View style={styles.container}>
-          {/* Floating decorations */}
-          <View style={styles.floatingRow}>
-            {FLOATING_EMOJIS.map((emoji, i) => (
-              <FloatingDecor key={i} emoji={emoji} index={i} />
-            ))}
-          </View>
-
           {/* Hero */}
           <Animated.View
             entering={FadeInDown.duration(600).springify()}
@@ -142,14 +87,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: SPACING.xl,
   },
-  floatingRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
-    position: 'absolute',
-    top: 60,
-  },
-  floatingEmoji: { fontSize: 28 },
   hero: {
     alignItems: 'center',
     marginBottom: SPACING.xxl,

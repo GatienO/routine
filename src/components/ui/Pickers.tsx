@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { COLORS, SPACING, RADIUS } from '../../constants/theme';
+import { OpenMoji } from './OpenMoji';
 
 interface EmojiPickerProps {
   emojis: readonly string[];
@@ -24,7 +25,7 @@ export function EmojiPicker({ emojis, selected, onSelect, size = 48 }: EmojiPick
             onPress={() => onSelect(emoji)}
             activeOpacity={0.7}
           >
-            <Text style={{ fontSize: size * 0.5 }}>{emoji}</Text>
+            <OpenMoji emoji={emoji} size={size * 0.5} />
           </TouchableOpacity>
         ))}
       </View>

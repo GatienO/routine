@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Lock } from 'phosphor-react-native';
 import { Card } from '../ui/Card';
+import { OpenMoji } from '../ui/OpenMoji';
 import { COLORS, SPACING, FONT_SIZE, RADIUS } from '../../constants/theme';
 import { Badge } from '../../types';
 
@@ -13,7 +14,7 @@ interface BadgeCardProps {
 export function BadgeCard({ badge, unlocked }: BadgeCardProps) {
   return (
     <Card style={[styles.card, !unlocked && styles.locked]}>
-      <Text style={styles.icon}>{badge.icon}</Text>
+      <OpenMoji emoji={badge.icon} size={40} />
       <Text style={styles.name}>{badge.name}</Text>
       <Text style={styles.description}>{badge.description}</Text>
       {!unlocked && (

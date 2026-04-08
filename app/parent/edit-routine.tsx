@@ -30,6 +30,7 @@ import { RoutineCategory, RoutineStep } from '../../src/types';
 import { generateId } from '../../src/utils/id';
 import { encodeRoutine, generateShareLink } from '../../src/services/sharing';
 import * as Clipboard from 'expo-clipboard';
+import { OpenMoji } from '../../src/components/ui/OpenMoji';
 
 const CATEGORIES = Object.entries(CATEGORY_CONFIG) as [RoutineCategory, typeof CATEGORY_CONFIG[string]][];
 
@@ -52,6 +53,7 @@ export default function EditRoutineScreen() {
   }
 
   const [name, setName] = useState(routine.name);
+  const [description, setDescription] = useState(routine.description ?? '');
   const [icon, setIcon] = useState(routine.icon);
   const [color, setColor] = useState(routine.color);
   const [category, setCategory] = useState<RoutineCategory>(routine.category);
@@ -140,6 +142,7 @@ export default function EditRoutineScreen() {
   const handleSave = () => {
     updateRoutine(routine.id, {
       name: name.trim(),
+      description: description.trim(),
       icon,
       color,
       category,
@@ -211,6 +214,17 @@ export default function EditRoutineScreen() {
           maxLength={40}
         />
 
+        <Text style={styles.label}>Description</Text>
+        <TextInput
+          style={[styles.input, styles.inputMultiline]}
+          value={description}
+          onChangeText={setDescription}
+          placeholder="Résumé court de la routine"
+          placeholderTextColor={COLORS.textLight}
+          multiline
+          maxLength={140}
+        />
+
         {/* Category */}
         <Text style={styles.label}>Moment</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -224,7 +238,10 @@ export default function EditRoutineScreen() {
                 ]}
                 onPress={() => setCategory(key)}
               >
-                <Text>{config.icon} {config.label}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <OpenMoji emoji={config.icon} size={16} />
+                  <Text>{config.label}</Text>
+                </View>
               </TouchableOpacity>
             ))}
           </View>
@@ -248,7 +265,7 @@ export default function EditRoutineScreen() {
             <Card style={[styles.stepCard, editingStepId === step.id && styles.stepCardEditing]}>
               <View style={styles.stepRow}>
                 <Text style={styles.stepOrder}>{index + 1}</Text>
-                <Text style={styles.stepIconText}>{step.icon}</Text>
+                <OpenMoji emoji={step.icon} size={28} />
                 <View style={styles.stepInfo}>
                   <Text style={styles.stepTitle}>{step.title}</Text>
                   <Text style={styles.stepMeta}>

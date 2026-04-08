@@ -1,4 +1,4 @@
-# Get Started — Installation & Lancement
+# Get Started - Installation & Lancement
 
 ## Prérequis
 
@@ -9,8 +9,9 @@
 | **Git** | 2.30+ | [git-scm.com](https://git-scm.com) |
 
 Optionnel pour tester sur appareil mobile :
-- **Expo Go** (App Store / Play Store) — dernière version compatible SDK 55
-- **iPad/iPhone** ou **Android** sur le même réseau Wi-Fi
+
+- **Expo Go** dernière version compatible SDK 55
+- **Téléphone / tablette** sur le même réseau Wi-Fi
 
 ---
 
@@ -27,21 +28,17 @@ cd routine
 npm install
 ```
 
-> Un script `postinstall` s'exécute automatiquement pour patcher Expo Web.
+Un script `postinstall` patche automatiquement Expo Web.
 
 ## 3. Lancer l'application
 
-### Mode Web (recommandé pour tester)
+### Mode Web
 
 ```bash
 npx expo start --web
 ```
 
-L'app s'ouvre dans le navigateur à **http://localhost:8081**.
-
-Pour y accéder depuis un **iPad/téléphone** sur le même Wi-Fi :
-1. Trouver l'IP locale affichée dans le terminal (ex: `192.168.1.141`)
-2. Ouvrir Safari/Chrome sur l'appareil : `http://192.168.1.141:8081`
+L'app sera disponible sur **http://localhost:8081**.
 
 ### Mode natif avec Expo Go
 
@@ -49,16 +46,20 @@ Pour y accéder depuis un **iPad/téléphone** sur le même Wi-Fi :
 npx expo start
 ```
 
-Scanner le QR code affiché avec l'app **Expo Go** sur votre appareil.
+Scannez ensuite le QR code avec **Expo Go**.
 
-> **Note Windows** : si `npx` échoue avec une erreur de policy PowerShell, utilisez `npx.cmd expo start --web` ou lancez depuis Git Bash.
+Si vous testez l'ajout d'images dans les étapes, l'app demandera l'autorisation d'accéder à la photothèque.
 
-### Mode Android / iOS spécifique
+### Lancement direct Android / iOS
 
 ```bash
-npx expo start --android   # Android
-npx expo start --ios       # iOS (macOS requis)
+npx expo start --android
+npx expo start --ios
 ```
+
+`--ios` nécessite macOS.
+
+> Note Windows : si `npx` est bloqué par PowerShell, utilisez `npx.cmd`.
 
 ---
 
@@ -68,19 +69,19 @@ npx expo start --ios       # iOS (macOS requis)
 npm test
 ```
 
-5 suites, 34 tests (Jest + ts-jest).
+Le projet contient **5 suites de tests**.
 
 ---
 
-## 5. Structure des commandes
+## 5. Commandes utiles
 
 | Commande | Description |
 |---|---|
-| `npm start` | Lance Metro bundler (choix plateforme interactif) |
+| `npm start` | Lance Expo |
 | `npm run web` | Lance directement en mode web |
-| `npm run android` | Lance sur émulateur/appareil Android |
-| `npm run ios` | Lance sur simulateur iOS (macOS) |
-| `npm test` | Exécute les tests unitaires |
+| `npm run android` | Lance Android |
+| `npm run ios` | Lance iOS |
+| `npm test` | Exécute les tests |
 
 ---
 
@@ -88,33 +89,26 @@ npm test
 
 ### Variables d'environnement
 
-Aucune variable d'environnement requise. L'app est 100% locale et utilise l'API Open-Meteo (gratuite, sans clé).
+Aucune variable d'environnement n'est requise.
 
-### Fichiers de configuration
+### Fichiers principaux
 
 | Fichier | Rôle |
 |---|---|
-| `app.json` | Configuration Expo (nom, icônes, scheme, splash) |
-| `tsconfig.json` | TypeScript strict + alias `@/*` → `src/*` |
+| `app.json` | Configuration Expo |
+| `package.json` | Scripts, dépendances, Jest |
 | `babel.config.js` | Preset Expo + plugin Reanimated |
-| `metro.config.js` | Configuration Metro bundler |
-| `package.json` | Dépendances + scripts + config Jest |
+| `metro.config.js` | Configuration Metro |
+| `tsconfig.json` | TypeScript + alias `@/*` |
 
 ---
 
-## 7. Déploiement sur appareil (avancé)
+## 7. Notes utiles
 
-### Option A — Expo Go (gratuit)
-Installer Expo Go depuis l'App Store / Play Store, scanner le QR code du terminal.
-
-### Option B — EAS Build (requiert Apple Developer $99/an)
-```bash
-npx eas-cli build --platform ios --profile preview
-```
-Installe le build via TestFlight ou lien de distribution interne.
-
-### Option C — Web sur iPad/tablette (gratuit)
-Lancer `npx expo start --web` et accéder via l'IP locale depuis Safari.
+- L'app fonctionne **sans backend**
+- Les données sont stockées **localement**
+- Le catalogue embarqué contient **27 modèles de routines**
+- Les parcours récents incluent le **récapitulatif avant lancement**, le **chaînage de routines** et la **gestion parent avancée** (duplication, fusion, réorganisation)
 
 ---
 
@@ -122,8 +116,7 @@ Lancer `npx expo start --web` et accéder via l'IP locale depuis Safari.
 
 | Problème | Solution |
 |---|---|
-| `npx.ps1 cannot be loaded` (Windows) | Utiliser `npx.cmd` au lieu de `npx`, ou lancer depuis Git Bash |
-| Expo Go incompatible SDK 55 | Mettre à jour Expo Go depuis l'App Store |
-| `crypto.randomUUID is not a function` (Web/Safari) | Déjà corrigé — l'app utilise un fallback automatique |
-| Metro cache corrompu | `npx expo start --clear` |
+| `npx.ps1 cannot be loaded` | Utiliser `npx.cmd` |
+| Expo Go incompatible | Mettre Expo Go à jour |
+| Problème de cache Metro | `npx expo start --clear` |
 | Port 8081 déjà utilisé | `npx expo start --web --port 8082` |

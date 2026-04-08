@@ -27,72 +27,10 @@ import { AnimatedPressable } from '../../src/components/ui/AnimatedPressable';
 import { Star, House, Trophy } from 'phosphor-react-native';
 import { BADGES } from '../../src/constants/badges';
 import { COLORS, SPACING, FONT_SIZE, SHADOWS, RADIUS } from '../../src/constants/theme';
+import { OpenMoji } from '../../src/components/ui/OpenMoji';
 import * as Haptics from 'expo-haptics';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
-const CONFETTI = ['🎊', '⭐', '🌟', '✨', '🎉', '💫', '🥳', '🎆', '🌈', '🦄'];
-
-function FloatingEmoji({ emoji, index }: { emoji: string; index: number }) {
-  const translateY = useSharedValue(0);
-  const translateX = useSharedValue(0);
-  const rotate = useSharedValue(0);
-  const opacity = useSharedValue(0);
-  const scale = useSharedValue(0.5);
-
-  useEffect(() => {
-    const delay = index * 100;
-    opacity.value = withDelay(delay, withTiming(0.8, { duration: 400 }));
-    scale.value = withDelay(delay, withSpring(1, { damping: 6, stiffness: 120 }));
-    translateY.value = withDelay(
-      delay,
-      withRepeat(
-        withSequence(
-          withTiming(-25, { duration: 1000 + index * 150, easing: Easing.inOut(Easing.sin) }),
-          withTiming(0, { duration: 1000 + index * 150, easing: Easing.inOut(Easing.sin) })
-        ),
-        -1,
-        true
-      )
-    );
-    translateX.value = withDelay(
-      delay,
-      withRepeat(
-        withSequence(
-          withTiming(index % 2 === 0 ? 12 : -12, { duration: 1300, easing: Easing.inOut(Easing.sin) }),
-          withTiming(index % 2 === 0 ? -12 : 12, { duration: 1300, easing: Easing.inOut(Easing.sin) })
-        ),
-        -1,
-        true
-      )
-    );
-    rotate.value = withDelay(
-      delay,
-      withRepeat(
-        withSequence(
-          withTiming(20, { duration: 900 }),
-          withTiming(-20, { duration: 900 })
-        ),
-        -1,
-        true
-      )
-    );
-  }, []);
-
-  const style = useAnimatedStyle(() => ({
-    transform: [
-      { translateY: translateY.value },
-      { translateX: translateX.value },
-      { rotate: `${rotate.value}deg` },
-      { scale: scale.value },
-    ],
-    opacity: opacity.value,
-  }));
-
-  return (
-    <Animated.Text style={[styles.confettiEmoji, style]}>{emoji}</Animated.Text>
-  );
-}
 
 function FallingParticle({ index }: { index: number }) {
   const translateY = useSharedValue(-60);
@@ -161,9 +99,11 @@ export default function CelebrationScreen() {
     badges: string;
     routineName: string;
     routineIcon: string;
+    duration: string;
   }>();
 
   const stars = parseInt(params.stars ?? '0', 10);
+  const duration = parseInt(params.duration ?? '0', 10);
   const newBadgeIds = (params.badges ?? '').split(',').filter(Boolean);
   const newBadges = BADGES.filter((b) => newBadgeIds.includes(b.id));
 
@@ -201,7 +141,9 @@ export default function CelebrationScreen() {
             entering={BounceIn.duration(700)}
             style={styles.celebration}
           >
-            <Text style={styles.mainEmoji}>{params.routineIcon || '🎉'}</Text>
+            <View style={styles.mainEmoji}>
+              <OpenMoji emoji={params.routineIcon || '🎉'} size={90} />
+            </View>
             <Text style={styles.title}>Bravo ! 🎉</Text>
             <Text style={styles.subtitle}>
               Tu as terminé {params.routineName || 'ta routine'} !
@@ -219,6 +161,18 @@ export default function CelebrationScreen() {
             <Text style={styles.starsLabel}>étoile{stars > 1 ? 's' : ''} gagnée{stars > 1 ? 's' : ''} !</Text>
           </Animated.View>
 
+          {duration > 0 && (
+            <Animated.View
+              entering={FadeInUp.delay(700).duration(400)}
+              style={styles.durationBadge}
+            >
+              <Text style={styles.durationIcon}>⏱️</Text>
+              <Text style={styles.durationText}>
+                Réalisée en {duration} minute{duration > 1 ? 's' : ''}
+              </Text>
+            </Animated.View>
+          )}
+
           {newBadges.length > 0 && (
             <Animated.View
               entering={FadeInUp.delay(900).duration(500).springify()}
@@ -227,7 +181,7 @@ export default function CelebrationScreen() {
               <Text style={styles.badgesTitle}>Nouveau badge !</Text>
               {newBadges.map((badge) => (
                 <View key={badge.id} style={styles.badgeRow}>
-                  <Text style={styles.badgeIcon}>{badge.icon}</Text>
+                    <OpenMoji emoji={badge.icon} size={40} />
                   <View>
                     <Text style={styles.badgeName}>{badge.name}</Text>
                     <Text style={styles.badgeDesc}>{badge.description}</Text>
@@ -236,12 +190,6 @@ export default function CelebrationScreen() {
               ))}
             </Animated.View>
           )}
-
-          <View style={styles.confettiRow}>
-            {CONFETTI.map((emoji, i) => (
-              <FloatingEmoji key={i} emoji={emoji} index={i} />
-            ))}
-          </View>
 
           <Animated.View entering={FadeInDown.delay(1200).duration(400)}>
             <AnimatedPressable
@@ -294,6 +242,22 @@ const styles = StyleSheet.create({
   starsIcon: { fontSize: 40 },
   starsCount: { fontSize: FONT_SIZE.xxl + 4, fontWeight: '900', color: COLORS.star },
   starsLabel: { fontSize: FONT_SIZE.lg, color: COLORS.textSecondary, fontWeight: '600' },
+  durationBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    backgroundColor: 'rgba(255,255,255,0.6)',
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: RADIUS.full,
+    marginBottom: SPACING.lg,
+  },
+  durationIcon: { fontSize: 18 },
+  durationText: {
+    fontSize: FONT_SIZE.md,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+  },
   badgesSection: {
     backgroundColor: 'rgba(255,255,255,0.7)',
     borderRadius: 20,
@@ -317,14 +281,6 @@ const styles = StyleSheet.create({
   badgeIcon: { fontSize: 40 },
   badgeName: { fontSize: FONT_SIZE.md, fontWeight: '700', color: COLORS.text },
   badgeDesc: { fontSize: FONT_SIZE.sm, color: COLORS.textSecondary },
-  confettiRow: {
-    flexDirection: 'row',
-    gap: SPACING.sm,
-    marginBottom: SPACING.xl,
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-  },
-  confettiEmoji: { fontSize: 30 },
   continueButton: {
     backgroundColor: COLORS.success,
     paddingVertical: SPACING.lg + 2,

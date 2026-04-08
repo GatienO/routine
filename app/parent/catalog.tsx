@@ -20,6 +20,7 @@ import {
 } from '../../src/constants/routineTemplates';
 import { CATEGORY_CONFIG, COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../../src/constants/theme';
 import { generateId } from '../../src/utils/id';
+import { OpenMoji } from '../../src/components/ui/OpenMoji';
 
 export default function CatalogScreen() {
   const router = useRouter();
@@ -49,6 +50,7 @@ export default function CatalogScreen() {
       addRoutine({
         childId,
         name: template.name,
+        description: template.description,
         icon: template.icon,
         color: template.color,
         category: template.category,
@@ -96,8 +98,11 @@ export default function CatalogScreen() {
           </TouchableOpacity>
 
           <View style={styles.detailHeader}>
-            <Text style={styles.detailIcon}>{selectedTemplate.icon}</Text>
+            <View style={{ alignItems: 'center', marginBottom: SPACING.md }}>
+              <OpenMoji emoji={selectedTemplate.icon} size={48} />
+            </View>
             <Text style={styles.detailName}>{selectedTemplate.name}</Text>
+            <Text style={styles.detailDescription}>{selectedTemplate.description}</Text>
             <View style={styles.detailMeta}>
               <View style={[styles.badge, { backgroundColor: selectedTemplate.color + '25' }]}>
                 <Text style={[styles.badgeText, { color: selectedTemplate.color }]}>
@@ -125,7 +130,7 @@ export default function CatalogScreen() {
             <Card key={i} style={styles.stepCard}>
               <View style={styles.stepRow}>
                 <Text style={styles.stepOrder}>{i + 1}</Text>
-                <Text style={styles.stepIcon}>{step.icon}</Text>
+                <OpenMoji emoji={step.icon} size={28} />
                 <View style={styles.stepInfo}>
                   <Text style={styles.stepTitle}>{step.title}</Text>
                   <Text style={styles.stepMeta}>
@@ -177,7 +182,7 @@ export default function CatalogScreen() {
               }
               activeOpacity={0.7}
             >
-              <Text style={styles.packIcon}>{pack.icon}</Text>
+              <OpenMoji emoji={pack.icon} size={32} />
               <View style={styles.packInfo}>
                 <Text style={styles.packName}>{pack.name}</Text>
                 <Text style={styles.packDesc}>{pack.description}</Text>
@@ -197,9 +202,10 @@ export default function CatalogScreen() {
                 >
                   <Card style={[styles.templateCard, { borderLeftColor: tpl.color, borderLeftWidth: 4 }]}>
                     <View style={styles.templateRow}>
-                      <Text style={styles.templateIcon}>{tpl.icon}</Text>
+                      <OpenMoji emoji={tpl.icon} size={32} />
                       <View style={styles.templateInfo}>
                         <Text style={styles.templateName}>{tpl.name}</Text>
+                        <Text style={styles.templateDescription} numberOfLines={2}>{tpl.description}</Text>
                         <Text style={styles.templateMeta}>
                           {tpl.steps.length} étapes · ~{totalDuration(tpl)} min · {tpl.ageRange[0]}-{tpl.ageRange[1]} ans
                         </Text>
@@ -287,7 +293,8 @@ const styles = StyleSheet.create({
   templateIcon: { fontSize: 32 },
   templateInfo: { flex: 1 },
   templateName: { fontSize: FONT_SIZE.md, fontWeight: '700', color: COLORS.text },
-  templateMeta: { fontSize: FONT_SIZE.xs, color: COLORS.textSecondary, marginTop: 2 },
+  templateDescription: { fontSize: FONT_SIZE.sm, color: COLORS.textSecondary, marginTop: 2 },
+  templateMeta: { fontSize: FONT_SIZE.xs, color: COLORS.textSecondary, marginTop: 4 },
   importBtn: {
     width: 36,
     height: 36,
@@ -301,6 +308,12 @@ const styles = StyleSheet.create({
   detailHeader: { alignItems: 'center', gap: SPACING.sm, marginBottom: SPACING.xl },
   detailIcon: { fontSize: 70 },
   detailName: { fontSize: FONT_SIZE.xxl, fontWeight: '900', color: COLORS.text },
+  detailDescription: {
+    fontSize: FONT_SIZE.md,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    maxWidth: 420,
+  },
   detailMeta: { flexDirection: 'row', gap: SPACING.sm, flexWrap: 'wrap', justifyContent: 'center' },
   badge: {
     paddingVertical: SPACING.xs,

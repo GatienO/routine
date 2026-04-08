@@ -16,6 +16,7 @@ import { Button } from '../../src/components/ui/Button';
 import { Card } from '../../src/components/ui/Card';
 import { decodeRoutine, importRoutine } from '../../src/services/sharing';
 import { COLORS, SPACING, FONT_SIZE, RADIUS } from '../../src/constants/theme';
+import { OpenMoji } from '../../src/components/ui/OpenMoji';
 
 export default function ImportScreen() {
   const router = useRouter();
@@ -90,15 +91,18 @@ export default function ImportScreen() {
         ) : (
           <View style={styles.previewSection}>
             <Card color={preview.routine.color}>
-              <Text style={styles.previewIcon}>{preview.routine.icon}</Text>
+              <View style={{ alignItems: 'center', marginBottom: SPACING.sm }}>
+                <OpenMoji emoji={preview.routine.icon} size={48} />
+              </View>
               <Text style={styles.previewName}>{preview.routine.name}</Text>
               <Text style={styles.previewSteps}>
                 {preview.routine.steps.length} étapes
               </Text>
               {preview.routine.steps.map((step, i) => (
-                <Text key={i} style={styles.previewStep}>
-                  {step.icon} {step.title}
-                </Text>
+                <View key={i} style={[styles.previewStep, { flexDirection: 'row', alignItems: 'center', gap: 6 }]}>
+                  <OpenMoji emoji={step.icon} size={20} />
+                  <Text>{step.title}</Text>
+                </View>
               ))}
             </Card>
 

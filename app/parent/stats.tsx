@@ -18,6 +18,7 @@ import { StarCounter } from '../../src/components/rewards/Counters';
 import { ProgressBar } from '../../src/components/ui/ProgressBar';
 import { BADGES } from '../../src/constants/badges';
 import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../../src/constants/theme';
+import { OpenMoji } from '../../src/components/ui/OpenMoji';
 
 export default function StatsScreen() {
   const router = useRouter();
@@ -78,7 +79,7 @@ export default function StatsScreen() {
                   ]}
                   onPress={() => setSelectedChildId(child.id)}
                 >
-                  <Avatar emoji={child.avatar} color={child.color} size={32} />
+                  <Avatar emoji={child.avatar} color={child.color} size={32} avatarConfig={child.avatarConfig} />
                   <Text style={[
                     styles.childTabText,
                     selectedChildId === child.id && { color: COLORS.text, fontWeight: '700' },
@@ -138,7 +139,7 @@ export default function StatsScreen() {
                   const unlocked = rewards.unlockedBadges.includes(badge.id);
                   return (
                     <View key={badge.id} style={[styles.badgeMini, !unlocked && styles.badgeLocked]}>
-                      <Text style={styles.badgeIcon}>{badge.icon}</Text>
+                      <OpenMoji emoji={badge.icon} size={28} />
                       <Text style={[styles.badgeName, !unlocked && styles.badgeLockedText]}>
                         {badge.name}
                       </Text>
@@ -157,7 +158,7 @@ export default function StatsScreen() {
                 routineStats.map(({ routine, completions, totalStars }) => (
                   <Card key={routine.id} style={styles.routineStatCard}>
                     <View style={styles.routineStatRow}>
-                      <Text style={styles.routineIcon}>{routine.icon}</Text>
+                      <OpenMoji emoji={routine.icon} size={32} />
                       <View style={styles.routineStatInfo}>
                         <Text style={styles.routineStatName}>{routine.name}</Text>
                         <Text style={styles.routineStatSub}>
@@ -185,7 +186,7 @@ export default function StatsScreen() {
                   });
                   return (
                     <View key={exec.id} style={styles.activityRow}>
-                      <Text style={styles.activityIcon}>{routine?.icon ?? '📋'}</Text>
+                      <OpenMoji emoji={routine?.icon ?? '📋'} size={24} />
                       <View style={styles.activityInfo}>
                         <Text style={styles.activityName}>{routine?.name ?? 'Routine supprimée'}</Text>
                         <Text style={styles.activityDate}>{dateStr}</Text>
