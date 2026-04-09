@@ -8,45 +8,96 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
+  Image,
+  useWindowDimensions,
+  Platform,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useChildrenStore } from '../../src/stores/childrenStore';
 import { useRoutineStore } from '../../src/stores/routineStore';
 import { Button } from '../../src/components/ui/Button';
+import { BackButton } from '../../src/components/ui/BackButton';
 import { EmojiPicker, ColorPicker } from '../../src/components/ui/Pickers';
 import { Avatar } from '../../src/components/ui/Avatar';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
 import { CHILD_COLORS, COLORS, SPACING, FONT_SIZE, RADIUS } from '../../src/constants/theme';
 import {
   PROFILE_TABS,
-  AVATAR_FACES,
   COMPANION_GROUPS,
   PASSION_GROUPS,
   type ProfileTab,
 } from '../../src/constants/profileCustomization';
+import { AVATAR_ASSET_OPTIONS } from '../../src/constants/avatarAssets';
+import { backOrReplace } from '../../src/utils/navigation';
+
+const AVATAR_RING_SHADOW =
+  Platform.OS === 'web'
+    ? { boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.12)', elevation: 4 }
+    : {
+        shadowColor: COLORS.shadow,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.12,
+        shadowRadius: 8,
+        elevation: 4,
+      };
+
+const AVATAR_MAIN_SHADOW =
+  Platform.OS === 'web'
+    ? { boxShadow: '0px 2px 10px rgba(0, 0, 0, 0.18)', elevation: 6 }
+    : {
+        shadowColor: COLORS.shadow,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.18,
+        shadowRadius: 10,
+        elevation: 6,
+      };
+
+const COMPANION_RING_SHADOW =
+  Platform.OS === 'web'
+    ? { boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.12)', elevation: 4 }
+    : {
+        shadowColor: COLORS.shadow,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.12,
+        shadowRadius: 8,
+        elevation: 4,
+      };
+
+const COMPANION_INNER_SHADOW =
+  Platform.OS === 'web'
+    ? { boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.18)', elevation: 6 }
+    : {
+        shadowColor: COLORS.shadow,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.18,
+        shadowRadius: 8,
+        elevation: 6,
+      };
 
 export default function AddChildScreen() {
   const router = useRouter();
+  const { width } = useWindowDimensions();
   const params = useLocalSearchParams<{ id?: string }>();
   const { addChild, updateChild, removeChild, getChild } = useChildrenStore();
   const { removeRoutine, routines } = useRoutineStore();
   const editing = params.id ? getChild(params.id) : undefined;
 
   const [name, setName] = useState(editing?.name ?? '');
-  const [avatar, setAvatar] = useState(editing?.avatar ?? '🧒');
+  const [avatar, setAvatar] = useState(editing?.avatar ?? AVATAR_ASSET_OPTIONS[0].id);
   const [color, setColor] = useState(editing?.color ?? CHILD_COLORS[0]);
   const [age, setAge] = useState(editing?.age?.toString() ?? '');
   const [companion, setCompanion] = useState(editing?.companion ?? '');
   const [passions, setPassions] = useState<string[]>(editing?.passions ?? []);
-
   const [activeTab, setActiveTab] = useState<ProfileTab>('avatar');
+  const stackedLayout = width < 980;
+  const contentWidth = Math.min(width - SPACING.lg * 2, 1180);
 
   const canSave = name.trim().length > 0 && age.length > 0;
 
   const togglePassion = (emoji: string) => {
     setPassions((prev) =>
       prev.includes(emoji)
-        ? prev.filter((p) => p !== emoji)
+        ? prev.filter((value) => value !== emoji)
         : prev.length < 5
           ? [...prev, emoji]
           : prev,
@@ -56,9 +107,10 @@ export default function AddChildScreen() {
   const handleSave = () => {
     const ageNum = parseInt(age, 10);
     if (isNaN(ageNum) || ageNum < 1 || ageNum > 18) {
-      Alert.alert('Âge invalide', "L'âge doit être entre 1 et 18 ans.");
+      Alert.alert('Age invalide', "L'age doit etre entre 1 et 18 ans.");
       return;
     }
+
     const data = {
       name: name.trim(),
       avatar,
@@ -67,16 +119,19 @@ export default function AddChildScreen() {
       companion: companion || undefined,
       passions: passions.length > 0 ? passions : undefined,
     };
+
     if (editing) {
       updateChild(editing.id, data);
     } else {
       addChild(data);
     }
-    router.back();
+
+    backOrReplace(router, '/parent');
   };
 
   const handleDelete = () => {
     if (!editing) return;
+
     Alert.alert(
       'Supprimer le profil',
       `Supprimer ${editing.name} et toutes ses routines ?`,
@@ -87,24 +142,47 @@ export default function AddChildScreen() {
           style: 'destructive',
           onPress: () => {
             routines
-              .filter((r) => r.childId === editing.id)
-              .forEach((r) => removeRoutine(r.id));
+              .filter((routine) => routine.childId === editing.id)
+              .forEach((routine) => removeRoutine(routine.id));
             removeChild(editing.id);
-            router.back();
+            backOrReplace(router, '/parent');
           },
         },
       ],
     );
   };
 
-  /* ── Tab content renderers ── */
-
   const renderAvatarTab = () => (
-    <EmojiPicker emojis={[...AVATAR_FACES]} selected={avatar} onSelect={setAvatar} size={60} />
+    <View style={styles.avatarAssetGrid}>
+      {AVATAR_ASSET_OPTIONS.map((option) => {
+        const selected = avatar === option.id;
+
+        return (
+          <TouchableOpacity
+            key={option.id}
+            style={[styles.avatarAssetCard, selected && styles.avatarAssetCardSelected]}
+            onPress={() => setAvatar(option.id)}
+            activeOpacity={0.8}
+          >
+            <View
+              style={[
+                styles.avatarAssetPreview,
+                selected && styles.avatarAssetPreviewSelected,
+              ]}
+            >
+              <Image source={option.source} style={styles.avatarAssetImage} resizeMode="contain" />
+            </View>
+            <Text style={[styles.avatarAssetLabel, selected && styles.avatarAssetLabelSelected]}>
+              {option.label}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
   );
 
   const renderCompanionTab = () => (
-    <View style={{ gap: SPACING.sm }}>
+    <View style={styles.sectionStack}>
       {COMPANION_GROUPS.map((group) => (
         <View key={group.label}>
           <Text style={styles.groupLabel}>
@@ -122,10 +200,8 @@ export default function AddChildScreen() {
   );
 
   const renderPassionTab = () => (
-    <View style={{ gap: SPACING.sm }}>
-      <Text style={styles.passionHint}>
-        {passions.length}/5 sélectionnées
-      </Text>
+    <View style={styles.sectionStack}>
+      <Text style={styles.passionHint}>{passions.length}/5 selectionnees</Text>
       {PASSION_GROUPS.map((group) => (
         <View key={group.label}>
           <Text style={styles.groupLabel}>
@@ -134,13 +210,11 @@ export default function AddChildScreen() {
           <View style={styles.passionGrid}>
             {group.emojis.map((emoji) => {
               const selected = passions.includes(emoji);
+
               return (
                 <TouchableOpacity
                   key={emoji}
-                  style={[
-                    styles.passionItem,
-                    selected && styles.passionItemSelected,
-                  ]}
+                  style={[styles.passionItem, selected && styles.passionItemSelected]}
                   onPress={() => togglePassion(emoji)}
                   activeOpacity={0.7}
                 >
@@ -162,19 +236,14 @@ export default function AddChildScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.scroll}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.back}>← Retour</Text>
-        </TouchableOpacity>
+      <ScrollView contentContainerStyle={[styles.scroll, styles.scrollCentered]}>
+        <View style={[styles.content, { width: contentWidth, maxWidth: '100%' }]}>
+          <BackButton style={styles.back} onPress={() => backOrReplace(router, '/parent')} />
 
-        <Text style={styles.title}>
-          {editing ? 'Modifier le profil' : 'Nouvel enfant'}
-        </Text>
+        <Text style={styles.title}>{editing ? 'Modifier le profil' : 'Nouvel enfant'}</Text>
 
-        {/* Top row: avatar preview + fields + tab picker */}
-        <View style={styles.avatarSection}>
-          {/* Left: avatar preview + companion badge */}
-          <View style={styles.avatarPreviewCol}>
+        <View style={[styles.avatarSection, stackedLayout && styles.avatarSectionStacked]}>
+          <View style={[styles.avatarPreviewCol, stackedLayout && styles.avatarPreviewColStacked]}>
             <View style={styles.avatarWrapper}>
               <View style={styles.avatarRing} />
               <Avatar emoji={avatar} color={color} size={110} style={styles.avatarMain} />
@@ -187,33 +256,33 @@ export default function AddChildScreen() {
                 </View>
               ) : null}
             </View>
-            <Text style={styles.previewName}>{name || 'Prénom'}</Text>
-            {passions.length > 0 && (
+            <Text style={styles.previewName}>{name || 'Prenom'}</Text>
+            {passions.length > 0 ? (
               <View style={styles.passionPreview}>
-                {passions.map((p) => (
-                  <OpenMoji key={p} emoji={p} size={18} />
+                {passions.map((passion) => (
+                  <OpenMoji key={passion} emoji={passion} size={18} />
                 ))}
               </View>
-            )}
+            ) : null}
           </View>
 
-          {/* Center: name & age */}
-          <View style={styles.fieldsCol}>
-            <Text style={styles.fieldLabel}>Prénom</Text>
+          <View style={[styles.fieldsCol, stackedLayout && styles.fieldsColStacked]}>
+            <Text style={styles.fieldLabel}>Prenom</Text>
             <TextInput
               style={styles.input}
               value={name}
               onChangeText={setName}
-              placeholder="Prénom"
+              placeholder="Prenom"
               placeholderTextColor={COLORS.textLight}
               maxLength={20}
               autoFocus={!editing}
             />
-            <Text style={styles.fieldLabel}>Âge</Text>
+
+            <Text style={styles.fieldLabel}>Age</Text>
             <TextInput
               style={[styles.input, styles.inputSmall]}
               value={age}
-              onChangeText={(t) => setAge(t.replace(/[^0-9]/g, ''))}
+              onChangeText={(value) => setAge(value.replace(/[^0-9]/g, ''))}
               placeholder="5"
               placeholderTextColor={COLORS.textLight}
               keyboardType="number-pad"
@@ -221,9 +290,7 @@ export default function AddChildScreen() {
             />
           </View>
 
-          {/* Right: tabbed customization panel */}
-          <View style={styles.avatarCustomCol}>
-            {/* Tab bar */}
+          <View style={[styles.avatarCustomCol, stackedLayout && styles.avatarCustomColStacked]}>
             <View style={styles.tabBar}>
               {PROFILE_TABS.map((tab) => {
                 const active = activeTab === tab.key;
@@ -235,16 +302,14 @@ export default function AddChildScreen() {
                     activeOpacity={0.7}
                   >
                     <OpenMoji emoji={tab.icon} size={20} />
-                    <Text
-                      style={[styles.tabLabel, active && styles.tabLabelActive]}
-                    >
+                    <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>
                       {tab.label}
                     </Text>
                   </TouchableOpacity>
                 );
               })}
             </View>
-            {/* Tab content */}
+
             <ScrollView
               style={styles.tabContent}
               nestedScrollEnabled
@@ -255,11 +320,9 @@ export default function AddChildScreen() {
           </View>
         </View>
 
-        {/* Color */}
         <Text style={[styles.label, { marginTop: SPACING.lg }]}>Couleur</Text>
         <ColorPicker colors={CHILD_COLORS} selected={color} onSelect={setColor} />
 
-        {/* Save */}
         <View style={styles.actions}>
           <Button
             title={editing ? 'Enregistrer' : 'Ajouter'}
@@ -269,7 +332,7 @@ export default function AddChildScreen() {
             disabled={!canSave}
             color={COLORS.secondary}
           />
-          {editing && (
+          {editing ? (
             <Button
               title="Supprimer le profil"
               onPress={handleDelete}
@@ -277,7 +340,8 @@ export default function AddChildScreen() {
               size="sm"
               color={COLORS.error}
             />
-          )}
+          ) : null}
+        </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -285,19 +349,43 @@ export default function AddChildScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: COLORS.background },
-  scroll: { padding: SPACING.lg, paddingBottom: SPACING.xxl },
-  back: { fontSize: FONT_SIZE.md, color: COLORS.secondary, fontWeight: '600', marginBottom: SPACING.lg },
-  title: { fontSize: FONT_SIZE.xl, fontWeight: '800', color: COLORS.text, marginBottom: SPACING.lg },
+  safe: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  scroll: {
+    padding: SPACING.lg,
+    paddingBottom: SPACING.xxl,
+  },
+  scrollCentered: {
+    alignItems: 'center',
+  },
+  content: {
+    width: '100%',
+  },
+  back: { marginBottom: SPACING.lg },
+  title: {
+    fontSize: FONT_SIZE.xl,
+    fontWeight: '800',
+    color: COLORS.text,
+    marginBottom: SPACING.lg,
+  },
   avatarSection: {
     flexDirection: 'row',
     marginBottom: SPACING.lg,
+    gap: SPACING.md,
+  },
+  avatarSectionStacked: {
+    flexDirection: 'column',
   },
   avatarPreviewCol: {
     width: '25%',
     alignItems: 'center',
     justifyContent: 'flex-start',
     paddingVertical: SPACING.md,
+  },
+  avatarPreviewColStacked: {
+    width: '100%',
   },
   previewName: {
     fontSize: FONT_SIZE.md,
@@ -321,11 +409,7 @@ const styles = StyleSheet.create({
     borderWidth: 4,
     borderColor: COLORS.secondary,
     backgroundColor: COLORS.surface,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 4,
+    ...AVATAR_RING_SHADOW,
     zIndex: 1,
   },
   avatarMain: {
@@ -336,11 +420,7 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: '#FFF',
     backgroundColor: '#FFF',
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.18,
-    shadowRadius: 10,
-    elevation: 6,
+    ...AVATAR_MAIN_SHADOW,
     zIndex: 2,
     alignItems: 'center',
     justifyContent: 'center',
@@ -363,13 +443,9 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 24,
     borderWidth: 4,
-    borderColor: '#FFD1E3', // rose pale
+    borderColor: '#FFD1E3',
     backgroundColor: '#FFF',
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 4,
+    ...COMPANION_RING_SHADOW,
     zIndex: 1,
   },
   companionInner: {
@@ -381,11 +457,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.18,
-    shadowRadius: 8,
-    elevation: 6,
+    ...COMPANION_INNER_SHADOW,
     zIndex: 2,
   },
   passionPreview: {
@@ -401,6 +473,10 @@ const styles = StyleSheet.create({
     gap: SPACING.xs,
     paddingHorizontal: SPACING.xs,
   },
+  fieldsColStacked: {
+    width: '100%',
+    paddingHorizontal: 0,
+  },
   fieldLabel: {
     fontSize: FONT_SIZE.xs,
     fontWeight: '600',
@@ -408,12 +484,14 @@ const styles = StyleSheet.create({
   },
   avatarCustomCol: {
     width: '50%',
-    marginLeft: '5%',
     backgroundColor: COLORS.surface,
     borderRadius: RADIUS.xl,
     borderWidth: 1,
     borderColor: COLORS.surfaceSecondary,
     overflow: 'hidden',
+  },
+  avatarCustomColStacked: {
+    width: '100%',
   },
   tabBar: {
     flexDirection: 'row',
@@ -442,6 +520,53 @@ const styles = StyleSheet.create({
     padding: SPACING.sm,
     maxHeight: 260,
   },
+  avatarAssetGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.sm,
+  },
+  avatarAssetCard: {
+    width: 92,
+    alignItems: 'center',
+    gap: SPACING.xs,
+    padding: SPACING.xs,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+    borderColor: 'transparent',
+    backgroundColor: COLORS.surface,
+  },
+  avatarAssetCardSelected: {
+    borderColor: COLORS.secondary,
+    backgroundColor: COLORS.secondary + '10',
+  },
+  avatarAssetPreview: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    borderWidth: 2,
+    borderColor: COLORS.surfaceSecondary,
+    backgroundColor: '#FFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarAssetPreviewSelected: {
+    borderColor: COLORS.secondary,
+  },
+  avatarAssetImage: {
+    width: 54,
+    height: 54,
+  },
+  avatarAssetLabel: {
+    fontSize: FONT_SIZE.xs,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+  },
+  avatarAssetLabelSelected: {
+    color: COLORS.secondary,
+  },
+  sectionStack: {
+    gap: SPACING.sm,
+  },
   groupLabel: {
     fontSize: FONT_SIZE.xs,
     fontWeight: '700',
@@ -468,7 +593,13 @@ const styles = StyleSheet.create({
     borderColor: COLORS.secondary,
     backgroundColor: COLORS.surfaceSecondary,
   },
-  label: { fontSize: FONT_SIZE.sm, fontWeight: '600', color: COLORS.textSecondary, marginBottom: SPACING.sm, marginTop: SPACING.md },
+  label: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+    marginBottom: SPACING.sm,
+    marginTop: SPACING.md,
+  },
   input: {
     backgroundColor: COLORS.surface,
     borderRadius: RADIUS.lg,
@@ -478,6 +609,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.surfaceSecondary,
   },
-  inputSmall: { width: 80 },
-  actions: { marginTop: SPACING.xl, gap: SPACING.md },
+  inputSmall: {
+    width: 80,
+  },
+  actions: {
+    marginTop: SPACING.xl,
+    gap: SPACING.md,
+  },
 });

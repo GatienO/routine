@@ -6,21 +6,23 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  Alert,
+  Modal,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useChildrenStore } from '../../src/stores/childrenStore';
 import { useRoutineStore } from '../../src/stores/routineStore';
 import { Card } from '../../src/components/ui/Card';
 import { Button } from '../../src/components/ui/Button';
+import { BackButton } from '../../src/components/ui/BackButton';
 import {
   ROUTINE_PACKS,
   RoutineTemplate,
-  RoutinePack,
 } from '../../src/constants/routineTemplates';
+import { Child } from '../../src/types';
 import { CATEGORY_CONFIG, COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../../src/constants/theme';
 import { generateId } from '../../src/utils/id';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
+import { backOrReplace } from '../../src/utils/navigation';
 
 export default function CatalogScreen() {
   const router = useRouter();
@@ -28,23 +30,20 @@ export default function CatalogScreen() {
   const { addRoutine } = useRoutineStore();
   const [expandedPack, setExpandedPack] = useState<string | null>(ROUTINE_PACKS[0]?.id ?? null);
   const [selectedTemplate, setSelectedTemplate] = useState<RoutineTemplate | null>(null);
+  const [pendingImportTemplate, setPendingImportTemplate] = useState<RoutineTemplate | null>(null);
+  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
 
-  const handleImport = (template: RoutineTemplate) => {
-    if (children.length === 0) {
-      Alert.alert('Aucun enfant', 'Ajoutez d\'abord un enfant pour importer une routine.');
-      return;
-    }
-
-    const importForChild = (childId: string) => {
-      const steps = template.steps.map((s, i) => ({
+  const importForChildren = (template: RoutineTemplate, childIds: string[]) => {
+    childIds.forEach((childId) => {
+      const steps = template.steps.map((step, index) => ({
         id: generateId(),
-        title: s.title,
-        icon: s.icon,
+        title: step.title,
+        icon: step.icon,
         color: template.color,
-        durationMinutes: s.durationMinutes,
-        instruction: s.instruction,
-        isRequired: s.isRequired,
-        order: i,
+        durationMinutes: step.durationMinutes,
+        instruction: step.instruction,
+        isRequired: step.isRequired,
+        order: index,
       }));
 
       addRoutine({
@@ -57,38 +56,38 @@ export default function CatalogScreen() {
         steps,
         isActive: true,
       });
+    });
 
-      Alert.alert('✅ Routine ajoutée !', `"${template.name}" a été ajoutée.`);
-      setSelectedTemplate(null);
-    };
-
-    if (children.length === 1) {
-      importForChild(children[0].id);
-    } else {
-      Alert.alert(
-        'Pour quel enfant ?',
-        undefined,
-        [
-          ...children.map((c) => ({
-            text: `${c.avatar} ${c.name}`,
-            onPress: () => importForChild(c.id),
-          })),
-          { text: 'Annuler', style: 'cancel' as const },
-        ]
-      );
-    }
+    setPendingImportTemplate(null);
+    setSelectedTemplate(null);
+    setFeedbackMessage(
+      `"${template.name}" a ete ajoutee pour ${childIds.length} enfant${childIds.length > 1 ? 's' : ''}.`,
+    );
   };
 
-  const totalDuration = (t: RoutineTemplate) =>
-    t.steps.reduce((sum, s) => sum + s.durationMinutes, 0);
+  const handleImport = (template: RoutineTemplate) => {
+    if (children.length === 0) {
+      setFeedbackMessage('Ajoutez d abord un enfant pour importer une routine.');
+      return;
+    }
 
-  const categoryLabel = (cat: string) =>
-    CATEGORY_CONFIG[cat]?.label ?? cat;
+    if (children.length === 1) {
+      importForChildren(template, [children[0].id]);
+      return;
+    }
 
-  const categoryIcon = (cat: string) =>
-    CATEGORY_CONFIG[cat]?.icon ?? '✨';
+    setPendingImportTemplate(template);
+  };
 
-  // Detail view
+  const totalDuration = (template: RoutineTemplate) =>
+    template.steps.reduce((sum, step) => sum + step.durationMinutes, 0);
+
+  const categoryLabel = (category: string) =>
+    CATEGORY_CONFIG[category]?.label ?? category;
+
+  const categoryIcon = (category: string) =>
+    CATEGORY_CONFIG[category]?.icon ?? '✨';
+
   if (selectedTemplate) {
     return (
       <SafeAreaView style={styles.safe}>
@@ -97,8 +96,17 @@ export default function CatalogScreen() {
             <Text style={styles.back}>← Retour au catalogue</Text>
           </TouchableOpacity>
 
+          <BackButton style={styles.backButton} onPress={() => setSelectedTemplate(null)} />
+          {feedbackMessage ? (
+            <TouchableOpacity onPress={() => setFeedbackMessage(null)} activeOpacity={0.85}>
+              <View style={styles.feedbackBanner}>
+                <Text style={styles.feedbackText}>{feedbackMessage}</Text>
+              </View>
+            </TouchableOpacity>
+          ) : null}
+
           <View style={styles.detailHeader}>
-            <View style={{ alignItems: 'center', marginBottom: SPACING.md }}>
+            <View style={styles.detailIconWrap}>
               <OpenMoji emoji={selectedTemplate.icon} size={48} />
             </View>
             <Text style={styles.detailName}>{selectedTemplate.name}</Text>
@@ -123,13 +131,13 @@ export default function CatalogScreen() {
           </View>
 
           <Text style={styles.sectionLabel}>
-            Étapes ({selectedTemplate.steps.length})
+            Etapes ({selectedTemplate.steps.length})
           </Text>
 
-          {selectedTemplate.steps.map((step, i) => (
-            <Card key={i} style={styles.stepCard}>
+          {selectedTemplate.steps.map((step, index) => (
+            <Card key={index} style={styles.stepCard}>
               <View style={styles.stepRow}>
-                <Text style={styles.stepOrder}>{i + 1}</Text>
+                <Text style={styles.stepOrder}>{index + 1}</Text>
                 <OpenMoji emoji={step.icon} size={28} />
                 <View style={styles.stepInfo}>
                   <Text style={styles.stepTitle}>{step.title}</Text>
@@ -146,7 +154,7 @@ export default function CatalogScreen() {
 
           <View style={styles.importArea}>
             <Button
-              title="📥 Importer cette routine"
+              title="Importer cette routine"
               onPress={() => handleImport(selectedTemplate)}
               variant="primary"
               size="lg"
@@ -154,20 +162,36 @@ export default function CatalogScreen() {
             />
           </View>
         </ScrollView>
+
+        <ChildPickerModal
+          children={children}
+          template={pendingImportTemplate}
+          onClose={() => setPendingImportTemplate(null)}
+          onImport={(childIds) => pendingImportTemplate && importForChildren(pendingImportTemplate, childIds)}
+        />
       </SafeAreaView>
     );
   }
 
-  // Pack list view
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => backOrReplace(router, '/parent')}>
           <Text style={styles.back}>← Retour</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>📚 Catalogue de routines</Text>
+
+        <BackButton style={styles.backButton} onPress={() => backOrReplace(router, '/parent')} />
+        {feedbackMessage ? (
+          <TouchableOpacity onPress={() => setFeedbackMessage(null)} activeOpacity={0.85}>
+            <View style={styles.feedbackBanner}>
+              <Text style={styles.feedbackText}>{feedbackMessage}</Text>
+            </View>
+          </TouchableOpacity>
+        ) : null}
+
+        <Text style={styles.title}>Catalogue de routines</Text>
         <Text style={styles.subtitle}>
-          Choisissez un modèle et importez-le en un tap
+          Choisissez un modele et importez-le en un tap
         </Text>
 
         {ROUTINE_PACKS.map((pack) => (
@@ -177,9 +201,7 @@ export default function CatalogScreen() {
                 styles.packHeader,
                 expandedPack === pack.id && styles.packHeaderActive,
               ]}
-              onPress={() =>
-                setExpandedPack(expandedPack === pack.id ? null : pack.id)
-              }
+              onPress={() => setExpandedPack(expandedPack === pack.id ? null : pack.id)}
               activeOpacity={0.7}
             >
               <OpenMoji emoji={pack.icon} size={32} />
@@ -194,36 +216,128 @@ export default function CatalogScreen() {
             </TouchableOpacity>
 
             {expandedPack === pack.id &&
-              pack.templates.map((tpl) => (
-                <TouchableOpacity
-                  key={tpl.id}
-                  activeOpacity={0.7}
-                  onPress={() => setSelectedTemplate(tpl)}
-                >
-                  <Card style={[styles.templateCard, { borderLeftColor: tpl.color, borderLeftWidth: 4 }]}>
+              pack.templates.map((template) => (
+                <View key={template.id}>
+                  <Card style={[styles.templateCard, { borderLeftColor: template.color, borderLeftWidth: 4 }]}>
                     <View style={styles.templateRow}>
-                      <OpenMoji emoji={tpl.icon} size={32} />
-                      <View style={styles.templateInfo}>
-                        <Text style={styles.templateName}>{tpl.name}</Text>
-                        <Text style={styles.templateDescription} numberOfLines={2}>{tpl.description}</Text>
-                        <Text style={styles.templateMeta}>
-                          {tpl.steps.length} étapes · ~{totalDuration(tpl)} min · {tpl.ageRange[0]}-{tpl.ageRange[1]} ans
-                        </Text>
-                      </View>
                       <TouchableOpacity
-                        style={[styles.importBtn, { backgroundColor: tpl.color + '20' }]}
-                        onPress={() => handleImport(tpl)}
+                        activeOpacity={0.7}
+                        onPress={() => setSelectedTemplate(template)}
+                        style={styles.templateMainTap}
                       >
-                        <Text style={[styles.importBtnText, { color: tpl.color }]}>+</Text>
+                        <View style={styles.templateMainContent}>
+                          <OpenMoji emoji={template.icon} size={32} />
+                          <View style={styles.templateInfo}>
+                            <Text style={styles.templateName}>{template.name}</Text>
+                            <Text style={styles.templateDescription} numberOfLines={2}>
+                              {template.description}
+                            </Text>
+                            <Text style={styles.templateMeta}>
+                              {template.steps.length} etapes · ~{totalDuration(template)} min · {template.ageRange[0]}-{template.ageRange[1]} ans
+                            </Text>
+                          </View>
+                        </View>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.importBtn, { backgroundColor: template.color + '20' }]}
+                        onPress={() => handleImport(template)}
+                      >
+                        <Text style={[styles.importBtnText, { color: template.color }]}>+</Text>
                       </TouchableOpacity>
                     </View>
                   </Card>
-                </TouchableOpacity>
+                </View>
               ))}
           </View>
         ))}
       </ScrollView>
+
+      <ChildPickerModal
+        children={children}
+        template={pendingImportTemplate}
+        onClose={() => setPendingImportTemplate(null)}
+        onImport={(childIds) => pendingImportTemplate && importForChildren(pendingImportTemplate, childIds)}
+      />
     </SafeAreaView>
+  );
+}
+
+function ChildPickerModal({
+  children,
+  template,
+  onClose,
+  onImport,
+}: {
+  children: Child[];
+  template: RoutineTemplate | null;
+  onClose: () => void;
+  onImport: (childIds: string[]) => void;
+}) {
+  const [selectedChildIds, setSelectedChildIds] = useState<string[]>([]);
+
+  React.useEffect(() => {
+    if (!template) {
+      setSelectedChildIds([]);
+      return;
+    }
+
+    setSelectedChildIds(children.map((child) => child.id));
+  }, [template, children]);
+
+  const toggleChild = (childId: string) => {
+    setSelectedChildIds((prev) =>
+      prev.includes(childId)
+        ? prev.filter((id) => id !== childId)
+        : [...prev, childId],
+    );
+  };
+
+  return (
+    <Modal
+      visible={template !== null}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <View style={styles.modalBackdrop}>
+        <View style={styles.modalCard}>
+          <Text style={styles.modalTitle}>Pour quel enfant ?</Text>
+          <Text style={styles.modalSubtitle}>
+            Choisissez un ou plusieurs enfants qui recevront "{template?.name}".
+          </Text>
+          <View style={styles.modalChoices}>
+            {children.map((child) => (
+              <TouchableOpacity
+                key={child.id}
+                style={[
+                  styles.childChoice,
+                  selectedChildIds.includes(child.id) && styles.childChoiceSelected,
+                ]}
+                onPress={() => toggleChild(child.id)}
+              >
+                <OpenMoji emoji={child.avatar} size={22} />
+                <Text style={styles.childChoiceText}>{child.name}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <TouchableOpacity
+            style={[
+              styles.modalImportBtn,
+              selectedChildIds.length === 0 && styles.modalImportBtnDisabled,
+            ]}
+            onPress={() => selectedChildIds.length > 0 && onImport(selectedChildIds)}
+            disabled={selectedChildIds.length === 0}
+          >
+            <Text style={styles.modalImportBtnText}>
+              Importer pour {selectedChildIds.length} enfant{selectedChildIds.length > 1 ? 's' : ''}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.modalCancel} onPress={onClose}>
+            <Text style={styles.modalCancelText}>Annuler</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
   );
 }
 
@@ -231,9 +345,12 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS.background },
   scroll: { padding: SPACING.lg, paddingBottom: SPACING.xxl },
   back: {
-    fontSize: FONT_SIZE.md,
-    color: COLORS.secondary,
-    fontWeight: '600',
+    fontSize: 0,
+    color: 'transparent',
+    marginBottom: 0,
+    height: 0,
+  },
+  backButton: {
     marginBottom: SPACING.lg,
   },
   title: {
@@ -247,8 +364,20 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     marginBottom: SPACING.xl,
   },
-
-  // Packs
+  feedbackBanner: {
+    backgroundColor: COLORS.success + '18',
+    borderWidth: 1,
+    borderColor: COLORS.success + '35',
+    borderRadius: RADIUS.lg,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    marginBottom: SPACING.lg,
+  },
+  feedbackText: {
+    color: COLORS.text,
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '700',
+  },
   packSection: { marginBottom: SPACING.lg },
   packHeader: {
     flexDirection: 'row',
@@ -263,7 +392,6 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
   },
-  packIcon: { fontSize: 32 },
   packInfo: { flex: 1 },
   packName: { fontSize: FONT_SIZE.lg, fontWeight: '800', color: COLORS.text },
   packDesc: { fontSize: FONT_SIZE.xs, color: COLORS.textSecondary },
@@ -279,8 +407,6 @@ const styles = StyleSheet.create({
     lineHeight: 28,
   },
   packChevron: { fontSize: 16, color: COLORS.textLight },
-
-  // Template cards
   templateCard: {
     marginTop: 1,
     borderRadius: 0,
@@ -290,7 +416,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: SPACING.md,
   },
-  templateIcon: { fontSize: 32 },
+  templateMainTap: {
+    flex: 1,
+  },
+  templateMainContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.md,
+  },
   templateInfo: { flex: 1 },
   templateName: { fontSize: FONT_SIZE.md, fontWeight: '700', color: COLORS.text },
   templateDescription: { fontSize: FONT_SIZE.sm, color: COLORS.textSecondary, marginTop: 2 },
@@ -303,10 +436,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   importBtnText: { fontSize: 22, fontWeight: '800' },
-
-  // Detail view
   detailHeader: { alignItems: 'center', gap: SPACING.sm, marginBottom: SPACING.xl },
-  detailIcon: { fontSize: 70 },
+  detailIconWrap: { alignItems: 'center', marginBottom: SPACING.md },
   detailName: { fontSize: FONT_SIZE.xxl, fontWeight: '900', color: COLORS.text },
   detailDescription: {
     fontSize: FONT_SIZE.md,
@@ -330,10 +461,85 @@ const styles = StyleSheet.create({
   stepCard: { marginBottom: SPACING.xs },
   stepRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
   stepOrder: { fontSize: FONT_SIZE.sm, fontWeight: '800', color: COLORS.textLight, width: 20 },
-  stepIcon: { fontSize: 28 },
   stepInfo: { flex: 1 },
   stepTitle: { fontSize: FONT_SIZE.md, fontWeight: '600', color: COLORS.text },
   stepMeta: { fontSize: FONT_SIZE.xs, color: COLORS.textSecondary },
   stepInstruction: { fontSize: FONT_SIZE.xs, color: COLORS.textSecondary, fontStyle: 'italic', marginTop: 2 },
   importArea: { marginTop: SPACING.xl },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(15,23,42,0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: SPACING.lg,
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 420,
+    backgroundColor: COLORS.background,
+    borderRadius: RADIUS.xl,
+    padding: SPACING.lg,
+    ...SHADOWS.md,
+  },
+  modalTitle: {
+    fontSize: FONT_SIZE.lg,
+    fontWeight: '800',
+    color: COLORS.text,
+    marginBottom: SPACING.xs,
+  },
+  modalSubtitle: {
+    fontSize: FONT_SIZE.sm,
+    color: COLORS.textSecondary,
+    marginBottom: SPACING.lg,
+  },
+  modalChoices: {
+    gap: SPACING.sm,
+  },
+  childChoice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.md,
+    borderRadius: RADIUS.lg,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.surfaceSecondary,
+  },
+  childChoiceSelected: {
+    backgroundColor: COLORS.secondary + '18',
+    borderColor: COLORS.secondary,
+  },
+  childChoiceText: {
+    fontSize: FONT_SIZE.md,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  modalImportBtn: {
+    marginTop: SPACING.md,
+    backgroundColor: COLORS.secondary,
+    borderRadius: RADIUS.full,
+    alignItems: 'center',
+    paddingVertical: SPACING.md,
+    ...SHADOWS.sm,
+  },
+  modalImportBtnDisabled: {
+    backgroundColor: COLORS.textLight,
+  },
+  modalImportBtnText: {
+    color: '#FFF',
+    fontSize: FONT_SIZE.md,
+    fontWeight: '800',
+  },
+  modalCancel: {
+    alignSelf: 'center',
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    marginTop: SPACING.md,
+  },
+  modalCancelText: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+  },
 });

@@ -74,9 +74,9 @@ export function Button({
 }
 
 const sizes: Record<string, ViewStyle> = {
-  sm: { paddingVertical: SPACING.sm, paddingHorizontal: SPACING.md, minHeight: 40 },
-  md: { paddingVertical: SPACING.md, paddingHorizontal: SPACING.lg, minHeight: 52 },
-  lg: { paddingVertical: SPACING.lg, paddingHorizontal: SPACING.xl, minHeight: 64 },
+  sm: { paddingVertical: SPACING.sm, paddingHorizontal: SPACING.md, minHeight: 42 },
+  md: { paddingVertical: SPACING.md, paddingHorizontal: SPACING.lg, minHeight: 50 },
+  lg: { paddingVertical: SPACING.md + 2, paddingHorizontal: SPACING.xl, minHeight: 58 },
 };
 
 const textSizes: Record<string, TextStyle> = {
@@ -92,9 +92,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: SPACING.sm,
+    maxWidth: '100%',
   },
   text: {
     fontWeight: '700',
+    flexShrink: 1,
+    textAlign: 'center',
   },
   icon: {
     fontSize: FONT_SIZE.lg,

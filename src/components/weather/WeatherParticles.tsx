@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, Dimensions, View } from 'react-native';
+import { StyleSheet, Dimensions, Platform, View } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -78,7 +78,13 @@ export function WeatherParticles({ theme }: Props) {
   if (theme.particles.length === 0) return null;
 
   return (
-    <View style={styles.container} pointerEvents="none">
+    <View
+      style={[
+        styles.container,
+        Platform.OS === 'web' ? ({ pointerEvents: 'none' } as any) : null,
+      ]}
+      {...(Platform.OS === 'web' ? {} : { pointerEvents: 'none' })}
+    >
       {Array.from({ length: PARTICLE_COUNT }).map((_, i) => (
         <Particle
           key={i}

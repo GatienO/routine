@@ -21,32 +21,34 @@ import { MOOD_CONFIG, POSITIVE_MOODS, NEGATIVE_MOODS } from '../../src/constants
 import { ChildMoodType } from '../../src/types';
 import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../../src/constants/theme';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
+import { backOrReplace } from '../../src/utils/navigation';
 
 export default function MoodScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ routineId: string; chainIds?: string }>();
+  const params = useLocalSearchParams<{ routineId: string; chainIds?: string; childId?: string }>();
   const { selectedChildId } = useAppStore();
   const { setMood } = useMoodStore();
   const { startExecution, startChain } = useRoutineStore();
+  const activeChildId = params.childId ?? selectedChildId;
 
   const handleSelectMood = (mood: ChildMoodType) => {
-    if (!selectedChildId) return;
-    setMood(selectedChildId, mood);
+    if (!activeChildId) return;
+    setMood(activeChildId, mood);
 
     if (params.chainIds) {
       const ids = params.chainIds.split(',').filter(Boolean);
       if (ids.length >= 2) {
-        startChain(ids, selectedChildId);
+        startChain(ids, [activeChildId]);
         router.replace('/child/run');
         return;
       }
     }
 
     if (params.routineId) {
-      startExecution(params.routineId, selectedChildId);
+      startExecution(params.routineId, [activeChildId]);
       router.replace('/child/run');
     } else {
-      router.back();
+      backOrReplace(router, '/child');
     }
   };
 
@@ -114,7 +116,7 @@ export default function MoodScreen() {
           </View>
 
           <TouchableOpacity
-            onPress={() => router.back()}
+            onPress={() => backOrReplace(router, '/child')}
             style={styles.skipBtn}
           >
             <Text style={styles.skipText}>Passer →</Text>

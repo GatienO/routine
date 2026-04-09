@@ -1,135 +1,159 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
+  AppState,
+  ScrollView,
+  useWindowDimensions,
+  Platform,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  withSequence,
-  withTiming,
-  withSpring,
-  withDelay,
-  Easing,
-  FadeInDown,
-  FadeIn,
-  BounceIn,
-} from 'react-native-reanimated';
+import Animated, { BounceIn, FadeInUp } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
+import { CaretDown, CaretUp, ClipboardText, Gift, Rocket } from 'phosphor-react-native';
 import { useChildrenStore } from '../../src/stores/childrenStore';
 import { useAppStore } from '../../src/stores/appStore';
+import { useRoutineStore } from '../../src/stores/routineStore';
+import { useWeatherStore } from '../../src/stores/weatherStore';
 import { Avatar } from '../../src/components/ui/Avatar';
 import { AnimatedPressable } from '../../src/components/ui/AnimatedPressable';
+import { BackButton } from '../../src/components/ui/BackButton';
+import { WeatherCard } from '../../src/components/weather/WeatherCard';
+import { OpenMoji } from '../../src/components/ui/OpenMoji';
 import { COLORS, SPACING, FONT_SIZE, SHADOWS, RADIUS } from '../../src/constants/theme';
-import { ArrowLeft, HandTap } from 'phosphor-react-native';
-import { useWeatherStore } from '../../src/stores/weatherStore';
-import { getWeatherTheme, DEFAULT_WEATHER_THEME, getWeatherTextColor, getWeatherSecondaryTextColor } from '../../src/constants/weatherThemes';
+import {
+  DEFAULT_WEATHER_THEME,
+  getWeatherSecondaryTextColor,
+  getWeatherTextColor,
+  getWeatherTheme,
+} from '../../src/constants/weatherThemes';
+import { WEATHER_LIVE_REFRESH_MS } from '../../src/services/weather';
 
-
-function WobbleAvatar({ emoji, color, size, delay: d, avatarConfig }: { emoji: string; color: string; size: number; delay: number; avatarConfig?: import('../../src/types').AvatarConfig }) {
-  const wobble = useSharedValue(0);
-
-  useEffect(() => {
-    wobble.value = withDelay(
-      d,
-      withRepeat(
-        withSequence(
-          withTiming(4, { duration: 600, easing: Easing.inOut(Easing.sin) }),
-          withTiming(-4, { duration: 600, easing: Easing.inOut(Easing.sin) }),
-          withTiming(0, { duration: 400, easing: Easing.inOut(Easing.sin) })
-        ),
-        -1,
-        false
-      )
-    );
-  }, []);
-
-  const style = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${wobble.value}deg` }],
-  }));
-
-  return (
-    <Animated.View style={style}>
-      <Avatar emoji={emoji} color={color} size={size} avatarConfig={avatarConfig} />
-    </Animated.View>
-  );
-}
-
-export default function ChildSelectScreen() {
+export default function ChildLauncherScreen() {
   const router = useRouter();
-  const { children } = useChildrenStore();
+  const { width } = useWindowDimensions();
+  const { children, getChild } = useChildrenStore();
   const { selectChild, weatherCity, useGeolocation } = useAppStore();
+  const { routines } = useRoutineStore();
   const { weather, refresh: refreshWeather } = useWeatherStore();
+  const [selectedRoutineIds, setSelectedRoutineIds] = useState<string[]>([]);
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
 
-  const wt = weather
+  const weatherTheme = weather
     ? getWeatherTheme(weather.condition, weather.isDay)
     : DEFAULT_WEATHER_THEME;
   const textColor = weather ? getWeatherTextColor(weather.isDay) : COLORS.text;
   const secondaryColor = weather ? getWeatherSecondaryTextColor(weather.isDay) : COLORS.textSecondary;
   const isNight = weather ? !weather.isDay : false;
+  const contentWidth = Math.min(width - SPACING.lg * 2, 1100);
 
   useEffect(() => {
-    refreshWeather({ cityName: weatherCity, useGeolocation });
-  }, []);
+    refreshWeather(
+      { cityName: weatherCity, useGeolocation },
+      { maxCacheAgeMs: WEATHER_LIVE_REFRESH_MS },
+    );
+  }, [weatherCity, useGeolocation, refreshWeather]);
 
-  const handleSelect = (childId: string) => {
-    selectChild(childId);
-    router.push('/child/home');
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        refreshWeather(
+          { cityName: weatherCity, useGeolocation },
+          { maxCacheAgeMs: WEATHER_LIVE_REFRESH_MS },
+        );
+      }
+    });
+
+    return () => subscription.remove();
+  }, [weatherCity, useGeolocation, refreshWeather]);
+
+  const sections = useMemo(
+    () =>
+      children
+        .map((child) => ({
+          child,
+          routines: routines.filter((routine) => routine.childId === child.id && routine.isActive),
+        }))
+        .filter((section) => section.routines.length > 0),
+    [children, routines],
+  );
+
+  const totalRoutines = sections.reduce((sum, section) => sum + section.routines.length, 0);
+  const selectedRoutines = selectedRoutineIds
+    .map((routineId) => routines.find((routine) => routine.id === routineId))
+    .filter((routine): routine is NonNullable<typeof routine> => Boolean(routine));
+  const selectedDuration = selectedRoutines.reduce(
+    (sum, routine) => sum + routine.steps.reduce((stepSum, step) => stepSum + step.durationMinutes, 0),
+    0,
+  );
+
+  const handleGoBack = () => {
+    selectChild(null);
+    router.replace('/');
+  };
+
+  const handleOpenRewards = () => {
+    router.push('/child/rewards');
+  };
+
+  const toggleRoutine = (routineId: string) => {
+    setSelectedRoutineIds((prev) =>
+      prev.includes(routineId)
+        ? prev.filter((id) => id !== routineId)
+        : [...prev, routineId],
+    );
+  };
+
+  const toggleSection = (childId: string) => {
+    setCollapsedSections((prev) => ({
+      ...prev,
+      [childId]: !prev[childId],
+    }));
+  };
+
+  const handleContinue = () => {
+    if (selectedRoutineIds.length === 0) return;
+
+    selectChild(null);
+    router.push({
+      pathname: '/child/summary',
+      params: { routineIds: selectedRoutineIds.join(',') },
+    });
   };
 
   if (children.length === 0) {
     return (
-      <LinearGradient colors={wt.gradient} style={styles.gradient}>
+      <LinearGradient colors={weatherTheme.gradient} style={styles.gradient}>
         <SafeAreaView style={styles.safe}>
           <View style={styles.empty}>
-            <Animated.Text entering={BounceIn.duration(600)} style={styles.emptyIcon}>😊</Animated.Text>
-            <Animated.Text entering={FadeInDown.delay(300)} style={[styles.emptyTitle, { color: textColor }]}>Pas encore de profil</Animated.Text>
-            <Animated.Text entering={FadeInDown.delay(500)} style={[styles.emptyText, { color: secondaryColor }]}>
-              Demande à tes parents de créer ton profil !
+            <Animated.Text entering={BounceIn.duration(600)} style={styles.emptyIcon}>🙂</Animated.Text>
+            <Animated.Text entering={FadeInUp.delay(300)} style={[styles.emptyTitle, { color: textColor }]}>
+              Pas encore de profil
             </Animated.Text>
-            <TouchableOpacity onPress={() => router.replace('/')} style={styles.backBtn}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <ArrowLeft size={18} weight="bold" color={COLORS.secondary} />
-                <Text style={styles.backBtnText}>Retour</Text>
-              </View>
-            </TouchableOpacity>
+            <Animated.Text entering={FadeInUp.delay(450)} style={[styles.emptyText, { color: secondaryColor }]}>
+              Demande a tes parents de creer ton profil.
+            </Animated.Text>
+            <BackButton onPress={handleGoBack} style={styles.emptyBackButton} />
           </View>
         </SafeAreaView>
       </LinearGradient>
     );
   }
 
-  // Auto-select if only one child
-  if (children.length === 1) {
-    const child = children[0];
+  if (sections.length === 0) {
     return (
-      <LinearGradient colors={[wt.gradient[0], wt.gradient[1], wt.gradient[1]]} style={styles.gradient}>
+      <LinearGradient colors={weatherTheme.gradient} style={styles.gradient}>
         <SafeAreaView style={styles.safe}>
-          <View style={styles.center}>
-            <Animated.Text entering={FadeIn.duration(500)} style={[styles.greeting, { color: secondaryColor }]}>Bonjour</Animated.Text>
-
-            <AnimatedPressable
-              style={styles.singleChild}
-              onPress={() => handleSelect(child.id)}
-              scaleDown={0.9}
-            >
-              <Animated.View entering={BounceIn.delay(200).duration(600)}>
-                <WobbleAvatar emoji={child.avatar} color={child.color} size={130} delay={400} avatarConfig={child.avatarConfig} />
-              </Animated.View>
-              <Animated.Text entering={FadeInDown.delay(500)} style={[styles.singleName, { color: textColor }]}>{child.name} !</Animated.Text>
-              <Animated.View entering={FadeInDown.delay(700)} style={[styles.tapBubble, isNight && { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Text style={[styles.tapText, { color: secondaryColor }]}>Appuie pour commencer</Text>
-                  <HandTap size={22} weight="fill" color={secondaryColor} />
-                </View>
-              </Animated.View>
-            </AnimatedPressable>
-
-            <TouchableOpacity onPress={() => router.replace('/')} style={styles.backBtn}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <ArrowLeft size={18} weight="bold" color={COLORS.secondary} />
-                <Text style={styles.backBtnText}>Retour</Text>
-              </View>
-            </TouchableOpacity>
+          <View style={styles.empty}>
+            <ClipboardText size={72} weight="duotone" color={secondaryColor} />
+            <Text style={[styles.emptyTitle, { color: textColor }]}>Aucune routine active</Text>
+            <Text style={[styles.emptyText, { color: secondaryColor }]}>
+              Demande a tes parents de preparer une routine pour commencer.
+            </Text>
+            <BackButton onPress={handleGoBack} style={styles.emptyBackButton} />
           </View>
         </SafeAreaView>
       </LinearGradient>
@@ -137,33 +161,151 @@ export default function ChildSelectScreen() {
   }
 
   return (
-    <LinearGradient colors={wt.gradient} style={styles.gradient}>
+    <LinearGradient colors={weatherTheme.gradient} style={styles.gradient}>
       <SafeAreaView style={styles.safe}>
-        <View style={styles.container}>
-          <Animated.Text entering={FadeInDown.duration(400)} style={[styles.title, { color: textColor }]}>Qui es-tu ? 😊</Animated.Text>
-          <View style={styles.grid}>
-            {children.map((child, index) => (
-              <Animated.View
-                key={child.id}
-                entering={BounceIn.delay(200 + index * 150).duration(500)}
+        <ScrollView
+          contentContainerStyle={[styles.scroll, styles.scrollCentered]}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={[styles.content, { width: contentWidth, maxWidth: '100%' }]}>
+            <Animated.View entering={FadeInUp.duration(300)} style={styles.topBar}>
+              <BackButton
+                onPress={handleGoBack}
+                iconColor={secondaryColor}
+                style={[styles.headerBackButton, isNight && { backgroundColor: 'rgba(255,255,255,0.18)' }]}
+              />
+              <AnimatedPressable
+                onPress={handleOpenRewards}
+                style={[styles.topRewardsButton, isNight && styles.topRewardsButtonNight]}
+                scaleDown={0.97}
               >
-                <AnimatedPressable
-                  style={[styles.childCard, isNight && { backgroundColor: 'rgba(255,255,255,0.15)' }]}
-                  onPress={() => handleSelect(child.id)}
-                  scaleDown={0.88}
+                <Gift size={16} weight="fill" color={COLORS.secondary} />
+                <Text style={[styles.topRewardsText, { color: textColor }]}>badges & recompenses</Text>
+              </AnimatedPressable>
+            </Animated.View>
+
+            {weather ? <WeatherCard weather={weather} /> : null}
+
+            {sections.map((section, sectionIndex) => {
+              const isCollapsed = Boolean(collapsedSections[section.child.id]);
+
+              return (
+                <Animated.View
+                  key={section.child.id}
+                  entering={FadeInUp.delay(80 + sectionIndex * 70).duration(300)}
+                  style={[styles.sectionCard, isNight && { backgroundColor: 'rgba(15,23,42,0.2)' }]}
                 >
-                  <WobbleAvatar emoji={child.avatar} color={child.color} size={85} delay={index * 300} avatarConfig={child.avatarConfig} />
-                  <Text style={[styles.childName, isNight ? { color: textColor } : undefined]}>{child.name}</Text>
-                </AnimatedPressable>
-              </Animated.View>
-            ))}
+                  <View style={styles.sectionHeader}>
+                    <View style={styles.childIdentity}>
+                      <Avatar
+                        emoji={section.child.avatar}
+                        color={section.child.color}
+                        size={54}
+                        avatarConfig={section.child.avatarConfig}
+                      />
+                      <View style={styles.childMeta}>
+                        <Text style={[styles.childName, { color: textColor }]}>{section.child.name}</Text>
+                        <Text style={[styles.childHint, { color: secondaryColor }]}>
+                          {section.routines.length} routine{section.routines.length > 1 ? 's' : ''} pour {section.child.name}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <TouchableOpacity
+                      onPress={() => toggleSection(section.child.id)}
+                      style={[styles.sectionToggle, isNight && { backgroundColor: 'rgba(255,255,255,0.12)' }]}
+                    >
+                      {isCollapsed ? (
+                        <CaretDown size={18} weight="bold" color={secondaryColor} />
+                      ) : (
+                        <CaretUp size={18} weight="bold" color={secondaryColor} />
+                      )}
+                    </TouchableOpacity>
+                  </View>
+
+                  {!isCollapsed ? (
+                    <View style={styles.routineList}>
+                      {section.routines.map((routine) => {
+                        const duration = routine.steps.reduce((sum, step) => sum + step.durationMinutes, 0);
+                        const isSelected = selectedRoutineIds.includes(routine.id);
+                        const owner = getChild(routine.childId);
+
+                        return (
+                          <AnimatedPressable
+                            key={routine.id}
+                            style={[
+                              styles.routineCard,
+                              {
+                                borderColor: `${routine.color}45`,
+                                backgroundColor: `${routine.color}16`,
+                              },
+                              isSelected && styles.routineCardSelected,
+                            ]}
+                            onPress={() => toggleRoutine(routine.id)}
+                            scaleDown={0.97}
+                            hitSlop={10}
+                          >
+                            <View style={styles.routineMain}>
+                              <View style={[styles.routineIcon, { backgroundColor: `${routine.color}24` }]}>
+                                <OpenMoji emoji={routine.icon} size={30} />
+                              </View>
+                              <View style={styles.routineText}>
+                                <Text style={[styles.routineName, { color: textColor }]} numberOfLines={1}>
+                                  {routine.name}
+                                </Text>
+                                <Text style={[styles.routineMeta, { color: secondaryColor }]}>
+                                  {routine.steps.length} etapes · {duration} min
+                                </Text>
+                                {owner ? (
+                                  <Text style={[styles.routineOwner, { color: secondaryColor }]}>
+                                    Routine de {owner.name}
+                                  </Text>
+                                ) : null}
+                              </View>
+                            </View>
+
+                            <View style={[styles.orderBadge, isSelected && styles.orderBadgeActive]}>
+                              <Text style={[styles.orderBadgeText, isSelected && styles.orderBadgeTextActive]}>
+                                {isSelected ? selectedRoutineIds.indexOf(routine.id) + 1 : '+'}
+                              </Text>
+                            </View>
+                          </AnimatedPressable>
+                        );
+                      })}
+                    </View>
+                  ) : null}
+                </Animated.View>
+              );
+            })}
           </View>
-          <TouchableOpacity onPress={() => router.replace('/')} style={styles.backBtn}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <ArrowLeft size={18} weight="bold" color={COLORS.secondary} />
-              <Text style={styles.backBtnText}>Retour</Text>
+        </ScrollView>
+
+        <View
+          style={[
+            styles.footer,
+            Platform.OS === 'web' ? ({ pointerEvents: 'box-none' } as any) : null,
+          ]}
+          {...(Platform.OS === 'web' ? {} : { pointerEvents: 'box-none' })}
+        >
+          <AnimatedPressable
+            onPress={handleContinue}
+            disabled={selectedRoutineIds.length === 0}
+            style={[
+              styles.footerButton,
+              { maxWidth: contentWidth, alignSelf: 'center' },
+              selectedRoutineIds.length > 0 ? styles.footerButtonActive : styles.footerButtonInactive,
+            ]}
+            scaleDown={0.96}
+          >
+            <View style={styles.footerButtonRow}>
+              <Rocket size={18} weight="fill" color="#FFF" />
+              <Text style={styles.footerButtonText}>
+                {selectedRoutineIds.length > 0
+                  ? `${selectedRoutineIds.length} routine${selectedRoutineIds.length > 1 ? 's' : ''} · ${selectedDuration} min`
+                  : 'Choisis au moins une routine'}
+              </Text>
             </View>
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
       </SafeAreaView>
     </LinearGradient>
@@ -173,69 +315,183 @@ export default function ChildSelectScreen() {
 const styles = StyleSheet.create({
   gradient: { flex: 1 },
   safe: { flex: 1 },
-  container: {
-    flex: 1,
-    justifyContent: 'center',
+  scroll: {
+    padding: SPACING.lg,
+    paddingBottom: 140,
+  },
+  scrollCentered: {
     alignItems: 'center',
-    padding: SPACING.xl,
   },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: SPACING.xl,
+  content: {
+    width: '100%',
+    gap: SPACING.md,
   },
-  title: {
-    fontSize: FONT_SIZE.xxl + 4,
-    fontWeight: '900',
-    color: COLORS.text,
-    marginBottom: SPACING.xl,
-  },
-  grid: {
+  topBar: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: SPACING.xl,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: SPACING.xs,
   },
-  childCard: {
+  headerBackButton: {},
+  topRewardsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+    backgroundColor: 'rgba(255,255,255,0.78)',
+    borderRadius: RADIUS.full,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    ...SHADOWS.sm,
+  },
+  topRewardsButtonNight: {
+    backgroundColor: 'rgba(255,255,255,0.10)',
+  },
+  topRewardsText: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '800',
+  },
+  sectionCard: {
+    backgroundColor: 'rgba(255,255,255,0.72)',
+    borderRadius: RADIUS.xl,
+    padding: SPACING.md,
+    ...SHADOWS.sm,
+  },
+  sectionHeader: {
+    marginBottom: SPACING.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: SPACING.sm,
+  },
+  childIdentity: {
+    flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.sm,
-    backgroundColor: 'rgba(255,255,255,0.7)',
-    padding: SPACING.lg,
-    borderRadius: RADIUS.xl,
-    ...SHADOWS.sm,
+    flex: 1,
+  },
+  childMeta: {
+    flex: 1,
+    gap: 2,
+  },
+  sectionToggle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.72)',
+    borderWidth: 1,
+    borderColor: COLORS.surfaceSecondary,
   },
   childName: {
     fontSize: FONT_SIZE.lg,
     fontWeight: '800',
     color: COLORS.text,
   },
-  greeting: {
-    fontSize: FONT_SIZE.xxl,
-    fontWeight: '700',
-    color: COLORS.textSecondary,
-    marginBottom: SPACING.md,
-  },
-  singleChild: {
-    alignItems: 'center',
-    gap: SPACING.md,
-  },
-  singleName: {
-    fontSize: FONT_SIZE.hero,
-    fontWeight: '900',
-    color: COLORS.text,
-  },
-  tapBubble: {
-    backgroundColor: 'rgba(255,255,255,0.8)',
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.lg,
-    borderRadius: RADIUS.full,
-    marginTop: SPACING.sm,
-  },
-  tapText: {
-    fontSize: FONT_SIZE.lg,
-    color: COLORS.textSecondary,
+  childHint: {
+    fontSize: FONT_SIZE.sm,
     fontWeight: '600',
+  },
+  routineList: {
+    gap: SPACING.sm,
+  },
+  routineCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1.5,
+    borderRadius: RADIUS.xl,
+    padding: SPACING.md,
+    gap: SPACING.sm,
+  },
+  routineCardSelected: {
+    borderColor: COLORS.secondary,
+    backgroundColor: `${COLORS.secondary}22`,
+  },
+  routineMain: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    flex: 1,
+  },
+  routineIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  routineText: {
+    flex: 1,
+    gap: 2,
+  },
+  routineName: {
+    fontSize: FONT_SIZE.md,
+    fontWeight: '800',
+  },
+  routineMeta: {
+    fontSize: FONT_SIZE.xs,
+    fontWeight: '600',
+  },
+  routineOwner: {
+    fontSize: FONT_SIZE.xs,
+    fontWeight: '700',
+  },
+  orderBadge: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.88)',
+    borderWidth: 1.5,
+    borderColor: COLORS.surfaceSecondary,
+  },
+  orderBadgeActive: {
+    backgroundColor: COLORS.secondary,
+    borderColor: COLORS.secondary,
+  },
+  orderBadgeText: {
+    color: COLORS.textSecondary,
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '900',
+  },
+  orderBadgeTextActive: {
+    color: '#FFF',
+  },
+  footer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    padding: SPACING.lg,
+    paddingBottom: SPACING.xl,
+    backgroundColor: 'transparent',
+  },
+  footerButton: {
+    width: '100%',
+    borderRadius: RADIUS.full,
+    paddingVertical: SPACING.lg,
+    paddingHorizontal: SPACING.lg,
+    ...SHADOWS.md,
+  },
+  footerButtonActive: {
+    backgroundColor: COLORS.secondary,
+  },
+  footerButtonInactive: {
+    backgroundColor: 'rgba(160,176,186,0.88)',
+  },
+  footerButtonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.sm,
+  },
+  footerButtonText: {
+    color: '#FFF',
+    fontSize: FONT_SIZE.md,
+    fontWeight: '800',
+    textAlign: 'center',
   },
   empty: {
     flex: 1,
@@ -245,8 +501,7 @@ const styles = StyleSheet.create({
     gap: SPACING.md,
   },
   emptyIcon: { fontSize: 70 },
-  emptyTitle: { fontSize: FONT_SIZE.xl, fontWeight: '800', color: COLORS.text },
+  emptyTitle: { fontSize: FONT_SIZE.xl, fontWeight: '800', color: COLORS.text, textAlign: 'center' },
   emptyText: { fontSize: FONT_SIZE.md, color: COLORS.textSecondary, textAlign: 'center' },
-  backBtn: { marginTop: SPACING.xl },
-  backBtnText: { fontSize: FONT_SIZE.md, color: COLORS.secondary, fontWeight: '700' },
+  emptyBackButton: { marginTop: SPACING.xl },
 });

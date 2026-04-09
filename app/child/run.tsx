@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   SafeAreaView,
   TouchableOpacity,
   Image,
+  useWindowDimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Reanimated, {
@@ -14,84 +15,147 @@ import Reanimated, {
   FadeInDown,
   FadeIn,
   BounceIn,
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  withSequence,
-  withTiming,
-  withSpring,
-  Easing,
 } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { useRoutineStore } from '../../src/stores/routineStore';
 import { useRewardStore } from '../../src/stores/rewardStore';
-import { useAppStore } from '../../src/stores/appStore';
 import { useMoodStore } from '../../src/stores/moodStore';
+import { useChildrenStore } from '../../src/stores/childrenStore';
 import { MOOD_CONFIG, isNegativeMood } from '../../src/constants/moods';
 import { ProgressBar } from '../../src/components/ui/ProgressBar';
-import { X, Check, ArrowRight } from 'phosphor-react-native';
+import { X, ArrowRight, CheckCircle } from 'phosphor-react-native';
 import { CircularTimer } from '../../src/components/ui/CircularTimer';
 import { AnimatedPressable } from '../../src/components/ui/AnimatedPressable';
 import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../../src/constants/theme';
 import { useTimer } from '../../src/hooks/useTimer';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
+import { Avatar } from '../../src/components/ui/Avatar';
+import { Child } from '../../src/types';
 import * as Haptics from 'expo-haptics';
 
-function PulsingButton({ color, onPress, text, icon }: { color: string; onPress: () => void; text: string; icon?: React.ReactNode }) {
-  const pulse = useSharedValue(1);
-
-  useEffect(() => {
-    pulse.value = withRepeat(
-      withSequence(
-        withTiming(1.04, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1, { duration: 1000, easing: Easing.inOut(Easing.ease) })
-      ),
-      -1,
-      true
-    );
-  }, []);
-
-  const pulseStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: pulse.value }],
-  }));
+function ParticipantValidationButton({
+  child,
+  confirmed,
+  disabled,
+  onPress,
+  compact,
+}: {
+  child: Child;
+  confirmed: boolean;
+  disabled: boolean;
+  onPress: () => void;
+  compact: boolean;
+}) {
+  const isDisabled = disabled && !confirmed;
 
   return (
     <AnimatedPressable
       onPress={onPress}
-      style={[styles.doneButton, { backgroundColor: color || COLORS.success }]}
-      scaleDown={0.9}
+      style={[
+        styles.participantButton,
+        compact ? styles.participantButtonCompact : styles.participantButtonWide,
+        confirmed
+          ? { backgroundColor: child.color + '22', borderColor: child.color }
+          : styles.participantButtonPending,
+        isDisabled ? styles.participantButtonDisabled : null,
+      ]}
+      scaleDown={0.96}
+      disabled={confirmed || isDisabled}
+      hitSlop={16}
     >
-      <Reanimated.View style={[pulseStyle, { flexDirection: 'row', alignItems: 'center', gap: 6 }]}>
-        <Text style={styles.doneButtonText}>{text}</Text>
-        {icon}
-      </Reanimated.View>
+      <View style={[styles.participantButtonInner, compact && styles.participantButtonInnerCompact]}>
+        <Avatar
+          emoji={child.avatar}
+          color={child.color}
+          size={compact ? 38 : 42}
+          avatarConfig={child.avatarConfig}
+        />
+        <View style={styles.participantButtonTextWrap}>
+          <Text style={styles.participantButtonName} numberOfLines={1}>
+            {child.name}
+          </Text>
+          {!compact ? (
+            <Text style={styles.participantButtonLabel}>
+              {confirmed ? 'Valide' : isDisabled ? 'Attends...' : "C'est fait"}
+            </Text>
+          ) : null}
+        </View>
+        <View
+          style={[
+            styles.participantButtonBadge,
+            confirmed && { backgroundColor: child.color, borderColor: child.color },
+          ]}
+        >
+          <CheckCircle
+            size={18}
+            weight={confirmed ? 'fill' : 'regular'}
+            color={confirmed ? '#FFF' : child.color}
+          />
+        </View>
+      </View>
     </AnimatedPressable>
   );
 }
 
 export default function RunRoutineScreen() {
   const router = useRouter();
-  const { currentExecution, completeStep, finishExecution, cancelExecution, getRoutine, chainQueue, nextInChain } =
-    useRoutineStore();
+  const { width } = useWindowDimensions();
+  const {
+    currentExecution,
+    completeStep,
+    finishExecution,
+    cancelExecution,
+    getRoutine,
+    chainQueue,
+    nextInChain,
+  } = useRoutineStore();
   const { recordCompletion } = useRewardStore();
-  const { selectedChildId } = useAppStore();
   const { getMood, isMoodFresh } = useMoodStore();
+  const { getChild } = useChildrenStore();
+  const activeChildId = currentExecution?.childId;
+  const isLeavingFlowRef = useRef(false);
+  const isAdvancingStepRef = useRef(false);
+  const [confirmedChildIds, setConfirmedChildIds] = useState<string[]>([]);
+  const [stepConfirmationEnabled, setStepConfirmationEnabled] = useState(false);
+  const [pauseHoldProgress, setPauseHoldProgress] = useState(0);
+  const pauseHoldIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pauseHoldTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const currentMood = selectedChildId && isMoodFresh(selectedChildId)
-    ? getMood(selectedChildId)?.mood
-    : undefined;
+  const currentMood =
+    activeChildId && isMoodFresh(activeChildId) ? getMood(activeChildId)?.mood : undefined;
   const moodConfig = currentMood ? MOOD_CONFIG[currentMood] : undefined;
 
   const routine = currentExecution ? getRoutine(currentExecution.routineId) : undefined;
 
-  // Filter steps: skip optional steps when mood is negative (less difficulty)
   const activeSteps = React.useMemo(() => {
     if (!routine) return [];
+    const baseSteps =
+      currentExecution?.customStepOrder?.length ? currentExecution.customStepOrder : routine.steps;
     if (currentMood && isNegativeMood(currentMood)) {
-      return routine.steps.filter((s) => s.isRequired);
+      return baseSteps.filter((step) => step.isRequired);
     }
-    return routine.steps;
-  }, [routine, currentMood]);
+    return baseSteps;
+  }, [routine, currentMood, currentExecution?.customStepOrder]);
+
+  const participantChildren = useMemo(() => {
+    const ids =
+      currentExecution?.participantChildIds?.length
+        ? currentExecution.participantChildIds
+        : currentExecution?.childId
+          ? [currentExecution.childId]
+          : [];
+
+    return ids
+      .map((childId) => getChild(childId))
+      .filter((child): child is Child => Boolean(child));
+  }, [currentExecution?.childId, currentExecution?.participantChildIds, getChild]);
+  const compactParticipants = width < 900;
+  const splitIndex = Math.ceil(participantChildren.length / 2);
+  const leftParticipants = participantChildren.slice(0, splitIndex);
+  const rightParticipants = participantChildren.slice(splitIndex);
+  const sideColumnWidth = compactParticipants ? 92 : width >= 1280 ? 190 : 160;
+  const timerSize = width >= 1280 ? 240 : width >= 1024 ? 220 : width >= 768 ? 190 : 164;
+  const stepIconSize = width >= 1024 ? 82 : 70;
 
   const completedCount = currentExecution?.stepsCompleted.length ?? 0;
   const totalSteps = activeSteps.length;
@@ -102,11 +166,12 @@ export default function RunRoutineScreen() {
 
   const lastCompletionTime = useRef(0);
   const STEP_COOLDOWN_MS = 800;
+  const STEP_START_LOCK_MS = 650;
 
   const timerDuration = currentStep ? currentStep.durationMinutes * 60 : 0;
   const timer = useTimer(timerDuration);
+  const HOLD_TO_PAUSE_MS = 4000;
 
-  // Start timer when step changes
   useEffect(() => {
     if (currentStep && currentStep.durationMinutes > 0) {
       timer.start();
@@ -114,20 +179,43 @@ export default function RunRoutineScreen() {
     return () => timer.stop();
   }, [currentStepIndex]);
 
-  // Redirect if no execution or routine
   useEffect(() => {
+    return () => {
+      if (pauseHoldIntervalRef.current) {
+        clearInterval(pauseHoldIntervalRef.current);
+      }
+      if (pauseHoldTimeoutRef.current) {
+        clearTimeout(pauseHoldTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isLeavingFlowRef.current) return;
     if (!currentExecution) {
-      router.replace('/child/home');
+      router.replace('/child');
     } else if (!routine) {
       cancelExecution();
-      router.replace('/child/home');
+      router.replace('/child');
     }
   }, [currentExecution, routine]);
 
+  useEffect(() => {
+    setConfirmedChildIds([]);
+    isAdvancingStepRef.current = false;
+    setStepConfirmationEnabled(false);
+
+    const unlockTimer = setTimeout(() => {
+      setStepConfirmationEnabled(true);
+    }, STEP_START_LOCK_MS);
+
+    return () => clearTimeout(unlockTimer);
+  }, [currentExecution?.id, currentStep?.id]);
+
   const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${s.toString().padStart(2, '0')}`;
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
   };
 
   const handleComplete = useCallback(async () => {
@@ -143,85 +231,164 @@ export default function RunRoutineScreen() {
 
     completeStep(currentStep.id);
 
-    // Check if this was the last step
     if (currentStepIndex + 1 >= totalSteps) {
       const execution = finishExecution();
       if (execution) {
-        const newBadges = recordCompletion(execution);
+        const rewardSummary = recordCompletion(execution);
 
-        // Check if there are more routines in the chain
         if (chainQueue.length > 0) {
-          const nextExec = nextInChain();
-          if (nextExec) {
-            // Continue to next routine — no navigation needed, component re-renders
+          const nextExecution = nextInChain();
+          if (nextExecution) {
             return;
           }
         }
 
+        isLeavingFlowRef.current = true;
         router.replace({
           pathname: '/child/celebration',
           params: {
             stars: execution.earnedStars.toString(),
-            badges: newBadges.join(','),
+            badges: rewardSummary.flatMap((entry) => entry.unlockedBadgeIds).join(','),
+            rewardSummary: JSON.stringify(rewardSummary),
             routineName: routine.name,
             routineIcon: routine.icon,
             duration: Math.round(
-              (new Date(execution.completedAt!).getTime() - new Date(execution.startedAt).getTime()) / 60000
+              (new Date(execution.completedAt!).getTime() - new Date(execution.startedAt).getTime()) /
+                60000,
             ).toString(),
           },
         });
       }
     }
-  }, [currentStep, currentStepIndex, totalSteps, chainQueue]);
+  }, [
+    chainQueue.length,
+    completeStep,
+    currentStep,
+    currentStepIndex,
+    finishExecution,
+    nextInChain,
+    recordCompletion,
+    routine,
+    router,
+    totalSteps,
+  ]);
+
+  const handleParticipantComplete = useCallback(
+    async (childId: string) => {
+      if (!stepConfirmationEnabled) return;
+      if (confirmedChildIds.includes(childId) || isAdvancingStepRef.current) return;
+
+      const nextConfirmedIds = [...confirmedChildIds, childId];
+      setConfirmedChildIds(nextConfirmedIds);
+
+      try {
+        await Haptics.selectionAsync();
+      } catch {}
+
+      if (nextConfirmedIds.length >= participantChildren.length) {
+        isAdvancingStepRef.current = true;
+        setTimeout(() => {
+          void handleComplete();
+        }, 140);
+      }
+    },
+    [confirmedChildIds, handleComplete, participantChildren.length, stepConfirmationEnabled],
+  );
 
   const handleQuit = () => {
+    isLeavingFlowRef.current = true;
     cancelExecution();
-    router.replace('/child/home');
+    router.replace('/child');
   };
 
+  const clearPauseHold = useCallback(() => {
+    if (pauseHoldIntervalRef.current) {
+      clearInterval(pauseHoldIntervalRef.current);
+      pauseHoldIntervalRef.current = null;
+    }
+    if (pauseHoldTimeoutRef.current) {
+      clearTimeout(pauseHoldTimeoutRef.current);
+      pauseHoldTimeoutRef.current = null;
+    }
+    setPauseHoldProgress(0);
+  }, []);
+
+  const handlePauseToggle = useCallback(async () => {
+    if (timer.isPaused) {
+      timer.resume();
+    } else {
+      timer.pause();
+    }
+
+    try {
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    } catch {}
+  }, [timer]);
+
+  const handlePausePressIn = useCallback(() => {
+    if (timerDuration <= 0 || timer.isFinished) return;
+
+    clearPauseHold();
+    const startedAt = Date.now();
+
+    setPauseHoldProgress(0.02);
+    pauseHoldIntervalRef.current = setInterval(() => {
+      const elapsed = Date.now() - startedAt;
+      setPauseHoldProgress(Math.min(1, elapsed / HOLD_TO_PAUSE_MS));
+    }, 50);
+
+    pauseHoldTimeoutRef.current = setTimeout(() => {
+      clearPauseHold();
+      void handlePauseToggle();
+    }, HOLD_TO_PAUSE_MS);
+  }, [clearPauseHold, handlePauseToggle, timer.isFinished, timerDuration]);
+
+  const handlePausePressOut = useCallback(() => {
+    clearPauseHold();
+  }, [clearPauseHold]);
+
   const defaultEncouragements = [
-    'C\'est parti ! 💪',
-    'Tu gères ! 🌟',
-    'Encore un effort ! ✨',
-    'Super travail ! 🎯',
-    'Continue ! 💫',
+    "C'est parti !",
+    'Tu geres !',
+    'Encore un effort !',
+    'Super travail !',
+    'Continue !',
   ];
 
   const encouragements = moodConfig?.encouragements ?? defaultEncouragements;
   const gradientColors = moodConfig?.gradientColors ?? ['#FFF8F0', '#FFE8D6'];
-
-  // Adapt animation duration based on mood intensity
-  const animSpeed = moodConfig?.animationIntensity === 'calm' ? 600
-    : moodConfig?.animationIntensity === 'energetic' ? 300
-    : 400;
+  const animSpeed =
+    moodConfig?.animationIntensity === 'calm'
+      ? 600
+      : moodConfig?.animationIntensity === 'energetic'
+        ? 300
+        : 400;
 
   if (!currentExecution || !routine || !currentStep || isAllDone) return null;
 
-  // Calculate estimated end time from remaining steps
   const remainingMinutes = activeSteps
     .slice(currentStepIndex)
-    .reduce((sum, s) => sum + s.durationMinutes, 0);
+    .reduce((sum, step) => sum + step.durationMinutes, 0);
   const endTime = (() => {
-    const d = new Date();
-    d.setMinutes(d.getMinutes() + remainingMinutes);
-    return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    const date = new Date();
+    date.setMinutes(date.getMinutes() + remainingMinutes);
+    return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   })();
 
   return (
     <LinearGradient colors={gradientColors} style={styles.gradient}>
       <SafeAreaView style={styles.safe}>
         <View style={styles.container}>
-          {/* Top bar */}
           <Reanimated.View entering={FadeIn.duration(300)} style={styles.topBar}>
             <TouchableOpacity onPress={handleQuit} style={styles.quitBtn}>
               <X size={22} weight="bold" color={COLORS.textLight} />
             </TouchableOpacity>
-            {chainQueue.length > 0 && (
+            {chainQueue.length > 0 ? (
               <View style={styles.chainIndicator}>
-                <Text style={styles.chainIndicatorText}>
-                  ⛓️ +{chainQueue.length} à suivre
-                </Text>
+                <Text style={styles.chainIndicatorText}>+{chainQueue.length} a suivre</Text>
               </View>
+            ) : (
+              <View style={styles.topSpacer} />
             )}
             <View style={styles.counterBadge}>
               <Text style={styles.counter}>
@@ -229,83 +396,141 @@ export default function RunRoutineScreen() {
               </Text>
             </View>
             <View style={styles.endTimeBadge}>
-              <Text style={styles.endTimeText}>🏁 {endTime}</Text>
+              <Text style={styles.endTimeText}>Fin {endTime}</Text>
             </View>
           </Reanimated.View>
 
-          {/* Progress */}
           <ProgressBar progress={progress} color={routine.color} height={10} />
 
-          {/* Step Content */}
-          <Reanimated.View
-            key={currentStepIndex}
-            entering={FadeInRight.duration(animSpeed).springify()}
-            exiting={FadeOutLeft.duration(animSpeed / 2)}
-            style={styles.stepContainer}
-          >
-            <Reanimated.View
-              entering={BounceIn.delay(animSpeed / 2).duration(animSpeed)}
-              style={styles.stepIcon}
+          <View style={styles.topCenterStatus}>
+            <Reanimated.Text
+              key={`enc-${currentStepIndex}`}
+              entering={FadeInDown.delay(240).duration(300)}
+              style={styles.encouragementTop}
             >
-              <OpenMoji emoji={currentStep.icon} size={64} />
-            </Reanimated.View>
-            <Text style={styles.stepTitle}>{currentStep.title}</Text>
-            {currentStep.mediaUri ? (
-              <Image source={{ uri: currentStep.mediaUri }} style={styles.stepMedia} />
-            ) : null}
-            {currentStep.instruction ? (
-              <Text style={styles.stepInstruction}>{currentStep.instruction}</Text>
-            ) : null}
-            {currentStep.durationMinutes > 0 ? (
-              <View style={styles.timerContainer}>
-                <CircularTimer
-                  progress={timer.progress}
-                  label={formatTime(timer.remaining)}
-                  color={routine.color}
-                  isFinished={timer.isFinished}
-                  size={150}
-                  strokeWidth={12}
+              {completedCount === totalSteps - 1
+                ? 'Derniere etape !'
+                : encouragements[completedCount % encouragements.length]}
+            </Reanimated.Text>
+
+            <Text style={styles.validationHintTop}>
+              {confirmedChildIds.length} / {participantChildren.length} validation
+              {participantChildren.length > 1 ? 's' : ''}
+            </Text>
+          </View>
+
+          <View style={styles.stageRow}>
+            <View style={[styles.participantColumn, { width: sideColumnWidth }]}>
+              {leftParticipants.map((child) => (
+                <ParticipantValidationButton
+                  key={`${currentStep.id}-${child.id}`}
+                  child={child}
+                  confirmed={confirmedChildIds.includes(child.id)}
+                  disabled={!stepConfirmationEnabled}
+                  onPress={() => handleParticipantComplete(child.id)}
+                  compact={compactParticipants}
                 />
-                {timer.isFinished && (
-                  <Text style={styles.timerFinishedLabel}>Temps écoulé !</Text>
-                )}
+              ))}
+            </View>
+
+            <Reanimated.View
+              key={currentStepIndex}
+              entering={FadeInRight.duration(animSpeed).springify()}
+              exiting={FadeOutLeft.duration(animSpeed / 2)}
+              style={styles.stepContainer}
+            >
+              <View style={styles.stepHeaderBlock}>
+                <Reanimated.View
+                  entering={BounceIn.delay(animSpeed / 2).duration(animSpeed)}
+                  style={styles.stepIcon}
+                >
+                  <OpenMoji emoji={currentStep.icon} size={stepIconSize} />
+                </Reanimated.View>
+                <Text style={styles.stepTitle}>{currentStep.title}</Text>
+                {currentStep.mediaUri ? (
+                  <Image source={{ uri: currentStep.mediaUri }} style={styles.stepMedia} />
+                ) : null}
+                {currentStep.instruction ? (
+                  <Text style={styles.stepInstruction}>{currentStep.instruction}</Text>
+                ) : null}
               </View>
-            ) : null}
-            {!currentStep.isRequired && (
-              <View style={styles.optionalBadge}>
-                <Text style={styles.optionalText}>Facultatif</Text>
-              </View>
-            )}
-          </Reanimated.View>
 
-          {/* Encouragement */}
-          <Reanimated.Text
-            key={`enc-${currentStepIndex}`}
-            entering={FadeInDown.delay(300).duration(300)}
-            style={styles.encouragement}
-          >
-            {completedCount === totalSteps - 1
-              ? 'Dernière étape ! 🎉'
-              : encouragements[completedCount % encouragements.length]}
-          </Reanimated.Text>
+              {currentStep.durationMinutes > 0 ? (
+                <View style={styles.timerContainer}>
+                  <CircularTimer
+                    progress={timer.progress}
+                    label={formatTime(timer.remaining)}
+                    color={routine.color}
+                    isFinished={timer.isFinished}
+                    size={timerSize}
+                    strokeWidth={14}
+                  />
+                  {timer.isFinished ? (
+                    <Text style={styles.timerFinishedLabel}>Temps ecoule !</Text>
+                  ) : null}
 
-          {/* Action button */}
-          <PulsingButton
-            color={routine.color}
-            onPress={handleComplete}
-            text="C'est fait !"
-            icon={<Check size={20} weight="bold" color="#FFF" />}
-          />
+                  <TouchableOpacity
+                    onPressIn={handlePausePressIn}
+                    onPressOut={handlePausePressOut}
+                    onPress={() => {}}
+                    activeOpacity={0.92}
+                    disabled={timer.isFinished}
+                    style={[
+                      styles.pauseHoldButton,
+                      timer.isPaused && styles.pauseHoldButtonPaused,
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.pauseHoldFill,
+                        {
+                          width: `${pauseHoldProgress * 100}%`,
+                        },
+                        timer.isPaused && styles.pauseHoldFillPaused,
+                      ]}
+                    />
+                    <View style={styles.pauseHoldContent}>
+                      <Text style={styles.pauseHoldTitle}>
+                        {timer.isPaused ? 'Maintenir 4 s pour reprendre' : 'Maintenir 4 s pour pause'}
+                      </Text>
+                      <Text style={styles.pauseHoldText}>
+                        {timer.isPaused
+                          ? 'Reserve a un adulte'
+                          : 'Securite adulte avant arret du timer'}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              ) : null}
+              {!currentStep.isRequired ? (
+                <View style={styles.optionalBadge}>
+                  <Text style={styles.optionalText}>Facultatif</Text>
+                </View>
+              ) : null}
+            </Reanimated.View>
 
-          {/* Skip if optional */}
-          {!currentStep.isRequired && (
+            <View style={[styles.participantColumn, { width: sideColumnWidth }]}>
+              {rightParticipants.map((child) => (
+                <ParticipantValidationButton
+                  key={`${currentStep.id}-${child.id}`}
+                  child={child}
+                  confirmed={confirmedChildIds.includes(child.id)}
+                  disabled={!stepConfirmationEnabled}
+                  onPress={() => handleParticipantComplete(child.id)}
+                  compact={compactParticipants}
+                />
+              ))}
+            </View>
+          </View>
+
+          {!currentStep.isRequired ? (
             <TouchableOpacity onPress={handleComplete} style={styles.skipBtn}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <Text style={styles.skipText}>Passer cette étape</Text>
+              <View style={styles.skipRow}>
+                <Text style={styles.skipText}>Passer cette etape</Text>
                 <ArrowRight size={18} weight="bold" color={COLORS.textSecondary} />
               </View>
             </TouchableOpacity>
-          )}
+          ) : null}
         </View>
       </SafeAreaView>
     </LinearGradient>
@@ -322,6 +547,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: SPACING.md,
   },
+  topSpacer: {
+    width: 64,
+  },
   quitBtn: {
     width: 44,
     height: 44,
@@ -336,7 +564,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     borderRadius: RADIUS.full,
   },
-  counter: { fontSize: FONT_SIZE.md, fontWeight: '800', color: COLORS.textSecondary },
+  counter: {
+    fontSize: FONT_SIZE.md,
+    fontWeight: '800',
+    color: COLORS.textSecondary,
+  },
   chainIndicator: {
     backgroundColor: 'rgba(255,255,255,0.8)',
     paddingVertical: SPACING.xs,
@@ -359,13 +591,95 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.textSecondary,
   },
+  stageRow: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    gap: SPACING.md,
+    paddingTop: SPACING.md,
+  },
+  topCenterStatus: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+    marginTop: SPACING.md,
+  },
+  participantColumn: {
+    gap: SPACING.sm,
+    justifyContent: 'center',
+  },
+  participantButton: {
+    minHeight: 76,
+    borderRadius: RADIUS.xl,
+    borderWidth: 2,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.sm,
+    ...SHADOWS.md,
+  },
+  participantButtonPending: {
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    borderColor: 'rgba(255,255,255,0.92)',
+  },
+  participantButtonDisabled: {
+    opacity: 0.72,
+  },
+  participantButtonWide: {
+    width: '100%',
+  },
+  participantButtonCompact: {
+    width: '100%',
+    minHeight: 70,
+    paddingHorizontal: SPACING.xs,
+  },
+  participantButtonInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    flex: 1,
+  },
+  participantButtonInnerCompact: {
+    gap: SPACING.xs,
+  },
+  participantButtonTextWrap: {
+    flex: 1,
+  },
+  participantButtonName: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '800',
+    color: COLORS.text,
+  },
+  participantButtonLabel: {
+    marginTop: 2,
+    fontSize: FONT_SIZE.xs,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+  },
+  participantButtonBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: COLORS.surfaceSecondary,
+    backgroundColor: COLORS.surface,
+  },
   stepContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: SPACING.lg,
+    paddingHorizontal: SPACING.md,
+    paddingBottom: 72,
   },
-  stepIcon: { fontSize: 90, marginBottom: SPACING.lg },
+  stepHeaderBlock: {
+    width: '100%',
+    maxWidth: 520,
+    alignItems: 'center',
+    marginBottom: SPACING.lg,
+  },
+  stepIcon: {
+    marginBottom: SPACING.md,
+  },
   stepTitle: {
     fontSize: FONT_SIZE.xxl + 2,
     fontWeight: '900',
@@ -385,11 +699,54 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: SPACING.md,
     lineHeight: 26,
+    maxWidth: 520,
   },
   timerContainer: {
-    marginTop: SPACING.lg,
     alignItems: 'center',
     gap: SPACING.sm,
+  },
+  pauseHoldButton: {
+    position: 'relative',
+    overflow: 'hidden',
+    minWidth: 240,
+    maxWidth: 320,
+    borderRadius: RADIUS.xl,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    borderWidth: 1.5,
+    borderColor: COLORS.surfaceSecondary,
+  },
+  pauseHoldButtonPaused: {
+    borderColor: COLORS.warning,
+    backgroundColor: `${COLORS.warning}18`,
+  },
+  pauseHoldFill: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: `${COLORS.error}22`,
+  },
+  pauseHoldFillPaused: {
+    backgroundColor: `${COLORS.success}22`,
+  },
+  pauseHoldContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    gap: 2,
+  },
+  pauseHoldTitle: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '800',
+    color: COLORS.text,
+    textAlign: 'center',
+  },
+  pauseHoldText: {
+    fontSize: FONT_SIZE.xs,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+    textAlign: 'center',
   },
   timerFinishedLabel: {
     fontSize: FONT_SIZE.md,
@@ -404,29 +761,31 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.full,
     marginTop: SPACING.md,
   },
-  optionalText: { fontSize: FONT_SIZE.xs, fontWeight: '600', color: COLORS.accentDark },
-  encouragement: {
+  optionalText: {
+    fontSize: FONT_SIZE.xs,
+    fontWeight: '600',
+    color: COLORS.accentDark,
+  },
+  encouragementTop: {
     fontSize: FONT_SIZE.lg,
     fontWeight: '700',
     color: COLORS.textSecondary,
     textAlign: 'center',
-    marginBottom: SPACING.lg,
   },
-  doneButton: {
-    paddingVertical: SPACING.lg + 2,
-    borderRadius: RADIUS.xl,
-    alignItems: 'center',
-    ...SHADOWS.md,
-    marginBottom: SPACING.md,
-  },
-  doneButtonText: {
-    fontSize: FONT_SIZE.xl,
-    fontWeight: '900',
-    color: '#FFF',
+  validationHintTop: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '700',
+    color: COLORS.textLight,
+    textAlign: 'center',
   },
   skipBtn: {
     alignItems: 'center',
     paddingVertical: SPACING.sm,
+  },
+  skipRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   skipText: {
     fontSize: FONT_SIZE.md,

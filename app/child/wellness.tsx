@@ -101,11 +101,11 @@ export default function WellnessScreen() {
     if (selectedChildId) {
       addStars(selectedChildId, 3);
     }
-    router.replace('/child/home');
+    router.replace('/child');
   };
 
   const handleQuit = () => {
-    router.replace('/child/home');
+    router.replace('/child');
   };
 
   return (

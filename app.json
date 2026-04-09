@@ -29,6 +29,10 @@
       "package": "com.routine.app"
     },
     "web": {
+      "name": "Routine",
+      "shortName": "Routine",
+      "lang": "fr",
+      "output": "single",
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },

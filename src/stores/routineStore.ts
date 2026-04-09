@@ -1,27 +1,34 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Routine, RoutineStep, RoutineExecution } from '../types';
+import { Routine, RoutineStep, RoutineExecution, TrashedRoutine } from '../types';
 import { generateId } from '../utils/id';
 
 interface RoutineState {
   routines: Routine[];
+  trashedRoutines: TrashedRoutine[];
   executions: RoutineExecution[];
   currentExecution: RoutineExecution | null;
   chainQueue: string[];
+  pendingStepOrders: Record<string, RoutineStep[]>;
 
   addRoutine: (routine: Omit<Routine, 'id' | 'createdAt' | 'updatedAt'>) => Routine;
   updateRoutine: (id: string, updates: Partial<Omit<Routine, 'id' | 'createdAt'>>) => void;
   removeRoutine: (id: string) => void;
+  trashRoutine: (id: string) => void;
+  restoreRoutine: (id: string) => void;
+  cleanupExpiredTrash: () => void;
   duplicateRoutine: (id: string, childId: string) => Routine | null;
   toggleRoutine: (id: string) => void;
   getRoutinesForChild: (childId: string) => Routine[];
   getRoutine: (id: string) => Routine | undefined;
   reorderRoutines: (childId: string, orderedIds: string[]) => void;
   mergeRoutines: (routineIds: string[], name: string, icon: string, color: string) => Routine | null;
+  setPendingStepOrders: (orders: Record<string, RoutineStep[]>) => void;
+  clearPendingStepOrders: () => void;
 
-  startExecution: (routineId: string, childId: string) => RoutineExecution;
-  startChain: (routineIds: string[], childId: string) => RoutineExecution | null;
+  startExecution: (routineId: string, participantChildIds?: string[], stepOrders?: Record<string, RoutineStep[]>) => RoutineExecution | null;
+  startChain: (routineIds: string[], participantChildIds?: string[], stepOrders?: Record<string, RoutineStep[]>) => RoutineExecution | null;
   nextInChain: () => RoutineExecution | null;
   completeStep: (stepId: string) => void;
   finishExecution: () => RoutineExecution | null;
@@ -32,9 +39,11 @@ export const useRoutineStore = create<RoutineState>()(
   persist(
     (set, get) => ({
       routines: [],
+      trashedRoutines: [],
       executions: [],
       currentExecution: null,
       chainQueue: [],
+      pendingStepOrders: {},
 
       addRoutine: (data) => {
         const now = new Date().toISOString();
@@ -62,15 +71,78 @@ export const useRoutineStore = create<RoutineState>()(
           routines: state.routines.filter((r) => r.id !== id),
         })),
 
+      trashRoutine: (id) =>
+        set((state) => {
+          const routine = state.routines.find((item) => item.id === id);
+          if (!routine) return state;
+
+          const deletedAt = new Date().toISOString();
+          const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+          const trashedRoutine: TrashedRoutine = {
+            ...routine,
+            deletedAt,
+            expiresAt,
+          };
+
+          return {
+            routines: state.routines.filter((item) => item.id !== id),
+            trashedRoutines: [
+              trashedRoutine,
+              ...state.trashedRoutines.filter((item) => item.id !== id),
+            ],
+          };
+        }),
+
+      restoreRoutine: (id) =>
+        set((state) => {
+          const trashedRoutine = state.trashedRoutines.find((item) => item.id === id);
+          if (!trashedRoutine) return state;
+
+          const { deletedAt, expiresAt, ...restoredRoutine } = trashedRoutine;
+
+          return {
+            routines: [
+              ...state.routines,
+              {
+                ...restoredRoutine,
+                updatedAt: new Date().toISOString(),
+              },
+            ],
+            trashedRoutines: state.trashedRoutines.filter((item) => item.id !== id),
+          };
+        }),
+
+      cleanupExpiredTrash: () =>
+        set((state) => {
+          const now = Date.now();
+          return {
+            trashedRoutines: state.trashedRoutines.filter(
+              (item) => new Date(item.expiresAt).getTime() > now,
+            ),
+          };
+        }),
+
       duplicateRoutine: (id, childId) => {
         const source = get().routines.find((r) => r.id === id);
         if (!source) return null;
         const now = new Date().toISOString();
+        const siblingNames = get()
+          .routines.filter((routine) => routine.childId === childId)
+          .map((routine) => routine.name);
+        const baseCopyName = `${source.name} (copie)`;
+        let nextName = baseCopyName;
+        let copyIndex = 2;
+
+        while (siblingNames.includes(nextName)) {
+          nextName = `${source.name} (copie ${copyIndex})`;
+          copyIndex += 1;
+        }
+
         const newRoutine: Routine = {
           ...source,
           id: generateId(),
           childId,
-          name: `${source.name} (copie)`,
+          name: nextName,
           steps: source.steps.map((s) => ({ ...s, id: generateId() })),
           createdAt: now,
           updatedAt: now,
@@ -129,47 +201,75 @@ export const useRoutineStore = create<RoutineState>()(
         return merged;
       },
 
-      startExecution: (routineId, childId) => {
+      setPendingStepOrders: (orders) => set({ pendingStepOrders: orders }),
+
+      clearPendingStepOrders: () => set({ pendingStepOrders: {} }),
+
+      startExecution: (routineId, participantChildIds, stepOrders) => {
+        const routine = get().routines.find((item) => item.id === routineId);
+        if (!routine) return null;
+        const resolvedStepOrders = stepOrders ?? {};
+
         const execution: RoutineExecution = {
           id: generateId(),
           routineId,
-          childId,
+          childId: routine.childId,
+          participantChildIds: participantChildIds?.length ? participantChildIds : [routine.childId],
+          customStepOrder: resolvedStepOrders[routineId],
           startedAt: new Date().toISOString(),
           stepsCompleted: [],
           earnedStars: 0,
         };
-        set({ currentExecution: execution, chainQueue: [] });
+        set({ currentExecution: execution, chainQueue: [], pendingStepOrders: {} });
         return execution;
       },
 
-      startChain: (routineIds, childId) => {
+      startChain: (routineIds, participantChildIds, stepOrders) => {
         if (routineIds.length === 0) return null;
         const [first, ...rest] = routineIds;
+        const firstRoutine = get().routines.find((item) => item.id === first);
+        if (!firstRoutine) return null;
+        const resolvedStepOrders = stepOrders ?? {};
+
         const execution: RoutineExecution = {
           id: generateId(),
           routineId: first,
-          childId,
+          childId: firstRoutine.childId,
+          participantChildIds: participantChildIds?.length ? participantChildIds : [firstRoutine.childId],
+          customStepOrder: resolvedStepOrders[first],
           startedAt: new Date().toISOString(),
           stepsCompleted: [],
           earnedStars: 0,
         };
-        set({ currentExecution: execution, chainQueue: rest });
+        set({ currentExecution: execution, chainQueue: rest, pendingStepOrders: resolvedStepOrders });
         return execution;
       },
 
       nextInChain: () => {
-        const { chainQueue, currentExecution } = get();
+        const { chainQueue, currentExecution, routines, pendingStepOrders } = get();
         if (chainQueue.length === 0 || !currentExecution) return null;
         const [next, ...rest] = chainQueue;
+        const nextRoutine = routines.find((item) => item.id === next);
+        if (!nextRoutine) {
+          const remainingOrders = { ...pendingStepOrders };
+          delete remainingOrders[next];
+          set({ currentExecution: null, chainQueue: rest, pendingStepOrders: remainingOrders });
+          return null;
+        }
+
         const execution: RoutineExecution = {
           id: generateId(),
           routineId: next,
-          childId: currentExecution.childId,
+          childId: nextRoutine.childId,
+          participantChildIds: currentExecution.participantChildIds,
+          customStepOrder: pendingStepOrders[next],
           startedAt: new Date().toISOString(),
           stepsCompleted: [],
           earnedStars: 0,
         };
-        set({ currentExecution: execution, chainQueue: rest });
+        const remainingOrders = { ...pendingStepOrders };
+        delete remainingOrders[next];
+        set({ currentExecution: execution, chainQueue: rest, pendingStepOrders: remainingOrders });
         return execution;
       },
 
@@ -191,7 +291,7 @@ export const useRoutineStore = create<RoutineState>()(
         }),
 
       finishExecution: () => {
-        const { currentExecution, routines } = get();
+        const { currentExecution, routines, chainQueue, pendingStepOrders } = get();
         if (!currentExecution) return null;
         const routine = routines.find((r) => r.id === currentExecution.routineId);
         const bonusStars = routine ? 2 : 0;
@@ -203,17 +303,19 @@ export const useRoutineStore = create<RoutineState>()(
         set((state) => ({
           executions: [...state.executions, completed],
           currentExecution: null,
+          pendingStepOrders: chainQueue.length === 0 ? {} : pendingStepOrders,
         }));
         return completed;
       },
 
-      cancelExecution: () => set({ currentExecution: null, chainQueue: [] }),
+      cancelExecution: () => set({ currentExecution: null, chainQueue: [], pendingStepOrders: {} }),
     }),
     {
       name: 'routine-store',
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         routines: state.routines,
+        trashedRoutines: state.trashedRoutines,
         executions: state.executions,
       }),
     }

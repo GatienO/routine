@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { ViewStyle, StyleProp } from 'react-native';
+import { ViewStyle, StyleProp, Insets } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -13,6 +13,7 @@ interface AnimatedPressableProps {
   children: React.ReactNode;
   scaleDown?: number;
   disabled?: boolean;
+  hitSlop?: Insets | number;
 }
 
 const SPRING_CONFIG = {
@@ -27,6 +28,7 @@ export function AnimatedPressable({
   children,
   scaleDown = 0.93,
   disabled = false,
+  hitSlop,
 }: AnimatedPressableProps) {
   const scale = useSharedValue(1);
 
@@ -48,6 +50,8 @@ export function AnimatedPressable({
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       disabled={disabled}
+      hitSlop={hitSlop}
+      pressRetentionOffset={16}
     >
       <Animated.View style={[style, animStyle]}>{children}</Animated.View>
     </Pressable>

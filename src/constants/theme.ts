@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 export const COLORS = {
   primary: '#FF6B6B',
   primaryLight: '#FF8E8E',
@@ -63,29 +65,60 @@ export const FONT_SIZE = {
   hero: 48,
 } as const;
 
+function createShadow({
+  boxShadow,
+  elevation,
+  shadowColor,
+  shadowOffset,
+  shadowOpacity,
+  shadowRadius,
+}: {
+  boxShadow: string;
+  elevation: number;
+  shadowColor: string;
+  shadowOffset: { width: number; height: number };
+  shadowOpacity: number;
+  shadowRadius: number;
+}) {
+  if (Platform.OS === 'web') {
+    return {
+      boxShadow,
+      elevation,
+    };
+  }
+
+  return {
+    shadowColor,
+    shadowOffset,
+    shadowOpacity,
+    shadowRadius,
+    elevation,
+  };
+}
+
 export const SHADOWS = {
-  sm: {
+  sm: createShadow({
+    boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.1)',
+    elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
-    elevation: 2,
-    boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.1)',
-  },
-  md: {
+  }),
+  md: createShadow({
+    boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.12)',
+    elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.12,
     shadowRadius: 6,
-    elevation: 4,
-    boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.12)',
-  },
-  lg: {
+  }),
+  lg: createShadow({
+    boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.15)',
+    elevation: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
-    elevation: 8,
-    boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.15)',
-  },
+  }),
 } as const;

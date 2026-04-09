@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAppStore } from '../src/stores/appStore';
-import { Button } from '../src/components/ui/Button';
-import { COLORS, SPACING, FONT_SIZE, RADIUS } from '../src/constants/theme';
+import { BackButton } from '../src/components/ui/BackButton';
+import { COLORS, SPACING, FONT_SIZE } from '../src/constants/theme';
+import { backOrReplace } from '../src/utils/navigation';
 
 const DIGITS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'];
 
@@ -19,24 +20,23 @@ export default function PinScreen() {
 
   const handleDigit = (digit: string) => {
     if (digit === '⌫') {
-      setPin((p) => p.slice(0, -1));
+      setPin((value) => value.slice(0, -1));
       setError('');
       return;
     }
+
     if (digit === '' || pin.length >= 4) return;
 
-    const newPin = pin + digit;
-    setPin(newPin);
+    const nextPin = pin + digit;
+    setPin(nextPin);
 
-    if (newPin.length === 4) {
+    if (nextPin.length === 4) {
       if (isSetup && confirmPin === null) {
-        // First entry during setup — ask to confirm
-        setConfirmPin(newPin);
+        setConfirmPin(nextPin);
         setPin('');
       } else if (isSetup && confirmPin !== null) {
-        // Confirm step — check match
-        if (newPin === confirmPin) {
-          setParentPin(newPin);
+        if (nextPin === confirmPin) {
+          setParentPin(nextPin);
           setParentMode(true);
           router.replace('/parent');
         } else {
@@ -47,7 +47,7 @@ export default function PinScreen() {
             setError('');
           }, 1000);
         }
-      } else if (newPin === parentPin) {
+      } else if (nextPin === parentPin) {
         setParentMode(true);
         router.replace('/parent');
       } else {
@@ -60,48 +60,41 @@ export default function PinScreen() {
     }
   };
 
-  const setupTitle = isConfirmStep
-    ? 'Confirmez votre code'
-    : 'Créez votre code';
+  const setupTitle = isConfirmStep ? 'Confirmez votre code' : 'Creez votre code';
   const setupSubtitle = isConfirmStep
-    ? 'Entrez le même code pour confirmer'
-    : 'Choisissez un code à 4 chiffres pour\nprotéger l\'espace parent';
+    ? 'Entrez le meme code pour confirmer'
+    : "Choisissez un code a 4 chiffres pour\nproteger l'espace parent";
 
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
-        <TouchableOpacity style={styles.back} onPress={() => router.back()}>
-          <Text style={styles.backText}>← Retour</Text>
-        </TouchableOpacity>
+        <BackButton style={styles.back} onPress={() => backOrReplace(router, '/')} />
 
         <Text style={styles.emoji}>🔒</Text>
-        <Text style={styles.title}>
-          {isSetup ? setupTitle : 'Code parent'}
-        </Text>
+        <Text style={styles.title}>{isSetup ? setupTitle : 'Code parent'}</Text>
         <Text style={styles.subtitle}>
-          {isSetup
-            ? setupSubtitle
-            : 'Entrez votre code à 4 chiffres'}
+          {isSetup ? setupSubtitle : 'Entrez votre code a 4 chiffres'}
         </Text>
 
         <View style={styles.dots}>
-          {[0, 1, 2, 3].map((i) => (
+          {[0, 1, 2, 3].map((index) => (
             <View
-              key={i}
+              key={index}
               style={[
                 styles.dot,
-                pin.length > i && styles.dotFilled,
+                pin.length > index && styles.dotFilled,
                 error ? styles.dotError : null,
               ]}
             />
           ))}
         </View>
+
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
         <View style={styles.keypad}>
-          {DIGITS.map((digit, i) => (
+          {DIGITS.map((digit, index) => (
             <TouchableOpacity
-              key={i}
+              key={index}
               style={[styles.key, digit === '' && styles.keyEmpty]}
               onPress={() => handleDigit(digit)}
               disabled={digit === ''}
@@ -131,11 +124,6 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     marginBottom: SPACING.xl,
   },
-  backText: {
-    fontSize: FONT_SIZE.md,
-    color: COLORS.secondary,
-    fontWeight: '600',
-  },
   emoji: {
     fontSize: 48,
     marginBottom: SPACING.md,
@@ -150,6 +138,7 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     marginTop: SPACING.xs,
     marginBottom: SPACING.xl,
+    textAlign: 'center',
   },
   dots: {
     flexDirection: 'row',

@@ -61,10 +61,17 @@ export interface Routine {
   updatedAt: string;
 }
 
+export interface TrashedRoutine extends Routine {
+  deletedAt: string;
+  expiresAt: string;
+}
+
 export interface RoutineExecution {
   id: string;
   routineId: string;
   childId: string;
+  participantChildIds?: string[];
+  customStepOrder?: RoutineStep[];
   startedAt: string;
   completedAt?: string;
   stepsCompleted: string[];
@@ -92,6 +99,12 @@ export interface ChildRewards {
   lastCompletionDate?: string;
 }
 
+export interface CompletionRewardSummary {
+  childId: string;
+  starsEarned: number;
+  unlockedBadgeIds: string[];
+}
+
 export interface RealReward {
   id: string;
   childId: string;
@@ -100,6 +113,8 @@ export interface RealReward {
   isClaimed: boolean;
   createdAt: string;
   claimedAt?: string;
+  claimedChildIds?: string[];
+  claimedByChild?: Record<string, string>;
 }
 
 export interface ShareableRoutine {

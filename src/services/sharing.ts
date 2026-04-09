@@ -57,3 +57,27 @@ export function importRoutine(
 export function generateShareLink(encoded: string): string {
   return `routine://import/${encoded}`;
 }
+
+export function buildRoutineShareText(routine: Routine): string {
+  const lines: string[] = [routine.name.trim()];
+
+  if (routine.description?.trim()) {
+    lines.push('', 'Description', routine.description.trim());
+  }
+
+  lines.push('', 'Etapes');
+
+  const orderedSteps = [...routine.steps].sort((left, right) => left.order - right.order);
+
+  orderedSteps.forEach((step, index) => {
+    lines.push(
+      '',
+      `${index + 1}. ${step.title}`,
+      `Temps : ${step.durationMinutes} min`,
+      `Consigne : ${step.instruction?.trim() || 'Aucune'}`,
+      `Obligatoire : ${step.isRequired ? 'Oui' : 'Non'}`,
+    );
+  });
+
+  return lines.join('\n');
+}

@@ -1,0 +1,28 @@
+{
+  "id": "/?source=pwa",
+  "name": "Routine",
+  "short_name": "Routine",
+  "description": "Application de routines enfant gamifiees pour un usage plein ecran sur mobile et tablette.",
+  "lang": "fr-FR",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FFF8F0",
+  "theme_color": "#FFF8F0",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

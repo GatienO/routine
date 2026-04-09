@@ -166,8 +166,9 @@ describe('routineStore', () => {
     });
 
     // Start
-    const exec = useRoutineStore.getState().startExecution(routine.id, 'child-1');
-    expect(exec.routineId).toBe(routine.id);
+    const exec = useRoutineStore.getState().startExecution(routine.id, ['child-1']);
+    expect(exec).not.toBeNull();
+    expect(exec!.routineId).toBe(routine.id);
     expect(useRoutineStore.getState().currentExecution).not.toBeNull();
 
     // Complete required step → 1 star
@@ -199,7 +200,7 @@ describe('routineStore', () => {
       isActive: true,
     });
 
-    useRoutineStore.getState().startExecution(routine.id, 'child-1');
+    useRoutineStore.getState().startExecution(routine.id, ['child-1']);
     expect(useRoutineStore.getState().currentExecution).not.toBeNull();
 
     useRoutineStore.getState().cancelExecution();

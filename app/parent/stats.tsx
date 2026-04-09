@@ -13,12 +13,13 @@ import { useRoutineStore } from '../../src/stores/routineStore';
 import { useRewardStore } from '../../src/stores/rewardStore';
 import { Avatar } from '../../src/components/ui/Avatar';
 import { Card } from '../../src/components/ui/Card';
-import { BadgeCard } from '../../src/components/rewards/BadgeCard';
 import { StarCounter } from '../../src/components/rewards/Counters';
 import { ProgressBar } from '../../src/components/ui/ProgressBar';
+import { BackButton } from '../../src/components/ui/BackButton';
 import { BADGES } from '../../src/constants/badges';
 import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../../src/constants/theme';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
+import { backOrReplace } from '../../src/utils/navigation';
 
 export default function StatsScreen() {
   const router = useRouter();
@@ -27,46 +28,40 @@ export default function StatsScreen() {
   const { getRewards, getUnlockedBadges } = useRewardStore();
 
   const [selectedChildId, setSelectedChildId] = useState<string | null>(
-    children.length > 0 ? children[0].id : null
+    children.length > 0 ? children[0].id : null,
   );
 
-  const selectedChild = children.find((c) => c.id === selectedChildId);
+  const selectedChild = children.find((child) => child.id === selectedChildId);
   const rewards = selectedChildId ? getRewards(selectedChildId) : null;
   const routines = selectedChildId ? getRoutinesForChild(selectedChildId) : [];
   const childExecutions = selectedChildId
-    ? executions.filter((e) => e.childId === selectedChildId && e.completedAt)
+    ? executions.filter((execution) => execution.childId === selectedChildId && execution.completedAt)
     : [];
   const unlockedBadges = selectedChildId ? getUnlockedBadges(selectedChildId) : [];
 
-  // Per-routine stats
   const routineStats = routines.map((routine) => {
-    const routineExecs = childExecutions.filter((e) => e.routineId === routine.id);
-    const totalStars = routineExecs.reduce((sum, e) => sum + e.earnedStars, 0);
+    const routineExecutions = childExecutions.filter((execution) => execution.routineId === routine.id);
+    const totalStars = routineExecutions.reduce((sum, execution) => sum + execution.earnedStars, 0);
     return {
       routine,
-      completions: routineExecs.length,
+      completions: routineExecutions.length,
       totalStars,
     };
   });
 
-  // Recent executions (last 10)
-  const recentExecs = [...childExecutions]
+  const recentExecutions = [...childExecutions]
     .sort((a, b) => (b.completedAt! > a.completedAt! ? 1 : -1))
     .slice(0, 10);
 
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Text style={styles.backText}>← Retour</Text>
-          </TouchableOpacity>
-          <Text style={styles.title}>📊 Statistiques</Text>
-          <View style={{ width: 60 }} />
+          <BackButton onPress={() => backOrReplace(router, '/parent')} />
+          <Text style={styles.title}>Statistiques</Text>
+          <View style={styles.headerSpacer} />
         </View>
 
-        {/* Child selector */}
         {children.length > 1 && (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.childSelector}>
             <View style={styles.childRow}>
@@ -75,15 +70,25 @@ export default function StatsScreen() {
                   key={child.id}
                   style={[
                     styles.childTab,
-                    selectedChildId === child.id && { backgroundColor: child.color + '30', borderColor: child.color },
+                    selectedChildId === child.id && {
+                      backgroundColor: child.color + '30',
+                      borderColor: child.color,
+                    },
                   ]}
                   onPress={() => setSelectedChildId(child.id)}
                 >
-                  <Avatar emoji={child.avatar} color={child.color} size={32} avatarConfig={child.avatarConfig} />
-                  <Text style={[
-                    styles.childTabText,
-                    selectedChildId === child.id && { color: COLORS.text, fontWeight: '700' },
-                  ]}>
+                  <Avatar
+                    emoji={child.avatar}
+                    color={child.color}
+                    size={32}
+                    avatarConfig={child.avatarConfig}
+                  />
+                  <Text
+                    style={[
+                      styles.childTabText,
+                      selectedChildId === child.id && styles.childTabTextActive,
+                    ]}
+                  >
                     {child.name}
                   </Text>
                 </TouchableOpacity>
@@ -101,29 +106,28 @@ export default function StatsScreen() {
           </Card>
         ) : (
           <>
-            {/* Overview cards */}
             <View style={styles.overviewRow}>
               <Card style={styles.statCard}>
                 <Text style={styles.statValue}>{rewards.totalStars}</Text>
-                <Text style={styles.statLabel}>⭐ Étoiles</Text>
+                <Text style={styles.statLabel}>Etoiles</Text>
               </Card>
               <Card style={styles.statCard}>
                 <Text style={styles.statValue}>{rewards.completedRoutines}</Text>
-                <Text style={styles.statLabel}>✅ Routines</Text>
-              </Card>
-            </View>
-            <View style={styles.overviewRow}>
-              <Card style={styles.statCard}>
-                <Text style={styles.statValue}>{rewards.currentStreak}</Text>
-                <Text style={styles.statLabel}>🔥 Série actuelle</Text>
-              </Card>
-              <Card style={styles.statCard}>
-                <Text style={styles.statValue}>{rewards.longestStreak}</Text>
-                <Text style={styles.statLabel}>🏆 Meilleure série</Text>
+                <Text style={styles.statLabel}>Routines</Text>
               </Card>
             </View>
 
-            {/* Badges progress */}
+            <View style={styles.overviewRow}>
+              <Card style={styles.statCard}>
+                <Text style={styles.statValue}>{rewards.currentStreak}</Text>
+                <Text style={styles.statLabel}>Serie actuelle</Text>
+              </Card>
+              <Card style={styles.statCard}>
+                <Text style={styles.statValue}>{rewards.longestStreak}</Text>
+                <Text style={styles.statLabel}>Meilleure serie</Text>
+              </Card>
+            </View>
+
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>
                 Badges ({unlockedBadges.length}/{BADGES.length})
@@ -149,11 +153,10 @@ export default function StatsScreen() {
               </View>
             </View>
 
-            {/* Per-routine stats */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Par routine</Text>
               {routineStats.length === 0 ? (
-                <Text style={styles.emptyText}>Aucune routine créée</Text>
+                <Text style={styles.emptyText}>Aucune routine creee</Text>
               ) : (
                 routineStats.map(({ routine, completions, totalStars }) => (
                   <Card key={routine.id} style={styles.routineStatCard}>
@@ -162,7 +165,7 @@ export default function StatsScreen() {
                       <View style={styles.routineStatInfo}>
                         <Text style={styles.routineStatName}>{routine.name}</Text>
                         <Text style={styles.routineStatSub}>
-                          {completions} exécution{completions !== 1 ? 's' : ''} · {totalStars} ⭐
+                          {completions} execution{completions !== 1 ? 's' : ''} · {totalStars} etoiles
                         </Text>
                       </View>
                     </View>
@@ -171,27 +174,27 @@ export default function StatsScreen() {
               )}
             </View>
 
-            {/* Recent activity */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Activité récente</Text>
-              {recentExecs.length === 0 ? (
-                <Text style={styles.emptyText}>Aucune activité</Text>
+              <Text style={styles.sectionTitle}>Activite recente</Text>
+              {recentExecutions.length === 0 ? (
+                <Text style={styles.emptyText}>Aucune activite</Text>
               ) : (
-                recentExecs.map((exec) => {
-                  const routine = getRoutine(exec.routineId);
-                  const date = new Date(exec.completedAt!);
-                  const dateStr = date.toLocaleDateString('fr-FR', {
+                recentExecutions.map((execution) => {
+                  const routine = getRoutine(execution.routineId);
+                  const date = new Date(execution.completedAt!);
+                  const dateLabel = date.toLocaleDateString('fr-FR', {
                     day: 'numeric',
                     month: 'short',
                   });
+
                   return (
-                    <View key={exec.id} style={styles.activityRow}>
+                    <View key={execution.id} style={styles.activityRow}>
                       <OpenMoji emoji={routine?.icon ?? '📋'} size={24} />
                       <View style={styles.activityInfo}>
-                        <Text style={styles.activityName}>{routine?.name ?? 'Routine supprimée'}</Text>
-                        <Text style={styles.activityDate}>{dateStr}</Text>
+                        <Text style={styles.activityName}>{routine?.name ?? 'Routine supprimee'}</Text>
+                        <Text style={styles.activityDate}>{dateLabel}</Text>
                       </View>
-                      <StarCounter count={exec.earnedStars} size="sm" />
+                      <StarCounter count={execution.earnedStars} size="sm" />
                     </View>
                   );
                 })
@@ -213,7 +216,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: SPACING.lg,
   },
-  backText: { fontSize: FONT_SIZE.md, color: COLORS.textSecondary, fontWeight: '600' },
+  headerSpacer: { width: 56 },
   title: { fontSize: FONT_SIZE.xl, fontWeight: '800', color: COLORS.text },
   childSelector: { marginBottom: SPACING.lg },
   childRow: { flexDirection: 'row', gap: SPACING.sm },
@@ -229,6 +232,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
   },
   childTabText: { fontSize: FONT_SIZE.sm, color: COLORS.textSecondary },
+  childTabTextActive: { color: COLORS.text, fontWeight: '700' },
   overviewRow: {
     flexDirection: 'row',
     gap: SPACING.md,
@@ -259,12 +263,15 @@ const styles = StyleSheet.create({
     ...SHADOWS.sm,
   },
   badgeLocked: { opacity: 0.4 },
-  badgeIcon: { fontSize: 24 },
-  badgeName: { fontSize: FONT_SIZE.xs, color: COLORS.text, textAlign: 'center', marginTop: 2 },
+  badgeName: {
+    fontSize: FONT_SIZE.xs,
+    color: COLORS.text,
+    textAlign: 'center',
+    marginTop: 2,
+  },
   badgeLockedText: { color: COLORS.textLight },
   routineStatCard: { marginBottom: SPACING.sm },
   routineStatRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
-  routineIcon: { fontSize: 32 },
   routineStatInfo: { flex: 1 },
   routineStatName: { fontSize: FONT_SIZE.md, fontWeight: '700', color: COLORS.text },
   routineStatSub: { fontSize: FONT_SIZE.sm, color: COLORS.textSecondary, marginTop: 2 },
@@ -276,7 +283,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.surfaceSecondary,
   },
-  activityIcon: { fontSize: 24 },
   activityInfo: { flex: 1 },
   activityName: { fontSize: FONT_SIZE.sm, fontWeight: '600', color: COLORS.text },
   activityDate: { fontSize: FONT_SIZE.xs, color: COLORS.textLight },

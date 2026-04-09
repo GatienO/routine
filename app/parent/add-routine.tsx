@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -9,12 +9,16 @@ import {
   TouchableOpacity,
   Alert,
   Image,
+  Platform,
+  Modal,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
+import { SquaresFour, X } from 'phosphor-react-native';
 import { useChildrenStore } from '../../src/stores/childrenStore';
 import { useRoutineStore } from '../../src/stores/routineStore';
 import { Button } from '../../src/components/ui/Button';
+import { BackButton } from '../../src/components/ui/BackButton';
 import { EmojiPicker, ColorPicker } from '../../src/components/ui/Pickers';
 import { Card } from '../../src/components/ui/Card';
 import { ROUTINE_ICONS, STEP_ICONS } from '../../src/constants/icons';
@@ -25,10 +29,14 @@ import {
   SPACING,
   FONT_SIZE,
   RADIUS,
+  SHADOWS,
 } from '../../src/constants/theme';
 import { RoutineCategory, RoutineStep } from '../../src/types';
 import { generateId } from '../../src/utils/id';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
+import { backOrReplace } from '../../src/utils/navigation';
+import { StepCatalogPicker } from '../../src/components/routine/StepCatalogPicker';
+import { StepCatalogItem } from '../../src/constants/stepCatalog';
 
 const CATEGORIES = Object.entries(CATEGORY_CONFIG) as [RoutineCategory, typeof CATEGORY_CONFIG[string]][];
 
@@ -78,6 +86,74 @@ export default function AddRoutineScreen() {
   const [stepInstruction, setStepInstruction] = useState('');
   const [stepRequired, setStepRequired] = useState(true);
   const [stepMediaUri, setStepMediaUri] = useState('');
+  const [showStepCatalog, setShowStepCatalog] = useState(false);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
+
+  const initialSnapshot = useMemo(
+    () =>
+      JSON.stringify({
+        childIds: isMerge ? [mergeSources[0].childId] : children[0] ? [children[0].id] : [],
+        name: isMerge ? mergeNames : '',
+        description: '',
+        icon: isMerge ? mergeSources[0].icon : 'ðŸŒ…',
+        color: isMerge ? mergeSources[0].color : CHILD_COLORS[0],
+        category: isMerge ? mergeSources[0].category : 'morning',
+        steps: isMerge ? mergedSteps : [],
+        stepDraft: {
+          title: '',
+          icon: 'ðŸª¥',
+          duration: '2',
+          instruction: '',
+          required: true,
+          mediaUri: '',
+          editingStepId: null,
+          showStepForm: false,
+        },
+      }),
+    [children, isMerge, mergeNames, mergeSources, mergedSteps],
+  );
+
+  const currentSnapshot = useMemo(
+    () =>
+      JSON.stringify({
+        childIds,
+        name,
+        description,
+        icon,
+        color,
+        category,
+        steps,
+        stepDraft: {
+          title: stepTitle,
+          icon: stepIcon,
+          duration: stepDuration,
+          instruction: stepInstruction,
+          required: stepRequired,
+          mediaUri: stepMediaUri,
+          editingStepId,
+          showStepForm,
+        },
+      }),
+    [
+      category,
+      childIds,
+      color,
+      description,
+      editingStepId,
+      icon,
+      name,
+      showStepForm,
+      stepDuration,
+      stepIcon,
+      stepInstruction,
+      stepMediaUri,
+      stepRequired,
+      stepTitle,
+      steps,
+    ],
+  );
+
+  const hasUnsavedChanges = currentSnapshot !== initialSnapshot;
 
   const canSave = name.trim().length > 0 && childIds.length > 0 && steps.length > 0;
 
@@ -150,6 +226,26 @@ export default function AddRoutineScreen() {
     setSteps(newSteps.map((s, i) => ({ ...s, order: i })));
   };
 
+  const addCatalogStep = (template: StepCatalogItem) => {
+    const step: RoutineStep = {
+      id: generateId(),
+      title: template.title,
+      icon: template.icon,
+      color,
+      durationMinutes: template.durationMinutes,
+      instruction: template.instruction,
+      isRequired: template.isRequired,
+      order: steps.length,
+    };
+
+    setSteps((prev) => [...prev, step]);
+  };
+
+  const handleSelectCatalogStep = (template: StepCatalogItem) => {
+    addCatalogStep(template);
+    setShowStepCatalog(false);
+  };
+
   const handleSave = () => {
     childIds.forEach((cid) => {
       addRoutine({
@@ -163,17 +259,50 @@ export default function AddRoutineScreen() {
         isActive: true,
       });
     });
-    router.back();
+    backOrReplace(router, '/parent');
   };
+
+  const handleBack = () => {
+    if (!hasUnsavedChanges) {
+      backOrReplace(router, '/parent');
+      return;
+    }
+    setShowExitConfirm(true);
+  };
+
+  const handleDiscardChanges = () => {
+    setShowExitConfirm(false);
+    backOrReplace(router, '/parent');
+  };
+
+  const handleSaveChanges = () => {
+    setShowExitConfirm(false);
+    handleSave();
+  };
+
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof window === 'undefined' || !hasUnsavedChanges) {
+      return;
+    }
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
 
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={handleBack}>
           <Text style={styles.back}>← Retour</Text>
         </TouchableOpacity>
         <Text style={styles.title}>{isMerge ? '🔀 Fusionner des routines' : 'Nouvelle routine'}</Text>
 
+        <BackButton style={styles.backButton} onPress={handleBack} />
         {/* Child selector */}
         <Text style={styles.label}>Pour quel(s) enfant(s) ?</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -250,6 +379,15 @@ export default function AddRoutineScreen() {
         <Text style={[styles.label, { marginTop: SPACING.xl }]}>
           Étapes ({steps.length})
         </Text>
+
+        <TouchableOpacity
+          onPress={() => setShowStepCatalog(true)}
+          activeOpacity={0.85}
+          style={[styles.catalogButton, { borderColor: color }]}
+        >
+          <SquaresFour size={18} weight="fill" color={color} />
+          <Text style={[styles.catalogButtonText, { color }]}>Catalogue d'etapes</Text>
+        </TouchableOpacity>
 
         {steps.map((step, index) => (
           <TouchableOpacity key={step.id} activeOpacity={0.7} onPress={() => editStep(step)}>
@@ -338,9 +476,15 @@ export default function AddRoutineScreen() {
                   mediaTypes: ['images'],
                   quality: 0.7,
                   allowsEditing: true,
+                  base64: Platform.OS === 'web',
                 });
                 if (!result.canceled && result.assets[0]) {
-                  setStepMediaUri(result.assets[0].uri);
+                  const asset = result.assets[0];
+                  const imageUri =
+                    Platform.OS === 'web' && asset.base64
+                      ? `data:${asset.mimeType ?? 'image/jpeg'};base64,${asset.base64}`
+                      : asset.uri;
+                  setStepMediaUri(imageUri);
                 }
               }}
             >
@@ -384,6 +528,82 @@ export default function AddRoutineScreen() {
           />
         </View>
       </ScrollView>
+
+      <Modal
+        visible={showStepCatalog}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowStepCatalog(false)}
+      >
+        <View style={styles.catalogOverlay}>
+          <SafeAreaView style={styles.catalogSafe}>
+            <View style={styles.catalogSheet}>
+              <View style={styles.catalogHeader}>
+                <View style={styles.catalogHeaderText}>
+                  <Text style={styles.catalogTitle}>Catalogue d'etapes</Text>
+                  <Text style={styles.catalogSubtitle}>
+                    Choisis une etape prete a l'emploi puis adapte-la si besoin.
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => setShowStepCatalog(false)}
+                  style={styles.catalogCloseButton}
+                >
+                  <X size={18} weight="bold" color={COLORS.textSecondary} />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView
+                contentContainerStyle={styles.catalogScroll}
+                showsVerticalScrollIndicator={false}
+              >
+                <StepCatalogPicker accentColor={color} onSelect={handleSelectCatalogStep} />
+              </ScrollView>
+            </View>
+          </SafeAreaView>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={showExitConfirm}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowExitConfirm(false)}
+      >
+        <View style={styles.catalogOverlay}>
+          <SafeAreaView style={styles.catalogSafe}>
+            <View style={styles.exitSheet}>
+              <Text style={styles.exitTitle}>Modifications non enregistrees</Text>
+              <Text style={styles.exitText}>
+                Tu peux enregistrer tes modifications maintenant ou les annuler pour revenir aux routines parent.
+              </Text>
+              {!canSave ? (
+                <Text style={styles.exitHint}>
+                  Complete d abord la routine pour pouvoir l enregistrer.
+                </Text>
+              ) : null}
+              <View style={styles.exitActions}>
+                <Button
+                  title="Annuler les modifications"
+                  onPress={handleDiscardChanges}
+                  variant="ghost"
+                  size="md"
+                  color={COLORS.error}
+                  style={styles.exitGhostButton}
+                />
+                <Button
+                  title="Enregistrer modifications"
+                  onPress={handleSaveChanges}
+                  variant="primary"
+                  size="md"
+                  disabled={!canSave}
+                  style={styles.exitPrimaryButton}
+                />
+              </View>
+            </View>
+          </SafeAreaView>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -391,7 +611,8 @@ export default function AddRoutineScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS.background },
   scroll: { padding: SPACING.lg, paddingBottom: SPACING.xxl },
-  back: { fontSize: FONT_SIZE.md, color: COLORS.secondary, fontWeight: '600', marginBottom: SPACING.lg },
+  back: { fontSize: 0, color: 'transparent', marginBottom: 0, height: 0 },
+  backButton: { marginBottom: SPACING.lg },
   title: { fontSize: FONT_SIZE.xl, fontWeight: '800', color: COLORS.text, marginBottom: SPACING.xl },
   label: {
     fontSize: FONT_SIZE.sm, fontWeight: '600', color: COLORS.textSecondary,
@@ -448,4 +669,105 @@ const styles = StyleSheet.create({
   mediaPreview: { width: 120, height: 120, borderRadius: RADIUS.md },
   mediaPlaceholder: { fontSize: FONT_SIZE.sm, color: COLORS.textLight },
   saveArea: { marginTop: SPACING.xl },
+  catalogButton: {
+    marginBottom: SPACING.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.sm,
+    minHeight: 50,
+    borderWidth: 2,
+    borderRadius: RADIUS.lg,
+    backgroundColor: 'transparent',
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+  },
+  catalogButtonText: {
+    fontSize: FONT_SIZE.md,
+    fontWeight: '700',
+  },
+  catalogOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(20, 24, 38, 0.42)',
+    padding: SPACING.lg,
+  },
+  catalogSafe: {
+    flex: 1,
+  },
+  catalogSheet: {
+    flex: 1,
+    marginTop: SPACING.xl,
+    backgroundColor: COLORS.background,
+    borderRadius: RADIUS.xl,
+    padding: SPACING.lg,
+    ...SHADOWS.lg,
+  },
+  catalogHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: SPACING.md,
+    marginBottom: SPACING.md,
+  },
+  catalogHeaderText: {
+    flex: 1,
+    gap: 4,
+  },
+  catalogTitle: {
+    fontSize: FONT_SIZE.lg,
+    fontWeight: '800',
+    color: COLORS.text,
+  },
+  catalogSubtitle: {
+    fontSize: FONT_SIZE.sm,
+    color: COLORS.textSecondary,
+  },
+  catalogCloseButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.surfaceSecondary,
+  },
+  catalogScroll: {
+    paddingBottom: SPACING.xl,
+  },
+  exitSheet: {
+    marginTop: SPACING.xxl,
+    backgroundColor: COLORS.background,
+    borderRadius: RADIUS.xl,
+    padding: SPACING.lg,
+    ...SHADOWS.lg,
+    gap: SPACING.md,
+  },
+  exitTitle: {
+    fontSize: FONT_SIZE.lg,
+    fontWeight: '800',
+    color: COLORS.text,
+  },
+  exitText: {
+    fontSize: FONT_SIZE.md,
+    color: COLORS.textSecondary,
+    lineHeight: 22,
+  },
+  exitHint: {
+    fontSize: FONT_SIZE.sm,
+    color: COLORS.error,
+    fontWeight: '600',
+  },
+  exitActions: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+    justifyContent: 'flex-end',
+    flexWrap: 'wrap',
+  },
+  exitGhostButton: {
+    minWidth: 220,
+  },
+  exitPrimaryButton: {
+    minWidth: 220,
+  },
 });

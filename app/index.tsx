@@ -11,7 +11,6 @@ import Animated, {
 import { useRouter } from 'expo-router';
 import { AnimatedPressable } from '../src/components/ui/AnimatedPressable';
 import { COLORS, SPACING, FONT_SIZE, SHADOWS, RADIUS } from '../src/constants/theme';
-import "app/child/home";
 
 
 export default function WelcomeScreen() {

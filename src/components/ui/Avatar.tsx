@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, ViewStyle } from 'react-native';
+import { View, Image, StyleSheet, ViewStyle } from 'react-native';
 import { COLORS, SHADOWS } from '../../constants/theme';
 import { AvatarConfig } from '../../types';
 import { AvatarCharacter } from '../avatar/AvatarCharacter';
 import { OpenMoji } from './OpenMoji';
+import { getAvatarAssetSource } from '../../constants/avatarAssets';
 
 interface AvatarProps {
   emoji: string;
@@ -14,6 +15,9 @@ interface AvatarProps {
 }
 
 export function Avatar({ emoji, color, size = 56, style, avatarConfig }: AvatarProps) {
+  const avatarAssetSource = getAvatarAssetSource(emoji);
+  const innerSize = size * 0.82;
+
   if (avatarConfig) {
     return (
       <View
@@ -31,6 +35,46 @@ export function Avatar({ emoji, color, size = 56, style, avatarConfig }: AvatarP
         ]}
       >
         <AvatarCharacter config={avatarConfig} size={size * 0.9} mode="portrait" />
+      </View>
+    );
+  }
+
+  if (avatarAssetSource) {
+    return (
+      <View
+        style={[
+          styles.avatar,
+          {
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            backgroundColor: color + '20',
+            borderColor: color,
+          },
+          style,
+        ]}
+      >
+        <View
+          style={[
+            styles.assetClip,
+            {
+              width: innerSize,
+              height: innerSize,
+              borderRadius: innerSize / 2,
+            },
+          ]}
+        >
+          <Image
+            source={avatarAssetSource}
+            style={[
+              styles.assetImage,
+              {
+                borderRadius: innerSize / 2,
+              },
+            ]}
+            resizeMode="cover"
+          />
+        </View>
       </View>
     );
   }
@@ -59,6 +103,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
+    overflow: 'hidden',
     ...SHADOWS.sm,
+  },
+  assetClip: {
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFF',
+  },
+  assetImage: {
+    width: '100%',
+    height: '100%',
   },
 });
