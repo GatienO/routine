@@ -13,6 +13,8 @@ import {
   Switch,
   Share,
   Platform,
+  Modal,
+  Pressable,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
@@ -33,15 +35,39 @@ import {
   RoutineGroup,
 } from '../components/parent/CompactRoutineRows';
 import {
-  CategoryFilter,
-  ChildScope,
+  CategoryFilterValue,
   ParentDashboardHeader,
-  StatusFilter,
+  StatusFilterValue,
 } from '../components/parent/ParentDashboardHeader';
 
 type RoutineListItem =
   | { type: 'group'; key: string; group: RoutineGroup }
   | { type: 'routine'; key: string; routine: Routine };
+
+const ROUTINES_PER_PAGE = 10;
+const STATUS_FILTER_OPTIONS: StatusFilterValue[] = ['active', 'inactive'];
+const CATEGORY_FILTER_OPTIONS: CategoryFilterValue[] = [
+  'morning',
+  'evening',
+  'school',
+  'home',
+  'weekend',
+  'custom',
+];
+
+const confirmAction = (title: string, message: string, onConfirm: () => void) => {
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    if (window.confirm(`${title}\n\n${message}`)) {
+      onConfirm();
+    }
+    return;
+  }
+
+  Alert.alert(title, message, [
+    { text: 'Annuler', style: 'cancel' },
+    { text: 'Confirmer', style: 'destructive', onPress: onConfirm },
+  ]);
+};
 
 export function ParentDashboardScreen() {
   const router = useRouter();
@@ -61,14 +87,17 @@ export function ParentDashboardScreen() {
   const { refresh: refreshWeather } = useWeatherStore();
 
   const [cityInput, setCityInput] = useState(weatherCity);
-  const [selectedChildScope, setSelectedChildScope] = useState<ChildScope>('all');
+  const [selectedChildIds, setSelectedChildIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
+  const [selectedStatuses, setSelectedStatuses] = useState<StatusFilterValue[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<CategoryFilterValue[]>([]);
   const [organizeMode, setOrganizeMode] = useState(false);
   const [showWeatherSettings, setShowWeatherSettings] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [routinesExpanded, setRoutinesExpanded] = useState(true);
 
   const deferredSearch = useDeferredValue(searchQuery.trim().toLowerCase());
+  const selectedChildIdSet = useMemo(() => new Set(selectedChildIds), [selectedChildIds]);
 
   useEffect(() => {
     cleanupExpiredTrash();
@@ -79,17 +108,16 @@ export function ParentDashboardScreen() {
   }, [weatherCity]);
 
   useEffect(() => {
-    if (selectedChildScope === 'all') {
-      setOrganizeMode(false);
-      return;
-    }
+    setSelectedChildIds((previous) =>
+      previous.filter((childId) => children.some((child) => child.id === childId)),
+    );
+  }, [children]);
 
-    const exists = children.some((child) => child.id === selectedChildScope);
-    if (!exists) {
-      setSelectedChildScope('all');
+  useEffect(() => {
+    if (selectedChildIds.length !== 1) {
       setOrganizeMode(false);
     }
-  }, [children, selectedChildScope]);
+  }, [selectedChildIds.length]);
 
   const childrenById = useMemo(() => {
     const map = new Map<string, Child>();
@@ -146,33 +174,80 @@ export function ParentDashboardScreen() {
     );
   }, [routines]);
 
-  const selectedChild = selectedChildScope === 'all' ? undefined : childrenById.get(selectedChildScope);
+  const selectedChild = selectedChildIds.length === 1 ? childrenById.get(selectedChildIds[0]) : undefined;
   const selectedChildRoutines = selectedChild ? (routinesByChild.get(selectedChild.id) ?? []) : [];
+  const showSingleChildView = Boolean(selectedChild);
+
+  const matchesStatusFilter = (isActive: boolean) => {
+    if (selectedStatuses.length === 0) return true;
+
+    return (
+      (selectedStatuses.includes('active') && isActive) ||
+      (selectedStatuses.includes('inactive') && !isActive)
+    );
+  };
+
+  const matchesCategoryFilter = (category: CategoryFilterValue) => {
+    if (selectedCategories.length === 0) return true;
+    return selectedCategories.includes(category);
+  };
 
   const filteredGroups = useMemo(() => {
-    return groupedRoutines.filter((group) => {
-      if (categoryFilter !== 'all' && group.sample.category !== categoryFilter) return false;
-      const activeCount = group.routines.filter((routine) => routine.isActive).length;
-      if (statusFilter === 'active' && activeCount === 0) return false;
-      if (statusFilter === 'inactive' && activeCount > 0) return false;
-      if (!deferredSearch) return true;
+    return groupedRoutines.reduce<RoutineGroup[]>((accumulator, group) => {
+      const scopedRoutines = selectedChildIds.length === 0
+        ? group.routines
+        : group.routines.filter((routine) => selectedChildIdSet.has(routine.childId));
 
-      const haystack = [
-        group.sample.name,
-        group.sample.description ?? '',
-        group.sample.steps.map((step) => step.title).join(' '),
-        group.childIds.map((childId) => childrenById.get(childId)?.name ?? '').join(' '),
-      ].join(' ').toLowerCase();
+      if (scopedRoutines.length === 0) {
+        return accumulator;
+      }
 
-      return haystack.includes(deferredSearch);
-    });
-  }, [groupedRoutines, categoryFilter, statusFilter, deferredSearch, childrenById]);
+      const scopedGroup: RoutineGroup = {
+        ...group,
+        sample: scopedRoutines[0],
+        routines: scopedRoutines,
+        childIds: Array.from(new Set(scopedRoutines.map((routine) => routine.childId))),
+      };
+
+      if (!matchesCategoryFilter(scopedGroup.sample.category)) {
+        return accumulator;
+      }
+
+      const activeCount = scopedGroup.routines.filter((routine) => routine.isActive).length;
+      if (!matchesStatusFilter(activeCount > 0)) {
+        return accumulator;
+      }
+
+      if (deferredSearch) {
+        const haystack = [
+          scopedGroup.sample.name,
+          scopedGroup.sample.description ?? '',
+          scopedGroup.sample.steps.map((step) => step.title).join(' '),
+          scopedGroup.childIds.map((childId) => childrenById.get(childId)?.name ?? '').join(' '),
+        ].join(' ').toLowerCase();
+
+        if (!haystack.includes(deferredSearch)) {
+          return accumulator;
+        }
+      }
+
+      accumulator.push(scopedGroup);
+      return accumulator;
+    }, []);
+  }, [
+    childrenById,
+    deferredSearch,
+    groupedRoutines,
+    selectedChildIdSet,
+    selectedChildIds.length,
+    selectedCategories,
+    selectedStatuses,
+  ]);
 
   const filteredChildRoutines = useMemo(() => {
     return selectedChildRoutines.filter((routine) => {
-      if (categoryFilter !== 'all' && routine.category !== categoryFilter) return false;
-      if (statusFilter === 'active' && !routine.isActive) return false;
-      if (statusFilter === 'inactive' && routine.isActive) return false;
+      if (!matchesCategoryFilter(routine.category)) return false;
+      if (!matchesStatusFilter(routine.isActive)) return false;
       if (!deferredSearch) return true;
 
       const haystack = [
@@ -183,15 +258,64 @@ export function ParentDashboardScreen() {
 
       return haystack.includes(deferredSearch);
     });
-  }, [selectedChildRoutines, categoryFilter, statusFilter, deferredSearch]);
+  }, [deferredSearch, selectedCategories, selectedChildRoutines, selectedStatuses]);
 
   const listData: RoutineListItem[] = useMemo(() => {
-    if (selectedChildScope === 'all') {
-      return filteredGroups.map((group) => ({ type: 'group', key: group.key, group }));
+    if (showSingleChildView) {
+      return filteredChildRoutines.map((routine) => ({ type: 'routine', key: routine.id, routine }));
     }
 
-    return filteredChildRoutines.map((routine) => ({ type: 'routine', key: routine.id, routine }));
-  }, [selectedChildScope, filteredGroups, filteredChildRoutines]);
+    return filteredGroups.map((group) => ({ type: 'group', key: group.key, group }));
+  }, [filteredChildRoutines, filteredGroups, showSingleChildView]);
+
+  const totalPages = Math.max(1, Math.ceil(listData.length / ROUTINES_PER_PAGE));
+  const paginatedListData = useMemo(
+    () => listData.slice((currentPage - 1) * ROUTINES_PER_PAGE, currentPage * ROUTINES_PER_PAGE),
+    [currentPage, listData],
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    deferredSearch,
+    selectedChildIds.join(','),
+    selectedStatuses.join(','),
+    selectedCategories.join(','),
+  ]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  const handleToggleChildSelection = (childId: string) => {
+    setSelectedChildIds((previous) =>
+      previous.includes(childId)
+        ? previous.filter((currentId) => currentId !== childId)
+        : [...previous, childId],
+    );
+  };
+
+  const handleToggleStatus = (value: StatusFilterValue) => {
+    setSelectedStatuses((previous) => {
+      const next = previous.includes(value)
+        ? previous.filter((currentValue) => currentValue !== value)
+        : [...previous, value];
+
+      return next.length === STATUS_FILTER_OPTIONS.length ? [] : next;
+    });
+  };
+
+  const handleToggleCategory = (value: CategoryFilterValue) => {
+    setSelectedCategories((previous) => {
+      const next = previous.includes(value)
+        ? previous.filter((currentValue) => currentValue !== value)
+        : [...previous, value];
+
+      return next.length === CATEGORY_FILTER_OPTIONS.length ? [] : next;
+    });
+  };
 
   const handleSaveCity = () => {
     const trimmed = cityInput.trim();
@@ -260,45 +384,108 @@ export function ParentDashboardScreen() {
     if (!selectedChild || selectedChildRoutines.length <= 1) return;
     if (!organizeMode) {
       setSearchQuery('');
-      setStatusFilter('all');
-      setCategoryFilter('all');
+      setSelectedStatuses([]);
+      setSelectedCategories([]);
     }
-    setOrganizeMode((prev) => !prev);
+    setOrganizeMode((previous) => !previous);
   };
 
   const headerElement = (
-    <ParentDashboardHeader
-      children={children}
-      selectedChildScope={selectedChildScope}
-      onSelectChildScope={setSelectedChildScope}
-      searchQuery={searchQuery}
-      onSearchChange={setSearchQuery}
-      statusFilter={statusFilter}
-      onStatusFilterChange={setStatusFilter}
-      categoryFilter={categoryFilter}
-      onCategoryFilterChange={setCategoryFilter}
-      onLogout={() => router.replace('/')}
-      onGoToCatalog={() => router.push('/parent/catalog')}
-      onGoToAddRoutine={() => router.push('/parent/add-routine')}
-      onGoToChildren={() => router.push('/parent/children')}
-      onGoToRewards={() => router.push('/parent/rewards')}
-      onGoToStats={() => router.push('/parent/stats')}
-      onGoToImport={() => router.push('/parent/import')}
-      onGoToTrash={() => router.push('/parent/trash')}
-    />
+    <View style={styles.headerLayer}>
+      <ParentDashboardHeader
+        children={children}
+        selectedChildIds={selectedChildIds}
+        onToggleChild={handleToggleChildSelection}
+        onClearChildSelection={() => setSelectedChildIds([])}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        selectedStatuses={selectedStatuses}
+        onToggleStatus={handleToggleStatus}
+        onClearStatuses={() => setSelectedStatuses([])}
+        selectedCategories={selectedCategories}
+        onToggleCategory={handleToggleCategory}
+        onClearCategories={() => setSelectedCategories([])}
+        onLogout={() => router.replace('/')}
+        onGoToCatalog={() => router.push('/parent/catalog')}
+        onGoToAddRoutine={() => router.push('/parent/add-routine')}
+        onGoToChildren={() => router.push('/parent/children')}
+        onGoToRewards={() => router.push('/parent/rewards')}
+        onGoToStats={() => router.push('/parent/stats')}
+        onGoToImport={() => router.push('/parent/import')}
+        onGoToTrash={() => router.push('/parent/trash')}
+        onOpenWeatherSettings={() => setShowWeatherSettings(true)}
+        routinesExpanded={routinesExpanded}
+        onToggleRoutinesExpanded={() => setRoutinesExpanded((previous) => !previous)}
+      />
+    </View>
   );
 
-  const weatherElement = (
-    <ParentWeatherSection
-      showWeatherSettings={showWeatherSettings}
-      onToggleWeatherSettings={() => setShowWeatherSettings((prev) => !prev)}
-      cityInput={cityInput}
-      onCityInputChange={setCityInput}
-      weatherCity={weatherCity}
-      useGeolocation={useGeolocation}
-      onToggleGeo={handleToggleGeo}
-      onSaveCity={handleSaveCity}
-    />
+  const listFooterElement = (
+    <View>
+      {routinesExpanded && totalPages > 1 ? (
+        <View style={styles.paginationSection}>
+          <Text style={styles.paginationSummary}>
+            Page {currentPage}/{totalPages} · {listData.length} routines
+          </Text>
+          <View style={styles.paginationRow}>
+            <TouchableOpacity
+              onPress={() => setCurrentPage((page) => Math.max(1, page - 1))}
+              style={[styles.paginationButton, currentPage === 1 && styles.paginationButtonDisabled]}
+              activeOpacity={0.85}
+              disabled={currentPage === 1}
+            >
+              <Text
+                style={[
+                  styles.paginationButtonText,
+                  currentPage === 1 && styles.paginationButtonTextDisabled,
+                ]}
+              >
+                Precedent
+              </Text>
+            </TouchableOpacity>
+
+            <View style={styles.pageChipRow}>
+              {Array.from({ length: totalPages }, (_, index) => {
+                const pageNumber = index + 1;
+                const selected = pageNumber === currentPage;
+
+                return (
+                  <TouchableOpacity
+                    key={pageNumber}
+                    onPress={() => setCurrentPage(pageNumber)}
+                    style={[styles.pageChip, selected && styles.pageChipActive]}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={[styles.pageChipText, selected && styles.pageChipTextActive]}>
+                      {pageNumber}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <TouchableOpacity
+              onPress={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+              style={[
+                styles.paginationButton,
+                currentPage === totalPages && styles.paginationButtonDisabled,
+              ]}
+              activeOpacity={0.85}
+              disabled={currentPage === totalPages}
+            >
+              <Text
+                style={[
+                  styles.paginationButtonText,
+                  currentPage === totalPages && styles.paginationButtonTextDisabled,
+                ]}
+              >
+                Suivant
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      ) : null}
+    </View>
   );
 
   const renderRoutineItem: ListRenderItem<RoutineListItem> = ({ item }) => {
@@ -329,11 +516,11 @@ export function ParentDashboardScreen() {
     );
   };
 
-  const emptyMessage = selectedChildScope === 'all'
-    ? 'Aucune routine ne correspond a ces filtres.'
-    : selectedChild
-      ? `Aucune routine pour ${selectedChild.name} avec ces filtres.`
-      : 'Aucune routine trouvee.';
+  const emptyMessage = showSingleChildView
+    ? `Aucune routine pour ${selectedChild?.name ?? 'cet enfant'} avec ces filtres.`
+    : selectedChildIds.length > 1
+      ? 'Aucune routine pour cette selection d enfants.'
+      : 'Aucune routine ne correspond a ces filtres.';
 
   if (organizeMode && selectedChild) {
     return (
@@ -363,7 +550,6 @@ export function ParentDashboardScreen() {
               />
             )}
           />
-          {weatherElement}
         </ScrollView>
       </SafeAreaView>
     );
@@ -372,57 +558,70 @@ export function ParentDashboardScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <FlatList
-        data={listData}
+        data={routinesExpanded ? paginatedListData : []}
         keyExtractor={(item) => item.key}
         renderItem={renderRoutineItem}
         ListHeaderComponent={headerElement}
-        ListEmptyComponent={
+        ListEmptyComponent={routinesExpanded ? (
           <Card>
             <View style={styles.empty}>
               <Text style={styles.emptyIcon}>🧭</Text>
               <Text style={styles.emptyText}>{emptyMessage}</Text>
             </View>
           </Card>
-        }
-        ListFooterComponent={weatherElement}
+        ) : null}
+        ListFooterComponent={listFooterElement}
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
         initialNumToRender={8}
         windowSize={8}
         removeClippedSubviews
       />
+      <ParentWeatherSettingsModal
+        visible={showWeatherSettings}
+        cityInput={cityInput}
+        onCityInputChange={setCityInput}
+        weatherCity={weatherCity}
+        useGeolocation={useGeolocation}
+        onToggleGeo={handleToggleGeo}
+        onClose={() => setShowWeatherSettings(false)}
+        onSaveCity={handleSaveCity}
+      />
     </SafeAreaView>
   );
 }
 
-function ParentWeatherSection({
-  showWeatherSettings,
-  onToggleWeatherSettings,
+function ParentWeatherSettingsModal({
+  visible,
   cityInput,
   onCityInputChange,
   weatherCity,
   useGeolocation,
   onToggleGeo,
+  onClose,
   onSaveCity,
 }: {
-  showWeatherSettings: boolean;
-  onToggleWeatherSettings: () => void;
+  visible: boolean;
   cityInput: string;
   onCityInputChange: (value: string) => void;
   weatherCity: string;
   useGeolocation: boolean;
   onToggleGeo: (value: boolean) => void;
+  onClose: () => void;
   onSaveCity: () => void;
 }) {
   return (
-    <View style={styles.weatherSection}>
-      <TouchableOpacity onPress={onToggleWeatherSettings} style={styles.weatherToggle}>
-        <Text style={styles.weatherTitle}>Meteo</Text>
-        <Text style={styles.weatherToggleText}>{showWeatherSettings ? 'Masquer' : 'Configurer'}</Text>
-      </TouchableOpacity>
+    <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
+      <Pressable style={styles.weatherModalBackdrop} onPress={onClose}>
+        <Pressable style={styles.weatherModalCard} onPress={(event) => event.stopPropagation()}>
+          <View style={styles.weatherModalIconWrap}>
+            <Text style={styles.weatherModalIcon}>☁️</Text>
+          </View>
+          <Text style={styles.weatherModalTitle}>Configurer la meteo</Text>
+          <Text style={styles.weatherModalSubtitle}>
+            Choisis la geolocalisation automatique ou renseigne une ville de reference.
+          </Text>
 
-      {showWeatherSettings ? (
-        <Card>
           <View style={styles.weatherSettings}>
             <View style={styles.weatherRow}>
               <Text style={styles.weatherLabel}>Geolocalisation automatique</Text>
@@ -448,9 +647,6 @@ function ParentWeatherSection({
                     returnKeyType="done"
                     onSubmitEditing={onSaveCity}
                   />
-                  <TouchableOpacity onPress={onSaveCity} style={styles.weatherSaveBtn}>
-                    <Text style={styles.weatherSaveBtnText}>OK</Text>
-                  </TouchableOpacity>
                 </View>
                 <Text style={styles.weatherHint}>
                   {weatherCity ? `Meteo actuelle : ${weatherCity}` : 'Par defaut : Paris'}
@@ -458,9 +654,24 @@ function ParentWeatherSection({
               </>
             )}
           </View>
-        </Card>
-      ) : null}
-    </View>
+
+          <View style={styles.weatherModalActions}>
+            <TouchableOpacity onPress={onClose} style={styles.weatherModalSecondaryBtn}>
+              <Text style={styles.weatherModalSecondaryBtnText}>Fermer</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                onSaveCity();
+                onClose();
+              }}
+              style={styles.weatherModalPrimaryBtn}
+            >
+              <Text style={styles.weatherModalPrimaryBtnText}>Enregistrer</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Pressable>
+    </Modal>
   );
 }
 
@@ -472,6 +683,10 @@ const styles = StyleSheet.create({
   scroll: {
     padding: SPACING.lg,
     paddingBottom: SPACING.xxl,
+  },
+  headerLayer: {
+    position: 'relative',
+    zIndex: 40,
   },
   empty: {
     alignItems: 'center',
@@ -486,11 +701,82 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     textAlign: 'center',
   },
+  paginationSection: {
+    marginTop: SPACING.sm,
+    marginBottom: SPACING.lg,
+    gap: SPACING.sm,
+  },
+  paginationSummary: {
+    fontSize: FONT_SIZE.xs,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+  },
+  paginationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: SPACING.sm,
+    flexWrap: 'wrap',
+  },
+  paginationButton: {
+    minWidth: 112,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.surfaceSecondary,
+  },
+  paginationButtonDisabled: {
+    opacity: 0.45,
+  },
+  paginationButtonText: {
+    fontSize: FONT_SIZE.xs,
+    fontWeight: '800',
+    color: COLORS.text,
+  },
+  paginationButtonTextDisabled: {
+    color: COLORS.textLight,
+  },
+  pageChipRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    gap: SPACING.xs,
+    flex: 1,
+  },
+  pageChip: {
+    minWidth: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: SPACING.sm,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.surfaceSecondary,
+  },
+  pageChipActive: {
+    backgroundColor: `${COLORS.secondary}18`,
+    borderColor: COLORS.secondary,
+  },
+  pageChipText: {
+    fontSize: FONT_SIZE.xs,
+    fontWeight: '800',
+    color: COLORS.textSecondary,
+  },
+  pageChipTextActive: {
+    color: COLORS.secondaryDark,
+  },
   organizeHint: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.sm,
-    backgroundColor: COLORS.secondary + '14',
+    backgroundColor: `${COLORS.secondary}14`,
     borderRadius: RADIUS.lg,
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.md,
@@ -502,24 +788,49 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.sm,
     fontWeight: '700',
   },
-  weatherSection: {
-    marginTop: SPACING.lg,
-  },
-  weatherToggle: {
-    flexDirection: 'row',
+  weatherModalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(27, 32, 46, 0.34)',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: SPACING.sm,
+    justifyContent: 'center',
+    padding: SPACING.lg,
   },
-  weatherTitle: {
-    fontSize: FONT_SIZE.lg,
-    fontWeight: '800',
+  weatherModalCard: {
+    width: '100%',
+    maxWidth: 560,
+    borderRadius: RADIUS.xl,
+    backgroundColor: COLORS.surface,
+    padding: SPACING.xl,
+    gap: SPACING.md,
+    shadowColor: '#000',
+    shadowOpacity: 0.16,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 16,
+  },
+  weatherModalIconWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    alignSelf: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#E7F9FC',
+  },
+  weatherModalIcon: {
+    fontSize: 30,
+  },
+  weatherModalTitle: {
+    fontSize: FONT_SIZE.xl,
+    fontWeight: '900',
     color: COLORS.text,
+    textAlign: 'center',
   },
-  weatherToggleText: {
+  weatherModalSubtitle: {
     fontSize: FONT_SIZE.sm,
-    fontWeight: '700',
-    color: COLORS.secondary,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    lineHeight: 22,
   },
   weatherSettings: {
     gap: SPACING.sm,
@@ -576,17 +887,38 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     fontStyle: 'italic',
   },
+  weatherModalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: SPACING.sm,
+    marginTop: SPACING.sm,
+  },
+  weatherModalSecondaryBtn: {
+    minWidth: 110,
+    height: 44,
+    borderRadius: RADIUS.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: SPACING.lg,
+    backgroundColor: COLORS.surfaceSecondary,
+  },
+  weatherModalSecondaryBtnText: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '800',
+    color: COLORS.textSecondary,
+  },
+  weatherModalPrimaryBtn: {
+    minWidth: 132,
+    height: 44,
+    borderRadius: RADIUS.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: SPACING.lg,
+    backgroundColor: COLORS.secondary,
+  },
+  weatherModalPrimaryBtnText: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '800',
+    color: '#FFF',
+  },
 });
-  const confirmAction = (title: string, message: string, onConfirm: () => void) => {
-    if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      if (window.confirm(`${title}\n\n${message}`)) {
-        onConfirm();
-      }
-      return;
-    }
-
-    Alert.alert(title, message, [
-      { text: 'Annuler', style: 'cancel' },
-      { text: 'Confirmer', style: 'destructive', onPress: onConfirm },
-    ]);
-  };

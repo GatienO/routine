@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -21,6 +21,10 @@ import { BADGES } from '../../src/constants/badges';
 import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../../src/constants/theme';
 import { backOrReplace } from '../../src/utils/navigation';
 import { getGridItemWidth, getResponsiveColumns } from '../../src/utils/responsive';
+import {
+  formatRemainingCooldown,
+  formatRewardCooldownLabel,
+} from '../../src/utils/realRewardAvailability';
 
 const BADGE_TABS: Array<{
   key: 'routines' | 'streak' | 'stars';
@@ -40,8 +44,18 @@ export default function ChildRewardsScreen() {
   const { getRewardsForChild } = useRealRewardStore();
   const [showLockedBadges, setShowLockedBadges] = useState(false);
   const [showClaimedRewards, setShowClaimedRewards] = useState(false);
-  const [selectedBadgeTab, setSelectedBadgeTab] = useState<'routines' | 'streak' | 'stars'>('routines');
-  const [currentChildId, setCurrentChildId] = useState<string | null>(selectedChildId ?? children[0]?.id ?? null);
+  const [selectedBadgeTab, setSelectedBadgeTab] = useState<'routines' | 'streak' | 'stars'>(
+    'routines',
+  );
+  const [currentChildId, setCurrentChildId] = useState<string | null>(
+    selectedChildId ?? children[0]?.id ?? null,
+  );
+  const [nowTick, setNowTick] = useState(Date.now());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNowTick(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const child = currentChildId ? getChild(currentChildId) : undefined;
   const contentWidth = Math.min(width - SPACING.lg * 2, 1120);
@@ -64,29 +78,49 @@ export default function ChildRewardsScreen() {
   }
 
   const rewards = getRewards(child.id);
-  const realRewards = getRewardsForChild(child.id);
-  const unlockedBadges = BADGES.filter((badge) => rewards.unlockedBadges.includes(badge.id));
-  const lockedBadges = BADGES.filter((badge) => !rewards.unlockedBadges.includes(badge.id));
-  const badgesInCategory = BADGES.filter((badge) => badge.requirementType === selectedBadgeTab);
-  const unlockedBadgesInCategory = badgesInCategory.filter((badge) => rewards.unlockedBadges.includes(badge.id));
-  const visibleBadges = (showLockedBadges ? badgesInCategory : unlockedBadgesInCategory);
+  const realRewards = getRewardsForChild(child.id).map((reward) => {
+    const availableAtMs = reward.availableAt ? new Date(reward.availableAt).getTime() : 0;
+    const remainingCooldownMs = reward.availableAt ? Math.max(0, availableAtMs - nowTick) : 0;
 
-  const availableRewards = realRewards.filter((reward) => !reward.isClaimed && rewards.totalStars >= reward.requiredStars);
-  const progressRewards = realRewards.filter((reward) => !reward.isClaimed && rewards.totalStars < reward.requiredStars);
-  const claimedRewards = realRewards.filter((reward) => reward.isClaimed);
+    return {
+      ...reward,
+      remainingCooldownMs,
+      isCoolingDown: reward.availableAt ? availableAtMs > nowTick : false,
+    };
+  });
+
+  const unlockedBadges = BADGES.filter((badge) => rewards.unlockedBadges.includes(badge.id));
+  const badgesInCategory = BADGES.filter((badge) => badge.requirementType === selectedBadgeTab);
+  const unlockedBadgesInCategory = badgesInCategory.filter((badge) =>
+    rewards.unlockedBadges.includes(badge.id),
+  );
+  const visibleBadges = showLockedBadges ? badgesInCategory : unlockedBadgesInCategory;
+
+  const availableRewards = realRewards.filter(
+    (reward) => !reward.isCoolingDown && rewards.totalStars >= reward.requiredStars,
+  );
+  const progressRewards = realRewards.filter(
+    (reward) => !reward.isCoolingDown && rewards.totalStars < reward.requiredStars,
+  );
+  const cooldownRewards = realRewards.filter((reward) => reward.isCoolingDown);
   const visibleRewards = showClaimedRewards
-    ? [...availableRewards, ...progressRewards, ...claimedRewards]
+    ? [...availableRewards, ...progressRewards, ...cooldownRewards]
     : [...availableRewards, ...progressRewards];
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={[styles.scroll, styles.scrollCentered]} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={[styles.scroll, styles.scrollCentered]}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={[styles.content, { width: contentWidth, maxWidth: '100%' }]}>
           <BackButton onPress={() => backOrReplace(router, '/child')} style={styles.back} />
 
           <View style={styles.hero}>
             <Text style={styles.title}>Badges et recompenses</Text>
-            <Text style={styles.subtitle}>Choisis un enfant pour voir ses progres et ses cadeaux.</Text>
+            <Text style={styles.subtitle}>
+              Choisis un enfant pour voir ses progres et ses cadeaux.
+            </Text>
           </View>
 
           <View style={styles.childPickerRow}>
@@ -109,7 +143,9 @@ export default function ChildRewardsScreen() {
                     size={50}
                     avatarConfig={item.avatarConfig}
                   />
-                  <Text style={styles.childPickerName} numberOfLines={1}>{item.name}</Text>
+                  <Text style={styles.childPickerName} numberOfLines={1}>
+                    {item.name}
+                  </Text>
                 </TouchableOpacity>
               );
             })}
@@ -117,10 +153,26 @@ export default function ChildRewardsScreen() {
 
           <Card style={styles.statsCard}>
             <View style={styles.statsRow}>
-              <StatItem icon={<Star size={20} weight="fill" color={COLORS.star} />} value={rewards.totalStars.toString()} label="Etoiles" />
-              <StatItem icon={<Sparkle size={20} weight="fill" color="#FF6B6B" />} value={rewards.currentStreak.toString()} label="Serie" />
-              <StatItem icon={<Trophy size={20} weight="fill" color={COLORS.secondary} />} value={rewards.completedRoutines.toString()} label="Routines" />
-              <StatItem icon={<Medal size={20} weight="fill" color="#F59E0B" />} value={unlockedBadges.length.toString()} label="Badges" />
+              <StatItem
+                icon={<Star size={20} weight="fill" color={COLORS.star} />}
+                value={rewards.totalStars.toString()}
+                label="Etoiles"
+              />
+              <StatItem
+                icon={<Sparkle size={20} weight="fill" color="#FF6B6B" />}
+                value={rewards.currentStreak.toString()}
+                label="Serie"
+              />
+              <StatItem
+                icon={<Trophy size={20} weight="fill" color={COLORS.secondary} />}
+                value={rewards.completedRoutines.toString()}
+                label="Routines"
+              />
+              <StatItem
+                icon={<Medal size={20} weight="fill" color="#F59E0B" />}
+                value={unlockedBadges.length.toString()}
+                label="Badges"
+              />
             </View>
           </Card>
 
@@ -128,7 +180,9 @@ export default function ChildRewardsScreen() {
             <View>
               <Text style={styles.sectionTitle}>Badges</Text>
               <Text style={styles.sectionSubtitle}>
-                {unlockedBadgesInCategory.length} obtenu{unlockedBadgesInCategory.length > 1 ? 's' : ''} dans {BADGE_TABS.find((tab) => tab.key === selectedBadgeTab)?.label.toLowerCase()}
+                {unlockedBadgesInCategory.length} obtenu
+                {unlockedBadgesInCategory.length > 1 ? 's' : ''} dans{' '}
+                {BADGE_TABS.find((tab) => tab.key === selectedBadgeTab)?.label.toLowerCase()}
               </Text>
             </View>
             <ToggleChip
@@ -145,7 +199,10 @@ export default function ChildRewardsScreen() {
           >
             {BADGE_TABS.map((tab) => {
               const selected = tab.key === selectedBadgeTab;
-              const count = BADGES.filter((badge) => badge.requirementType === tab.key && rewards.unlockedBadges.includes(badge.id)).length;
+              const count = BADGES.filter(
+                (badge) =>
+                  badge.requirementType === tab.key && rewards.unlockedBadges.includes(badge.id),
+              ).length;
 
               return (
                 <TouchableOpacity
@@ -158,7 +215,12 @@ export default function ChildRewardsScreen() {
                     {tab.label}
                   </Text>
                   <View style={[styles.badgeTabCount, selected && styles.badgeTabCountActive]}>
-                    <Text style={[styles.badgeTabCountText, selected && styles.badgeTabCountTextActive]}>
+                    <Text
+                      style={[
+                        styles.badgeTabCountText,
+                        selected && styles.badgeTabCountTextActive,
+                      ]}
+                    >
                       {count}
                     </Text>
                   </View>
@@ -182,7 +244,9 @@ export default function ChildRewardsScreen() {
                 >
                   <View style={styles.badgeCardTop}>
                     <Text style={styles.badgeIcon}>{badge.icon}</Text>
-                    {!unlocked ? <Lock size={16} weight="fill" color={COLORS.textLight} /> : null}
+                    {!unlocked ? (
+                      <Lock size={16} weight="fill" color={COLORS.textLight} />
+                    ) : null}
                   </View>
                   <Text style={styles.badgeName}>{badge.name}</Text>
                   <Text style={styles.badgeDescription}>{badge.description}</Text>
@@ -195,9 +259,12 @@ export default function ChildRewardsScreen() {
               );
             })}
           </View>
+
           {visibleBadges.length === 0 ? (
             <Card style={styles.emptyBadgeCard}>
-              <Text style={styles.emptyBlockText}>Aucun badge affiche dans cette categorie pour le moment.</Text>
+              <Text style={styles.emptyBlockText}>
+                Aucun badge affiche dans cette categorie pour le moment.
+              </Text>
             </Card>
           ) : null}
 
@@ -205,11 +272,12 @@ export default function ChildRewardsScreen() {
             <View>
               <Text style={styles.sectionTitle}>Recompenses</Text>
               <Text style={styles.sectionSubtitle}>
-                {availableRewards.length} disponible{availableRewards.length > 1 ? 's' : ''} · {progressRewards.length} en cours
+                {availableRewards.length} disponible{availableRewards.length > 1 ? 's' : ''} ·{' '}
+                {cooldownRewards.length} en recharge
               </Text>
             </View>
             <ToggleChip
-              label={showClaimedRewards ? 'Masquer offertes' : 'Afficher offertes'}
+              label={showClaimedRewards ? 'Afficher toutes' : 'Masquer recharge'}
               active={showClaimedRewards}
               onPress={() => setShowClaimedRewards((prev) => !prev)}
             />
@@ -218,19 +286,26 @@ export default function ChildRewardsScreen() {
           {visibleRewards.length > 0 ? (
             <View style={styles.rewardsGrid}>
               {visibleRewards.map((reward) => {
-                const isClaimed = reward.isClaimed;
-                const isAvailable = !isClaimed && rewards.totalStars >= reward.requiredStars;
+                const isCoolingDown = reward.isCoolingDown;
+                const isAvailable = !isCoolingDown && rewards.totalStars >= reward.requiredStars;
                 const progress = Math.min(1, rewards.totalStars / reward.requiredStars);
+                const cooldownLabel = formatRewardCooldownLabel(reward);
+                const countdownLabel = formatRemainingCooldown(reward.remainingCooldownMs ?? 0);
 
                 return (
                   <Card key={reward.id} style={[styles.rewardCard, { width: rewardCardWidth }]}>
                     <View style={styles.rewardCardHeader}>
-                      <Gift size={18} weight="fill" color={isClaimed ? COLORS.success : COLORS.secondary} />
+                      <Gift
+                        size={18}
+                        weight="fill"
+                        color={isCoolingDown ? COLORS.success : COLORS.secondary}
+                      />
                       <Text style={styles.rewardStatus}>
-                        {isClaimed ? 'Offerte' : isAvailable ? 'Disponible' : 'En cours'}
+                        {isCoolingDown ? 'En recharge' : isAvailable ? 'Disponible' : 'En cours'}
                       </Text>
                     </View>
                     <Text style={styles.rewardName}>{reward.description}</Text>
+                    <Text style={styles.rewardCooldownHint}>{cooldownLabel}</Text>
                     <View style={styles.rewardStarsRow}>
                       <Star size={14} weight="fill" color={COLORS.star} />
                       <Text style={styles.rewardStarsText}>
@@ -243,23 +318,32 @@ export default function ChildRewardsScreen() {
                           styles.progressFill,
                           {
                             width: `${Math.max(8, Math.round(progress * 100))}%`,
-                            backgroundColor: isClaimed ? COLORS.success : COLORS.secondary,
+                            backgroundColor: isCoolingDown ? COLORS.success : COLORS.secondary,
                           },
                         ]}
                       />
                     </View>
-                    {isClaimed ? (
+                    {isCoolingDown ? (
                       <View style={styles.rewardFootBadge}>
                         <CheckCircle size={14} weight="fill" color={COLORS.success} />
-                        <Text style={styles.rewardFootBadgeText}>Deja offerte</Text>
+                        <Text style={styles.rewardFootBadgeText}>Recharge : {countdownLabel}</Text>
                       </View>
                     ) : isAvailable ? (
                       <View style={[styles.rewardFootBadge, styles.rewardFootBadgeAvailable]}>
                         <Gift size={14} weight="fill" color={COLORS.secondaryDark} />
-                        <Text style={[styles.rewardFootBadgeText, styles.rewardFootBadgeTextAvailable]}>Tu peux la demander</Text>
+                        <Text
+                          style={[
+                            styles.rewardFootBadgeText,
+                            styles.rewardFootBadgeTextAvailable,
+                          ]}
+                        >
+                          Tu peux la demander
+                        </Text>
                       </View>
                     ) : (
-                      <Text style={styles.rewardHint}>Continue tes routines pour la debloquer.</Text>
+                      <Text style={styles.rewardHint}>
+                        Continue tes routines pour la debloquer.
+                      </Text>
                     )}
                   </Card>
                 );
@@ -268,7 +352,9 @@ export default function ChildRewardsScreen() {
           ) : (
             <Card>
               <View style={styles.emptyBlock}>
-                <Text style={styles.emptyBlockText}>Aucune recompense a afficher pour le moment.</Text>
+                <Text style={styles.emptyBlockText}>
+                  Aucune recompense a afficher pour le moment.
+                </Text>
               </View>
             </Card>
           )}
@@ -543,7 +629,7 @@ const styles = StyleSheet.create({
   },
   rewardCard: {
     gap: SPACING.sm,
-    minHeight: 160,
+    minHeight: 178,
   },
   rewardCardHeader: {
     flexDirection: 'row',
@@ -559,6 +645,11 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.md,
     fontWeight: '800',
     color: COLORS.text,
+  },
+  rewardCooldownHint: {
+    fontSize: FONT_SIZE.xs,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
   },
   rewardStarsRow: {
     flexDirection: 'row',

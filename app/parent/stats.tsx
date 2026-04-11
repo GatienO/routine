@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -21,6 +21,8 @@ import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../../src/constants
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
 import { backOrReplace } from '../../src/utils/navigation';
 
+const ROUTINES_PER_PAGE = 10;
+
 export default function StatsScreen() {
   const router = useRouter();
   const { children } = useChildrenStore();
@@ -30,6 +32,7 @@ export default function StatsScreen() {
   const [selectedChildId, setSelectedChildId] = useState<string | null>(
     children.length > 0 ? children[0].id : null,
   );
+  const [routinePage, setRoutinePage] = useState(1);
 
   const selectedChild = children.find((child) => child.id === selectedChildId);
   const rewards = selectedChildId ? getRewards(selectedChildId) : null;
@@ -39,15 +42,41 @@ export default function StatsScreen() {
     : [];
   const unlockedBadges = selectedChildId ? getUnlockedBadges(selectedChildId) : [];
 
-  const routineStats = routines.map((routine) => {
-    const routineExecutions = childExecutions.filter((execution) => execution.routineId === routine.id);
-    const totalStars = routineExecutions.reduce((sum, execution) => sum + execution.earnedStars, 0);
-    return {
-      routine,
-      completions: routineExecutions.length,
-      totalStars,
-    };
-  });
+  const routineStats = useMemo(
+    () =>
+      routines.map((routine) => {
+        const routineExecutions = childExecutions.filter(
+          (execution) => execution.routineId === routine.id,
+        );
+        const totalStars = routineExecutions.reduce(
+          (sum, execution) => sum + execution.earnedStars,
+          0,
+        );
+
+        return {
+          routine,
+          completions: routineExecutions.length,
+          totalStars,
+        };
+      }),
+    [childExecutions, routines],
+  );
+
+  const routineTotalPages = Math.max(1, Math.ceil(routineStats.length / ROUTINES_PER_PAGE));
+  const paginatedRoutineStats = routineStats.slice(
+    (routinePage - 1) * ROUTINES_PER_PAGE,
+    routinePage * ROUTINES_PER_PAGE,
+  );
+
+  useEffect(() => {
+    setRoutinePage(1);
+  }, [selectedChildId]);
+
+  useEffect(() => {
+    if (routinePage > routineTotalPages) {
+      setRoutinePage(routineTotalPages);
+    }
+  }, [routinePage, routineTotalPages]);
 
   const recentExecutions = [...childExecutions]
     .sort((a, b) => (b.completedAt! > a.completedAt! ? 1 : -1))
@@ -63,7 +92,11 @@ export default function StatsScreen() {
         </View>
 
         {children.length > 1 && (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.childSelector}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.childSelector}
+          >
             <View style={styles.childRow}>
               {children.map((child) => (
                 <TouchableOpacity
@@ -71,11 +104,12 @@ export default function StatsScreen() {
                   style={[
                     styles.childTab,
                     selectedChildId === child.id && {
-                      backgroundColor: child.color + '30',
+                      backgroundColor: `${child.color}30`,
                       borderColor: child.color,
                     },
                   ]}
                   onPress={() => setSelectedChildId(child.id)}
+                  activeOpacity={0.85}
                 >
                   <Avatar
                     emoji={child.avatar}
@@ -101,7 +135,9 @@ export default function StatsScreen() {
           <Card>
             <View style={styles.empty}>
               <Text style={styles.emptyIcon}>👶</Text>
-              <Text style={styles.emptyText}>Ajoutez un enfant pour voir ses statistiques</Text>
+              <Text style={styles.emptyText}>
+                Ajoutez un enfant pour voir ses statistiques
+              </Text>
             </View>
           </Card>
         ) : (
@@ -141,8 +177,12 @@ export default function StatsScreen() {
               <View style={styles.badgesRow}>
                 {BADGES.map((badge) => {
                   const unlocked = rewards.unlockedBadges.includes(badge.id);
+
                   return (
-                    <View key={badge.id} style={[styles.badgeMini, !unlocked && styles.badgeLocked]}>
+                    <View
+                      key={badge.id}
+                      style={[styles.badgeMini, !unlocked && styles.badgeLocked]}
+                    >
                       <OpenMoji emoji={badge.icon} size={28} />
                       <Text style={[styles.badgeName, !unlocked && styles.badgeLockedText]}>
                         {badge.name}
@@ -154,23 +194,104 @@ export default function StatsScreen() {
             </View>
 
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Par routine</Text>
+              <View style={styles.routineSectionHeader}>
+                <Text style={styles.sectionTitle}>Par routine</Text>
+                {routineStats.length > ROUTINES_PER_PAGE ? (
+                  <Text style={styles.paginationSummary}>
+                    Page {routinePage}/{routineTotalPages}
+                  </Text>
+                ) : null}
+              </View>
+
               {routineStats.length === 0 ? (
                 <Text style={styles.emptyText}>Aucune routine creee</Text>
               ) : (
-                routineStats.map(({ routine, completions, totalStars }) => (
-                  <Card key={routine.id} style={styles.routineStatCard}>
-                    <View style={styles.routineStatRow}>
-                      <OpenMoji emoji={routine.icon} size={32} />
-                      <View style={styles.routineStatInfo}>
-                        <Text style={styles.routineStatName}>{routine.name}</Text>
-                        <Text style={styles.routineStatSub}>
-                          {completions} execution{completions !== 1 ? 's' : ''} · {totalStars} etoiles
-                        </Text>
+                <>
+                  {paginatedRoutineStats.map(({ routine, completions, totalStars }) => (
+                    <Card key={routine.id} style={styles.routineStatCard}>
+                      <View style={styles.routineStatRow}>
+                        <OpenMoji emoji={routine.icon} size={32} />
+                        <View style={styles.routineStatInfo}>
+                          <Text style={styles.routineStatName}>{routine.name}</Text>
+                          <Text style={styles.routineStatSub}>
+                            {completions} execution{completions !== 1 ? 's' : ''} · {totalStars}{' '}
+                            etoiles
+                          </Text>
+                        </View>
                       </View>
+                    </Card>
+                  ))}
+
+                  {routineTotalPages > 1 ? (
+                    <View style={styles.paginationRow}>
+                      <TouchableOpacity
+                        onPress={() => setRoutinePage((page) => Math.max(1, page - 1))}
+                        style={[
+                          styles.paginationButton,
+                          routinePage === 1 && styles.paginationButtonDisabled,
+                        ]}
+                        activeOpacity={0.85}
+                        disabled={routinePage === 1}
+                      >
+                        <Text
+                          style={[
+                            styles.paginationButtonText,
+                            routinePage === 1 && styles.paginationButtonTextDisabled,
+                          ]}
+                        >
+                          Precedent
+                        </Text>
+                      </TouchableOpacity>
+
+                      <View style={styles.paginationPages}>
+                        {Array.from({ length: routineTotalPages }, (_, index) => {
+                          const pageNumber = index + 1;
+                          const selected = pageNumber === routinePage;
+
+                          return (
+                            <TouchableOpacity
+                              key={pageNumber}
+                              onPress={() => setRoutinePage(pageNumber)}
+                              style={[styles.pageChip, selected && styles.pageChipActive]}
+                              activeOpacity={0.85}
+                            >
+                              <Text
+                                style={[
+                                  styles.pageChipText,
+                                  selected && styles.pageChipTextActive,
+                                ]}
+                              >
+                                {pageNumber}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
+
+                      <TouchableOpacity
+                        onPress={() =>
+                          setRoutinePage((page) => Math.min(routineTotalPages, page + 1))
+                        }
+                        style={[
+                          styles.paginationButton,
+                          routinePage === routineTotalPages && styles.paginationButtonDisabled,
+                        ]}
+                        activeOpacity={0.85}
+                        disabled={routinePage === routineTotalPages}
+                      >
+                        <Text
+                          style={[
+                            styles.paginationButtonText,
+                            routinePage === routineTotalPages &&
+                              styles.paginationButtonTextDisabled,
+                          ]}
+                        >
+                          Suivant
+                        </Text>
+                      </TouchableOpacity>
                     </View>
-                  </Card>
-                ))
+                  ) : null}
+                </>
               )}
             </View>
 
@@ -191,7 +312,9 @@ export default function StatsScreen() {
                     <View key={execution.id} style={styles.activityRow}>
                       <OpenMoji emoji={routine?.icon ?? '📋'} size={24} />
                       <View style={styles.activityInfo}>
-                        <Text style={styles.activityName}>{routine?.name ?? 'Routine supprimee'}</Text>
+                        <Text style={styles.activityName}>
+                          {routine?.name ?? 'Routine supprimee'}
+                        </Text>
                         <Text style={styles.activityDate}>{dateLabel}</Text>
                       </View>
                       <StarCounter count={execution.earnedStars} size="sm" />
@@ -248,6 +371,18 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     marginBottom: SPACING.md,
   },
+  routineSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: SPACING.sm,
+    marginBottom: SPACING.md,
+  },
+  paginationSummary: {
+    fontSize: FONT_SIZE.xs,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+  },
   badgesRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -275,6 +410,67 @@ const styles = StyleSheet.create({
   routineStatInfo: { flex: 1 },
   routineStatName: { fontSize: FONT_SIZE.md, fontWeight: '700', color: COLORS.text },
   routineStatSub: { fontSize: FONT_SIZE.sm, color: COLORS.textSecondary, marginTop: 2 },
+  paginationRow: {
+    marginTop: SPACING.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: SPACING.sm,
+    flexWrap: 'wrap',
+  },
+  paginationButton: {
+    minWidth: 108,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.surfaceSecondary,
+  },
+  paginationButtonDisabled: {
+    opacity: 0.45,
+  },
+  paginationButtonText: {
+    fontSize: FONT_SIZE.xs,
+    fontWeight: '800',
+    color: COLORS.text,
+  },
+  paginationButtonTextDisabled: {
+    color: COLORS.textLight,
+  },
+  paginationPages: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    flex: 1,
+  },
+  pageChip: {
+    minWidth: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.surfaceSecondary,
+    paddingHorizontal: SPACING.sm,
+  },
+  pageChipActive: {
+    backgroundColor: `${COLORS.secondary}18`,
+    borderColor: COLORS.secondary,
+  },
+  pageChipText: {
+    fontSize: FONT_SIZE.xs,
+    fontWeight: '800',
+    color: COLORS.textSecondary,
+  },
+  pageChipTextActive: {
+    color: COLORS.secondaryDark,
+  },
   activityRow: {
     flexDirection: 'row',
     alignItems: 'center',

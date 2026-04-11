@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
-import { SquaresFour, X } from 'phosphor-react-native';
+import { SquaresFour, X, Heart } from 'phosphor-react-native';
 import { useChildrenStore } from '../../src/stores/childrenStore';
 import { useRoutineStore } from '../../src/stores/routineStore';
 import { Button } from '../../src/components/ui/Button';
@@ -75,6 +75,7 @@ export default function AddRoutineScreen() {
   const [icon, setIcon] = useState(isMerge ? mergeSources[0].icon : '🌅');
   const [color, setColor] = useState<string>(isMerge ? mergeSources[0].color : CHILD_COLORS[0]);
   const [category, setCategory] = useState<RoutineCategory>(isMerge ? mergeSources[0].category : 'morning');
+  const [isFavorite, setIsFavorite] = useState(isMerge ? mergeSources[0].isFavorite ?? false : false);
   const [steps, setSteps] = useState<RoutineStep[]>(isMerge ? mergedSteps : []);
 
   // Step form
@@ -98,6 +99,7 @@ export default function AddRoutineScreen() {
         icon: isMerge ? mergeSources[0].icon : 'ðŸŒ…',
         color: isMerge ? mergeSources[0].color : CHILD_COLORS[0],
         category: isMerge ? mergeSources[0].category : 'morning',
+        isFavorite: isMerge ? mergeSources[0].isFavorite ?? false : false,
         steps: isMerge ? mergedSteps : [],
         stepDraft: {
           title: '',
@@ -122,6 +124,7 @@ export default function AddRoutineScreen() {
         icon,
         color,
         category,
+        isFavorite,
         steps,
         stepDraft: {
           title: stepTitle,
@@ -141,6 +144,7 @@ export default function AddRoutineScreen() {
       description,
       editingStepId,
       icon,
+      isFavorite,
       name,
       showStepForm,
       stepDuration,
@@ -255,6 +259,7 @@ export default function AddRoutineScreen() {
         icon,
         color,
         category,
+        isFavorite,
         steps: steps.map((s) => ({ ...s, id: generateId() })),
         isActive: true,
       });
@@ -374,6 +379,22 @@ export default function AddRoutineScreen() {
         {/* Color */}
         <Text style={styles.label}>Couleur</Text>
         <ColorPicker colors={CHILD_COLORS} selected={color} onSelect={setColor} size={36} />
+
+        {/* Favorite */}
+        <TouchableOpacity
+          style={[styles.favoriteButton, isFavorite && styles.favoriteButtonActive]}
+          onPress={() => setIsFavorite(!isFavorite)}
+          activeOpacity={0.7}
+        >
+          <Heart
+            size={20}
+            weight={isFavorite ? 'fill' : 'regular'}
+            color={isFavorite ? COLORS.error : COLORS.textSecondary}
+          />
+          <Text style={[styles.favoriteButtonText, isFavorite && styles.favoriteButtonTextActive]}>
+            {isFavorite ? 'Favoris' : 'Ajouter aux favoris'}
+          </Text>
+        </TouchableOpacity>
 
         {/* Steps */}
         <Text style={[styles.label, { marginTop: SPACING.xl }]}>
@@ -684,6 +705,33 @@ const styles = StyleSheet.create({
   },
   catalogButtonText: {
     fontSize: FONT_SIZE.md,
+    fontWeight: '700',
+  },
+  favoriteButton: {
+    marginBottom: SPACING.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.sm,
+    minHeight: 50,
+    borderWidth: 2,
+    borderRadius: RADIUS.lg,
+    backgroundColor: 'transparent',
+    borderColor: COLORS.textLight,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+  },
+  favoriteButtonActive: {
+    borderColor: COLORS.error,
+    backgroundColor: COLORS.error + '10',
+  },
+  favoriteButtonText: {
+    fontSize: FONT_SIZE.md,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+  },
+  favoriteButtonTextActive: {
+    color: COLORS.error,
     fontWeight: '700',
   },
   catalogOverlay: {

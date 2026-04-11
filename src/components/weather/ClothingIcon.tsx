@@ -89,6 +89,15 @@ const clothingMap: Record<string, any[]> = {
     require('../../../assets/clothes/pyjama/hiver/pyjama_hiver_rose.png'),
     require('../../../assets/clothes/pyjama/hiver/pyjama_hiver_vert.png'),
   ],
+  doudou: [
+    require('../../../assets/clothes/doudous/doudou_ours.png'),
+    require('../../../assets/clothes/doudous/doudou_panda.png'),
+    require('../../../assets/clothes/doudous/doudou_lapin.png'),
+    require('../../../assets/clothes/doudous/doudou_chat.png'),
+    require('../../../assets/clothes/doudous/doudou_renard.png'),
+    require('../../../assets/clothes/doudous/doudou_girafe.png'),
+    require('../../../assets/clothes/doudous/doudou_elephant.png'),
+  ],
 };
 
 const emojiFallbacks: Partial<Record<OutfitVisualId, string>> = {
@@ -98,7 +107,12 @@ const emojiFallbacks: Partial<Record<OutfitVisualId, string>> = {
 };
 
 function pickVariant(assets: any[], variant: number) {
-  return assets[Math.abs(variant) % assets.length];
+  // Créer un seed basé sur le variant et le jour actuel pour avoir
+  // une bonne diversité des couleurs tout en restant stable dans la même session
+  const today = new Date().toDateString();
+  const dayHash = today.split('').reduce((h, c) => h + c.charCodeAt(0), 0);
+  const seed = (variant * 7 + dayHash) % assets.length; // 7 pour éviter trop de collisions
+  return assets[Math.max(0, seed)];
 }
 
 export function ClothingIcon({

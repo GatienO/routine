@@ -13,7 +13,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { BounceIn, FadeInUp } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
-import { CaretDown, CaretUp, ClipboardText, Gift, Rocket } from 'phosphor-react-native';
+import { CaretDown, CaretUp, ClipboardText, Gift, Rocket, Heart } from 'phosphor-react-native';
 import { useChildrenStore } from '../../src/stores/childrenStore';
 import { useAppStore } from '../../src/stores/appStore';
 import { useRoutineStore } from '../../src/stores/routineStore';
@@ -37,7 +37,7 @@ export default function ChildLauncherScreen() {
   const { width } = useWindowDimensions();
   const { children, getChild } = useChildrenStore();
   const { selectChild, weatherCity, useGeolocation } = useAppStore();
-  const { routines } = useRoutineStore();
+  const { routines, toggleFavorite } = useRoutineStore();
   const { weather, refresh: refreshWeather } = useWeatherStore();
   const [selectedRoutineIds, setSelectedRoutineIds] = useState<string[]>([]);
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
@@ -75,7 +75,9 @@ export default function ChildLauncherScreen() {
       children
         .map((child) => ({
           child,
-          routines: routines.filter((routine) => routine.childId === child.id && routine.isActive),
+          routines: routines
+            .filter((routine) => routine.childId === child.id && routine.isActive)
+            .sort((a, b) => (b.isFavorite ? 1 : 0) - (a.isFavorite ? 1 : 0)),
         }))
         .filter((section) => section.routines.length > 0),
     [children, routines],
@@ -264,10 +266,22 @@ export default function ChildLauncherScreen() {
                               </View>
                             </View>
 
-                            <View style={[styles.orderBadge, isSelected && styles.orderBadgeActive]}>
-                              <Text style={[styles.orderBadgeText, isSelected && styles.orderBadgeTextActive]}>
-                                {isSelected ? selectedRoutineIds.indexOf(routine.id) + 1 : '+'}
-                              </Text>
+                            <View style={styles.routineActions}>
+                              <TouchableOpacity
+                                onPress={() => toggleFavorite(routine.id)}
+                                hitSlop={12}
+                              >
+                                <Heart
+                                  size={20}
+                                  weight={routine.isFavorite ? 'fill' : 'regular'}
+                                  color={routine.isFavorite ? COLORS.error : secondaryColor}
+                                />
+                              </TouchableOpacity>
+                              <View style={[styles.orderBadge, isSelected && styles.orderBadgeActive]}>
+                                <Text style={[styles.orderBadgeText, isSelected && styles.orderBadgeTextActive]}>
+                                  {isSelected ? selectedRoutineIds.indexOf(routine.id) + 1 : '+'}
+                                </Text>
+                              </View>
                             </View>
                           </AnimatedPressable>
                         );
@@ -436,6 +450,11 @@ const styles = StyleSheet.create({
   routineOwner: {
     fontSize: FONT_SIZE.xs,
     fontWeight: '700',
+  },
+  routineActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
   },
   orderBadge: {
     width: 34,

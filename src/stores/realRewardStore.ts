@@ -1,12 +1,18 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { RealReward } from '../types';
+import { RealReward, RealRewardCooldownUnit } from '../types';
 import { generateId } from '../utils/id';
+import { getRewardAvailabilityForChild } from '../utils/realRewardAvailability';
 
 interface RealRewardState {
   realRewards: RealReward[];
-  addRealReward: (description: string, requiredStars: number) => RealReward;
+  addRealReward: (
+    description: string,
+    requiredStars: number,
+    cooldownValue: number,
+    cooldownUnit: RealRewardCooldownUnit,
+  ) => RealReward;
   removeRealReward: (id: string) => void;
   claimReward: (id: string, childId: string) => void;
   getRewards: () => RealReward[];
@@ -26,17 +32,30 @@ function claimedIdsForReward(reward: RealReward): string[] {
   return [];
 }
 
+function normalizeReward(reward: RealReward): RealReward {
+  return {
+    ...reward,
+    childId: reward.childId || 'all',
+    cooldownValue: Math.max(1, reward.cooldownValue || 1),
+    cooldownUnit: reward.cooldownUnit || 'week',
+    claimedChildIds: reward.claimedChildIds ?? [],
+    claimedByChild: reward.claimedByChild ?? {},
+  };
+}
+
 export const useRealRewardStore = create<RealRewardState>()(
   persist(
     (set, get) => ({
       realRewards: [],
 
-      addRealReward: (description, requiredStars) => {
+      addRealReward: (description, requiredStars, cooldownValue, cooldownUnit) => {
         const reward: RealReward = {
           id: generateId(),
           childId: 'all',
           description: description.trim(),
           requiredStars,
+          cooldownValue: Math.max(1, cooldownValue),
+          cooldownUnit,
           isClaimed: false,
           createdAt: new Date().toISOString(),
           claimedChildIds: [],
@@ -60,35 +79,42 @@ export const useRealRewardStore = create<RealRewardState>()(
           realRewards: state.realRewards.map((reward) => {
             if (reward.id !== id) return reward;
 
+            const normalizedReward = normalizeReward(reward);
             const now = new Date().toISOString();
-            const claimedChildIds = Array.from(new Set([...claimedIdsForReward(reward), childId]));
+            const claimedChildIds = Array.from(
+              new Set([...claimedIdsForReward(normalizedReward), childId]),
+            );
 
             return {
-              ...reward,
+              ...normalizedReward,
               childId: 'all',
-              isClaimed: false,
-              claimedAt: undefined,
+              isClaimed: true,
+              claimedAt: now,
               claimedChildIds,
               claimedByChild: {
-                ...(reward.claimedByChild ?? {}),
+                ...(normalizedReward.claimedByChild ?? {}),
                 [childId]: now,
               },
             };
           }),
         })),
 
-      getRewards: () => get().realRewards,
+      getRewards: () => get().realRewards.map(normalizeReward),
 
       getRewardsForChild: (childId) =>
-        get().realRewards.map((reward) => {
+        get().getRewards().map((reward) => {
           const claimedChildIds = claimedIdsForReward(reward);
-          const isClaimed = claimedChildIds.includes(childId);
+          const availability = getRewardAvailabilityForChild(reward, childId);
 
           return {
             ...reward,
             childId: 'all',
-            isClaimed,
+            isClaimed: availability.isCoolingDown,
+            isCoolingDown: availability.isCoolingDown,
             claimedAt: reward.claimedByChild?.[childId],
+            lastClaimedAt: availability.lastClaimedAt,
+            availableAt: availability.availableAt,
+            remainingCooldownMs: availability.remainingCooldownMs,
             claimedChildIds,
           };
         }),
@@ -96,7 +122,7 @@ export const useRealRewardStore = create<RealRewardState>()(
       getClaimableRewards: (childId, currentStars) =>
         get()
           .getRewardsForChild(childId)
-          .filter((reward) => !reward.isClaimed && currentStars >= reward.requiredStars),
+          .filter((reward) => !reward.isCoolingDown && currentStars >= reward.requiredStars),
     }),
     {
       name: 'real-reward-store',

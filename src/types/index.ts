@@ -15,6 +15,7 @@ export interface AvatarConfig {
   bottomColor: string;
   shoes: string;
   shoesColor: string;
+  doudou?: string;
 }
 
 export interface Child {
@@ -57,6 +58,7 @@ export interface Routine {
   category: RoutineCategory;
   steps: RoutineStep[];
   isActive: boolean;
+  isFavorite?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -105,16 +107,24 @@ export interface CompletionRewardSummary {
   unlockedBadgeIds: string[];
 }
 
+export type RealRewardCooldownUnit = 'minute' | 'hour' | 'day' | 'week';
+
 export interface RealReward {
   id: string;
   childId: string;
   description: string;
   requiredStars: number;
+  cooldownValue: number;
+  cooldownUnit: RealRewardCooldownUnit;
   isClaimed: boolean;
   createdAt: string;
   claimedAt?: string;
   claimedChildIds?: string[];
   claimedByChild?: Record<string, string>;
+  lastClaimedAt?: string;
+  availableAt?: string;
+  remainingCooldownMs?: number;
+  isCoolingDown?: boolean;
 }
 
 export interface ShareableRoutine {

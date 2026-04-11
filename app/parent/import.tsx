@@ -18,6 +18,7 @@ import { Card } from '../../src/components/ui/Card';
 import { decodeRoutine, importRoutine } from '../../src/services/sharing';
 import { COLORS, SPACING, FONT_SIZE, RADIUS } from '../../src/constants/theme';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
+import { Avatar } from '../../src/components/ui/Avatar';
 import { backOrReplace } from '../../src/utils/navigation';
 
 export default function ImportScreen() {
@@ -93,74 +94,101 @@ export default function ImportScreen() {
         </TouchableOpacity>
         <Text style={styles.title}>Importer une routine</Text>
         <BackButton style={styles.backButton} onPress={() => backOrReplace(router, '/parent')} />
-        <Text style={styles.subtitle}>
-          Collez le code de partage recu d un autre parent.
-        </Text>
-
-        <TextInput
-          style={[styles.input, styles.codeInput]}
-          value={code}
-          onChangeText={setCode}
-          placeholder="Collez le code ici..."
-          placeholderTextColor={COLORS.textLight}
-          multiline
-          autoFocus
-        />
-
-        {!preview ? (
-          <Button
-            title="Decoder"
-            onPress={handleDecode}
-            variant="primary"
-            size="md"
-            color={COLORS.secondary}
-            disabled={code.trim().length === 0}
-          />
-        ) : (
-          <View style={styles.previewSection}>
-            <Card color={preview.routine.color}>
-              <View style={styles.previewIconWrap}>
-                <OpenMoji emoji={preview.routine.icon} size={48} />
-              </View>
-              <Text style={styles.previewName}>{preview.routine.name}</Text>
-              <Text style={styles.previewSteps}>
-                {preview.routine.steps.length} etapes
-              </Text>
-              {preview.routine.steps.map((step, index) => (
-                <View key={index} style={styles.previewStepRow}>
-                  <OpenMoji emoji={step.icon} size={20} />
-                  <Text>{step.title}</Text>
-                </View>
-              ))}
-            </Card>
-
-            <Text style={styles.label}>Pour quels enfants ?</Text>
-            <View style={styles.childrenRow}>
-              {children.map((child) => (
-                <TouchableOpacity
-                  key={child.id}
-                  style={[
-                    styles.childChip,
-                    selectedChildIds.includes(child.id) && {
-                      backgroundColor: child.color + '30',
-                      borderColor: child.color,
-                    },
-                  ]}
-                  onPress={() => toggleChild(child.id)}
-                >
-                  <Text>{child.avatar} {child.name}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
+        
+        {children.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyIcon}>👨‍👩‍👧</Text>
+            <Text style={styles.emptyTitle}>Aucun enfant configure</Text>
+            <Text style={styles.emptyMessage}>
+              Creez d abord un profil enfant pour pouvoir importer des routines.
+            </Text>
             <Button
-              title={`Importer pour ${selectedChildIds.length} enfant${selectedChildIds.length > 1 ? 's' : ''}`}
-              onPress={handleImport}
+              title="Ajouter un enfant"
+              onPress={() => router.push('/parent/add-child')}
               variant="primary"
               size="lg"
-              disabled={selectedChildIds.length === 0}
+              color={COLORS.primary}
+              style={styles.emptyButton}
             />
           </View>
+        ) : (
+          <>
+            <Text style={styles.subtitle}>
+              Collez le code de partage recu d un autre parent.
+            </Text>
+
+            <TextInput
+              style={[styles.input, styles.codeInput]}
+              value={code}
+              onChangeText={setCode}
+              placeholder="Collez le code ici..."
+              placeholderTextColor={COLORS.textLight}
+              multiline
+              autoFocus
+            />
+
+            {!preview ? (
+              <Button
+                title="Decoder"
+                onPress={handleDecode}
+                variant="primary"
+                size="md"
+                color={COLORS.secondary}
+                disabled={code.trim().length === 0}
+              />
+            ) : (
+              <View style={styles.previewSection}>
+                <Card color={preview.routine.color}>
+                  <View style={styles.previewIconWrap}>
+                    <OpenMoji emoji={preview.routine.icon} size={48} />
+                  </View>
+                  <Text style={styles.previewName}>{preview.routine.name}</Text>
+                  <Text style={styles.previewSteps}>
+                    {preview.routine.steps.length} etapes
+                  </Text>
+                  {preview.routine.steps.map((step, index) => (
+                    <View key={index} style={styles.previewStepRow}>
+                      <OpenMoji emoji={step.icon} size={20} />
+                      <Text>{step.title}</Text>
+                    </View>
+                  ))}
+                </Card>
+
+                <Text style={styles.label}>Pour quels enfants ?</Text>
+                <View style={styles.childrenRow}>
+                  {children.map((child) => (
+                    <TouchableOpacity
+                      key={child.id}
+                      style={[
+                        styles.childChip,
+                        selectedChildIds.includes(child.id) && {
+                          backgroundColor: child.color + '30',
+                          borderColor: child.color,
+                        },
+                      ]}
+                      onPress={() => toggleChild(child.id)}
+                    >
+                      <Avatar
+                        emoji={child.avatar}
+                        color={child.color}
+                        size={32}
+                        avatarConfig={child.avatarConfig}
+                      />
+                      <Text style={styles.childChipText}>{child.name}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <Button
+                  title={`Importer pour ${selectedChildIds.length} enfant${selectedChildIds.length > 1 ? 's' : ''}`}
+                  onPress={handleImport}
+                  variant="primary"
+                  size="lg"
+                  disabled={selectedChildIds.length === 0}
+                />
+              </View>
+            )}
+          </>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -174,6 +202,31 @@ const styles = StyleSheet.create({
   backButton: { marginBottom: SPACING.lg },
   title: { fontSize: FONT_SIZE.xl, fontWeight: '800', color: COLORS.text },
   subtitle: { fontSize: FONT_SIZE.md, color: COLORS.textSecondary, marginTop: SPACING.xs, marginBottom: SPACING.xl },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: SPACING.xxl,
+    gap: SPACING.lg,
+  },
+  emptyIcon: {
+    fontSize: 64,
+    marginBottom: SPACING.md,
+  },
+  emptyTitle: {
+    fontSize: FONT_SIZE.lg,
+    fontWeight: '800',
+    color: COLORS.text,
+    textAlign: 'center',
+  },
+  emptyMessage: {
+    fontSize: FONT_SIZE.md,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    maxWidth: 300,
+  },
+  emptyButton: {
+    marginTop: SPACING.lg,
+  },
   input: {
     backgroundColor: COLORS.surface,
     borderRadius: RADIUS.lg,
@@ -198,5 +251,13 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: COLORS.surfaceSecondary,
     backgroundColor: COLORS.surface,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  childChipText: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '600',
+    color: COLORS.text,
   },
 });

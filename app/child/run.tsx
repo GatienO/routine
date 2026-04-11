@@ -51,6 +51,7 @@ function ParticipantValidationButton({
   return (
     <AnimatedPressable
       onPress={onPress}
+      containerStyle={styles.participantButtonContainer}
       style={[
         styles.participantButton,
         compact ? styles.participantButtonCompact : styles.participantButtonWide,
@@ -71,11 +72,11 @@ function ParticipantValidationButton({
           avatarConfig={child.avatarConfig}
         />
         <View style={styles.participantButtonTextWrap}>
-          <Text style={styles.participantButtonName} numberOfLines={1}>
+          <Text style={styles.participantButtonName} numberOfLines={1} selectable={false}>
             {child.name}
           </Text>
           {!compact ? (
-            <Text style={styles.participantButtonLabel}>
+            <Text style={styles.participantButtonLabel} selectable={false}>
               {confirmed ? 'Valide' : isDisabled ? 'Attends...' : "C'est fait"}
             </Text>
           ) : null}
@@ -153,8 +154,20 @@ export default function RunRoutineScreen() {
   const splitIndex = Math.ceil(participantChildren.length / 2);
   const leftParticipants = participantChildren.slice(0, splitIndex);
   const rightParticipants = participantChildren.slice(splitIndex);
-  const sideColumnWidth = compactParticipants ? 92 : width >= 1280 ? 190 : 160;
-  const timerSize = width >= 1280 ? 240 : width >= 1024 ? 220 : width >= 768 ? 190 : 164;
+  const centerColumnWidth = compactParticipants
+    ? Math.min(width - SPACING.lg * 2, 360)
+    : width >= 1440
+      ? 320
+      : width >= 1180
+        ? 300
+        : 280;
+  const availableSideWidth = Math.floor(
+    (width - SPACING.lg * 2 - SPACING.md * 2 - centerColumnWidth) / 2,
+  );
+  const sideColumnWidth = compactParticipants
+    ? 132
+    : Math.max(260, Math.min(360, availableSideWidth));
+  const timerSize = width >= 1280 ? 220 : width >= 1024 ? 204 : width >= 768 ? 186 : 164;
   const stepIconSize = width >= 1024 ? 82 : 70;
 
   const completedCount = currentExecution?.stepsCompleted.length ?? 0;
@@ -385,35 +398,36 @@ export default function RunRoutineScreen() {
             </TouchableOpacity>
             {chainQueue.length > 0 ? (
               <View style={styles.chainIndicator}>
-                <Text style={styles.chainIndicatorText}>+{chainQueue.length} a suivre</Text>
+                <Text style={styles.chainIndicatorText} selectable={false}>+{chainQueue.length} a suivre</Text>
               </View>
             ) : (
               <View style={styles.topSpacer} />
             )}
             <View style={styles.counterBadge}>
-              <Text style={styles.counter}>
+              <Text style={styles.counter} selectable={false}>
                 {completedCount + 1} / {totalSteps}
               </Text>
             </View>
             <View style={styles.endTimeBadge}>
-              <Text style={styles.endTimeText}>Fin {endTime}</Text>
+              <Text style={styles.endTimeText} selectable={false}>Fin {endTime}</Text>
             </View>
           </Reanimated.View>
 
           <ProgressBar progress={progress} color={routine.color} height={10} />
 
-          <View style={styles.topCenterStatus}>
+          <View style={[styles.topCenterStatus, { maxWidth: centerColumnWidth }]}>
             <Reanimated.Text
               key={`enc-${currentStepIndex}`}
               entering={FadeInDown.delay(240).duration(300)}
               style={styles.encouragementTop}
+              selectable={false}
             >
               {completedCount === totalSteps - 1
                 ? 'Derniere etape !'
                 : encouragements[completedCount % encouragements.length]}
             </Reanimated.Text>
 
-            <Text style={styles.validationHintTop}>
+            <Text style={styles.validationHintTop} selectable={false}>
               {confirmedChildIds.length} / {participantChildren.length} validation
               {participantChildren.length > 1 ? 's' : ''}
             </Text>
@@ -437,7 +451,7 @@ export default function RunRoutineScreen() {
               key={currentStepIndex}
               entering={FadeInRight.duration(animSpeed).springify()}
               exiting={FadeOutLeft.duration(animSpeed / 2)}
-              style={styles.stepContainer}
+              style={[styles.stepContainer, { width: centerColumnWidth }]}
             >
               <View style={styles.stepHeaderBlock}>
                 <Reanimated.View
@@ -446,12 +460,12 @@ export default function RunRoutineScreen() {
                 >
                   <OpenMoji emoji={currentStep.icon} size={stepIconSize} />
                 </Reanimated.View>
-                <Text style={styles.stepTitle}>{currentStep.title}</Text>
+                <Text style={styles.stepTitle} selectable={false}>{currentStep.title}</Text>
                 {currentStep.mediaUri ? (
                   <Image source={{ uri: currentStep.mediaUri }} style={styles.stepMedia} />
                 ) : null}
                 {currentStep.instruction ? (
-                  <Text style={styles.stepInstruction}>{currentStep.instruction}</Text>
+                  <Text style={styles.stepInstruction} selectable={false}>{currentStep.instruction}</Text>
                 ) : null}
               </View>
 
@@ -466,7 +480,7 @@ export default function RunRoutineScreen() {
                     strokeWidth={14}
                   />
                   {timer.isFinished ? (
-                    <Text style={styles.timerFinishedLabel}>Temps ecoule !</Text>
+                    <Text style={styles.timerFinishedLabel} selectable={false}>Temps ecoule !</Text>
                   ) : null}
 
                   <TouchableOpacity
@@ -490,10 +504,10 @@ export default function RunRoutineScreen() {
                       ]}
                     />
                     <View style={styles.pauseHoldContent}>
-                      <Text style={styles.pauseHoldTitle}>
+                      <Text style={styles.pauseHoldTitle} selectable={false}>
                         {timer.isPaused ? 'Maintenir 4 s pour reprendre' : 'Maintenir 4 s pour pause'}
                       </Text>
-                      <Text style={styles.pauseHoldText}>
+                      <Text style={styles.pauseHoldText} selectable={false}>
                         {timer.isPaused
                           ? 'Reserve a un adulte'
                           : 'Securite adulte avant arret du timer'}
@@ -504,7 +518,7 @@ export default function RunRoutineScreen() {
               ) : null}
               {!currentStep.isRequired ? (
                 <View style={styles.optionalBadge}>
-                  <Text style={styles.optionalText}>Facultatif</Text>
+                  <Text style={styles.optionalText} selectable={false}>Facultatif</Text>
                 </View>
               ) : null}
             </Reanimated.View>
@@ -526,7 +540,7 @@ export default function RunRoutineScreen() {
           {!currentStep.isRequired ? (
             <TouchableOpacity onPress={handleComplete} style={styles.skipBtn}>
               <View style={styles.skipRow}>
-                <Text style={styles.skipText}>Passer cette etape</Text>
+                <Text style={styles.skipText} selectable={false}>Passer cette etape</Text>
                 <ArrowRight size={18} weight="bold" color={COLORS.textSecondary} />
               </View>
             </TouchableOpacity>
@@ -539,8 +553,8 @@ export default function RunRoutineScreen() {
 
 const styles = StyleSheet.create({
   gradient: { flex: 1 },
-  safe: { flex: 1 },
-  container: { flex: 1, padding: SPACING.lg },
+  safe: { flex: 1, userSelect: 'none' } as any,
+  container: { flex: 1, padding: SPACING.lg, userSelect: 'none' } as any,
   topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -595,6 +609,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'stretch',
+    justifyContent: 'space-between',
     gap: SPACING.md,
     paddingTop: SPACING.md,
   },
@@ -603,16 +618,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 2,
     marginTop: SPACING.md,
+    alignSelf: 'center',
   },
   participantColumn: {
+    flexGrow: 0,
+    flexShrink: 0,
     gap: SPACING.sm,
     justifyContent: 'center',
+  },
+  participantButtonContainer: {
+    width: '100%',
   },
   participantButton: {
     minHeight: 76,
     borderRadius: RADIUS.xl,
     borderWidth: 2,
-    paddingHorizontal: SPACING.sm,
+    paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
     ...SHADOWS.md,
   },
@@ -629,7 +650,7 @@ const styles = StyleSheet.create({
   participantButtonCompact: {
     width: '100%',
     minHeight: 70,
-    paddingHorizontal: SPACING.xs,
+    paddingHorizontal: SPACING.sm,
   },
   participantButtonInner: {
     flexDirection: 'row',
@@ -665,17 +686,18 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
   },
   stepContainer: {
-    flex: 1,
+    flexGrow: 0,
+    flexShrink: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: SPACING.md,
+    paddingHorizontal: SPACING.xs,
     paddingBottom: 72,
   },
   stepHeaderBlock: {
     width: '100%',
-    maxWidth: 520,
+    maxWidth: 320,
     alignItems: 'center',
-    marginBottom: SPACING.lg,
+    marginBottom: SPACING.sm,
   },
   stepIcon: {
     marginBottom: SPACING.md,
@@ -697,19 +719,19 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.lg,
     color: COLORS.textSecondary,
     textAlign: 'center',
-    marginTop: SPACING.md,
-    lineHeight: 26,
-    maxWidth: 520,
+    marginTop: SPACING.sm,
+    lineHeight: 24,
+    maxWidth: 320,
   },
   timerContainer: {
     alignItems: 'center',
-    gap: SPACING.sm,
+    gap: SPACING.xs,
   },
   pauseHoldButton: {
     position: 'relative',
     overflow: 'hidden',
-    minWidth: 240,
-    maxWidth: 320,
+    minWidth: 200,
+    maxWidth: 240,
     borderRadius: RADIUS.xl,
     backgroundColor: 'rgba(255,255,255,0.92)',
     borderWidth: 1.5,

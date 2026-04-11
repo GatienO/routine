@@ -19,6 +19,7 @@ export type OutfitVisualId =
   | 'tshirtML'
   | 'pyjamaEte'
   | 'pyjamaHiver'
+  | 'doudou'
   | 'bouteille_eau'
   | 'pluie'
   | 'neige';
@@ -59,6 +60,7 @@ const ITEM_CATALOG: Record<OutfitVisualId, OutfitVisualItem> = {
   tshirtML: { id: 'tshirtML', label: 'T-shirt ML', render: 'asset' },
   pyjamaEte: { id: 'pyjamaEte', label: 'Pyjama', render: 'asset' },
   pyjamaHiver: { id: 'pyjamaHiver', label: 'Pyjama', render: 'asset' },
+  doudou: { id: 'doudou', label: 'Doudou', render: 'asset' },
   bouteille_eau: { id: 'bouteille_eau', label: 'Eau', render: 'emoji', emoji: '💧' },
   pluie: { id: 'pluie', label: 'Pluie', render: 'emoji', emoji: '🌧️' },
   neige: { id: 'neige', label: 'Neige', render: 'emoji', emoji: '❄️' },
@@ -190,7 +192,7 @@ function buildNightTiles(forecast: DayForecastSummary): { headline: string; tile
     (forecast.hasRain && forecast.minTemperature <= 18);
 
   const pyjamaId: OutfitVisualId = warmNight ? 'pyjamaHiver' : 'pyjamaEte';
-  const tiles: OutfitTile[] = [single(pyjamaId)];
+  const tiles: OutfitTile[] = [single(pyjamaId), single('doudou')];
 
   if (forecast.minTemperature <= 17) {
     tiles.push(single('chaussettes'));

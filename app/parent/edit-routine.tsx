@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
-import { CaretDown, CaretUp, SquaresFour, X } from 'phosphor-react-native';
+import { CaretDown, CaretUp, SquaresFour, X, Heart } from 'phosphor-react-native';
 import { useRoutineStore } from '../../src/stores/routineStore';
 import { Button } from '../../src/components/ui/Button';
 import { BackButton } from '../../src/components/ui/BackButton';
@@ -60,6 +60,7 @@ export default function EditRoutineScreen() {
   const [icon, setIcon] = useState(routine.icon);
   const [color, setColor] = useState(routine.color);
   const [category, setCategory] = useState<RoutineCategory>(routine.category);
+  const [isFavorite, setIsFavorite] = useState(routine.isFavorite ?? false);
   const [steps, setSteps] = useState<RoutineStep[]>([...routine.steps]);
 
   const [showNewStepForm, setShowNewStepForm] = useState(false);
@@ -81,6 +82,7 @@ export default function EditRoutineScreen() {
         icon: routine.icon,
         color: routine.color,
         category: routine.category,
+        isFavorite: routine.isFavorite ?? false,
         steps: routine.steps,
         stepDraft: {
           title: '',
@@ -104,6 +106,7 @@ export default function EditRoutineScreen() {
         icon,
         color,
         category,
+        isFavorite,
         steps,
         stepDraft: {
           title: stepTitle,
@@ -122,6 +125,7 @@ export default function EditRoutineScreen() {
       description,
       editingStepId,
       icon,
+      isFavorite,
       name,
       showNewStepForm,
       stepDuration,
@@ -254,6 +258,7 @@ export default function EditRoutineScreen() {
       icon,
       color,
       category,
+      isFavorite,
       steps,
     });
     backOrReplace(router, '/parent');
@@ -437,6 +442,22 @@ export default function EditRoutineScreen() {
 
         <Text style={styles.label}>Couleur</Text>
         <ColorPicker colors={CHILD_COLORS} selected={color} onSelect={setColor} size={36} />
+
+        {/* Favorite */}
+        <TouchableOpacity
+          style={[styles.favoriteButton, isFavorite && styles.favoriteButtonActive]}
+          onPress={() => setIsFavorite(!isFavorite)}
+          activeOpacity={0.7}
+        >
+          <Heart
+            size={20}
+            weight={isFavorite ? 'fill' : 'regular'}
+            color={isFavorite ? COLORS.error : COLORS.textSecondary}
+          />
+          <Text style={[styles.favoriteButtonText, isFavorite && styles.favoriteButtonTextActive]}>
+            {isFavorite ? 'Favoris' : 'Ajouter aux favoris'}
+          </Text>
+        </TouchableOpacity>
 
         <Text style={[styles.label, styles.stepsLabel]}>Etapes ({steps.length})</Text>
 
@@ -788,6 +809,33 @@ const styles = StyleSheet.create({
   },
   catalogButtonText: {
     fontSize: FONT_SIZE.md,
+    fontWeight: '700',
+  },
+  favoriteButton: {
+    marginBottom: SPACING.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.sm,
+    minHeight: 50,
+    borderWidth: 2,
+    borderRadius: RADIUS.lg,
+    backgroundColor: 'transparent',
+    borderColor: COLORS.textLight,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+  },
+  favoriteButtonActive: {
+    borderColor: COLORS.error,
+    backgroundColor: COLORS.error + '10',
+  },
+  favoriteButtonText: {
+    fontSize: FONT_SIZE.md,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+  },
+  favoriteButtonTextActive: {
+    color: COLORS.error,
     fontWeight: '700',
   },
   addStepButton: {

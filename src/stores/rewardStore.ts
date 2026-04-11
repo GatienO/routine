@@ -10,6 +10,7 @@ interface RewardState {
   getRewards: (childId: string) => ChildRewards;
   recordCompletion: (execution: RoutineExecution) => CompletionRewardSummary[];
   addStars: (childId: string, stars: number) => void;
+  spendStars: (childId: string, stars: number) => boolean;
   getUnlockedBadges: (childId: string) => typeof BADGES;
   getLockedBadges: (childId: string) => typeof BADGES;
 }
@@ -141,6 +142,25 @@ export const useRewardStore = create<RewardState>()(
             },
           },
         }));
+      },
+
+      spendStars: (childId, stars) => {
+        if (stars <= 0) return true;
+
+        const current = normalizeRewards(get().rewards[childId] ?? defaultRewards(childId));
+        if (current.totalStars < stars) return false;
+
+        set((state) => ({
+          rewards: {
+            ...state.rewards,
+            [childId]: {
+              ...current,
+              totalStars: current.totalStars - stars,
+            },
+          },
+        }));
+
+        return true;
       },
 
       getUnlockedBadges: (childId) => {

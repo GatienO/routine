@@ -20,6 +20,7 @@ interface RoutineState {
   cleanupExpiredTrash: () => void;
   duplicateRoutine: (id: string, childId: string) => Routine | null;
   toggleRoutine: (id: string) => void;
+  toggleFavorite: (id: string) => void;
   getRoutinesForChild: (childId: string) => Routine[];
   getRoutine: (id: string) => Routine | undefined;
   reorderRoutines: (childId: string, orderedIds: string[]) => void;
@@ -155,6 +156,13 @@ export const useRoutineStore = create<RoutineState>()(
         set((state) => ({
           routines: state.routines.map((r) =>
             r.id === id ? { ...r, isActive: !r.isActive } : r
+          ),
+        })),
+
+      toggleFavorite: (id) =>
+        set((state) => ({
+          routines: state.routines.map((r) =>
+            r.id === id ? { ...r, isFavorite: !r.isFavorite } : r
           ),
         })),
 

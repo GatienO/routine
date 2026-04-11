@@ -20,6 +20,7 @@ import {
   BOTTOM_STYLES,
   SHOE_STYLES,
   SHOE_COLORS,
+  DOUDOU_STYLES,
   EDITOR_TABS,
   DEFAULT_AVATAR_CONFIG,
 } from '../../constants/avatar';
@@ -178,6 +179,20 @@ export function AvatarEditor({ initialConfig, onSave, onCancel }: Props) {
               selected={config.shoesColor}
               onSelect={(c) => update({ shoesColor: c })}
             />
+          </>
+        )}
+
+        {activeTab === 'doudou' && (
+          <>
+            <Text style={styles.sectionLabel}>Choisir un doudou</Text>
+            <StyleGrid
+              items={DOUDOU_STYLES}
+              selected={config.doudou ?? 'none'}
+              onSelect={(id) => update({ doudou: id === 'none' ? undefined : id })}
+            />
+            <Text style={styles.infoText}>
+              Le doudou s'affichera quand l'enfant dort avec un pyjama 🌙
+            </Text>
           </>
         )}
       </View>

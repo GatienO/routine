@@ -161,8 +161,8 @@ export default function CelebrationScreen() {
             <View style={styles.mainEmoji}>
               <OpenMoji emoji={params.routineIcon || '🎉'} size={72} />
             </View>
-            <Text style={styles.title}>Bravo ! 🎉</Text>
-            <Text style={styles.subtitle}>
+            <Text style={styles.title} selectable={false}>Bravo ! 🎉</Text>
+            <Text style={styles.subtitle} selectable={false}>
               Tu as termine {params.routineName || 'ta routine'} !
             </Text>
           </Animated.View>
@@ -174,8 +174,8 @@ export default function CelebrationScreen() {
             <Animated.View style={starPulseStyle}>
               <Star size={34} weight="fill" color={COLORS.star} />
             </Animated.View>
-            <Text style={styles.starsCount}>+{totalStars}</Text>
-            <Text style={styles.starsLabel}>etoiles gagnees au total !</Text>
+            <Text style={styles.starsCount} selectable={false}>+{totalStars}</Text>
+            <Text style={styles.starsLabel} selectable={false}>etoiles gagnees au total !</Text>
           </Animated.View>
 
           {duration > 0 ? (
@@ -183,8 +183,8 @@ export default function CelebrationScreen() {
               entering={FadeInUp.delay(700).duration(400)}
               style={styles.durationBadge}
             >
-              <Text style={styles.durationIcon}>⏱️</Text>
-              <Text style={styles.durationText}>
+              <Text style={styles.durationIcon} selectable={false}>⏱️</Text>
+              <Text style={styles.durationText} selectable={false}>
                 Realisee en {duration} minute{duration > 1 ? 's' : ''}
               </Text>
             </Animated.View>
@@ -194,7 +194,7 @@ export default function CelebrationScreen() {
             entering={FadeInUp.delay(850).duration(500).springify()}
             style={styles.summarySection}
           >
-            <Text style={styles.summaryTitle}>Recapitulatif par enfant</Text>
+            <Text style={styles.summaryTitle} selectable={false}>Recapitulatif par enfant</Text>
 
             {rewardSummary.map((entry, index) => {
               const child = entry.childId ? getChild(entry.childId) : undefined;
@@ -220,8 +220,8 @@ export default function CelebrationScreen() {
                       </View>
                     )}
                     <View style={styles.childHeaderText}>
-                      <Text style={styles.childName}>{child?.name ?? 'Routine'}</Text>
-                      <Text style={styles.childStars}>
+                      <Text style={styles.childName} selectable={false}>{child?.name ?? 'Routine'}</Text>
+                      <Text style={styles.childStars} selectable={false}>
                         +{entry.starsEarned} etoile{entry.starsEarned > 1 ? 's' : ''}
                       </Text>
                     </View>
@@ -233,14 +233,14 @@ export default function CelebrationScreen() {
                         <View key={badge.id} style={styles.badgeRow}>
                           <OpenMoji emoji={badge.icon} size={34} />
                           <View style={styles.badgeTextWrap}>
-                            <Text style={styles.badgeName}>{badge.name}</Text>
-                            <Text style={styles.badgeDesc}>{badge.description}</Text>
+                            <Text style={styles.badgeName} selectable={false}>{badge.name}</Text>
+                            <Text style={styles.badgeDesc} selectable={false}>{badge.description}</Text>
                           </View>
                         </View>
                       ))}
                     </View>
                   ) : (
-                    <Text style={styles.noBadgeText}>Pas de nouveau badge cette fois.</Text>
+                    <Text style={styles.noBadgeText} selectable={false}>Pas de nouveau badge cette fois.</Text>
                   )}
                 </Animated.View>
               );
@@ -253,7 +253,7 @@ export default function CelebrationScreen() {
               onPress={() => router.replace('/child')}
               scaleDown={0.9}
             >
-              <Text style={styles.continueText}>Super !</Text>
+              <Text style={styles.continueText} selectable={false}>Super !</Text>
               <House size={20} weight="fill" color="#FFF" />
             </AnimatedPressable>
           </Animated.View>
@@ -265,12 +265,13 @@ export default function CelebrationScreen() {
 
 const styles = StyleSheet.create({
   gradient: { flex: 1 },
-  safe: { flex: 1 },
+  safe: { flex: 1, userSelect: 'none' } as any,
   container: {
     padding: SPACING.xl,
     alignItems: 'center',
     paddingBottom: SPACING.xxl,
-  },
+    userSelect: 'none',
+  } as any,
   celebration: {
     alignItems: 'center',
     marginTop: SPACING.lg,

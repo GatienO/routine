@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -22,6 +22,7 @@ import { Child } from '../../src/types';
 import { CATEGORY_CONFIG, COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../../src/constants/theme';
 import { generateId } from '../../src/utils/id';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
+import { Avatar } from '../../src/components/ui/Avatar';
 import { backOrReplace } from '../../src/utils/navigation';
 
 export default function CatalogScreen() {
@@ -32,6 +33,21 @@ export default function CatalogScreen() {
   const [selectedTemplate, setSelectedTemplate] = useState<RoutineTemplate | null>(null);
   const [pendingImportTemplate, setPendingImportTemplate] = useState<RoutineTemplate | null>(null);
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
+
+  // Auto-hide feedback message after 5 seconds
+  useEffect(() => {
+    if (!feedbackMessage) return;
+    const timer = setTimeout(() => {
+      setFeedbackMessage(null);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [feedbackMessage]);
+
+  // Hide feedback when accessing a template details
+  const handleSelectTemplate = (template: RoutineTemplate) => {
+    setFeedbackMessage(null);
+    setSelectedTemplate(template);
+  };
 
   const importForChildren = (template: RoutineTemplate, childIds: string[]) => {
     childIds.forEach((childId) => {
@@ -67,7 +83,7 @@ export default function CatalogScreen() {
 
   const handleImport = (template: RoutineTemplate) => {
     if (children.length === 0) {
-      setFeedbackMessage('Ajoutez d abord un enfant pour importer une routine.');
+      router.push('/parent/add-child');
       return;
     }
 
@@ -92,11 +108,17 @@ export default function CatalogScreen() {
     return (
       <SafeAreaView style={styles.safe}>
         <ScrollView contentContainerStyle={styles.scroll}>
-          <TouchableOpacity onPress={() => setSelectedTemplate(null)}>
+          <TouchableOpacity onPress={() => {
+            setFeedbackMessage(null);
+            setSelectedTemplate(null);
+          }}>
             <Text style={styles.back}>← Retour au catalogue</Text>
           </TouchableOpacity>
 
-          <BackButton style={styles.backButton} onPress={() => setSelectedTemplate(null)} />
+          <BackButton style={styles.backButton} onPress={() => {
+            setFeedbackMessage(null);
+            setSelectedTemplate(null);
+          }} />
           {feedbackMessage ? (
             <TouchableOpacity onPress={() => setFeedbackMessage(null)} activeOpacity={0.85}>
               <View style={styles.feedbackBanner}>
@@ -222,7 +244,7 @@ export default function CatalogScreen() {
                     <View style={styles.templateRow}>
                       <TouchableOpacity
                         activeOpacity={0.7}
-                        onPress={() => setSelectedTemplate(template)}
+                        onPress={() => handleSelectTemplate(template)}
                         style={styles.templateMainTap}
                       >
                         <View style={styles.templateMainContent}>
@@ -315,7 +337,12 @@ function ChildPickerModal({
                 ]}
                 onPress={() => toggleChild(child.id)}
               >
-                <OpenMoji emoji={child.avatar} size={22} />
+                <Avatar
+                  emoji={child.avatar}
+                  color={child.color}
+                  size={32}
+                  avatarConfig={child.avatarConfig}
+                />
                 <Text style={styles.childChoiceText}>{child.name}</Text>
               </TouchableOpacity>
             ))}

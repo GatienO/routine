@@ -6,6 +6,7 @@ import {
   SafeAreaView,
   TouchableOpacity,
   FlatList,
+  useWindowDimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useChildrenStore } from '../../src/stores/childrenStore';
@@ -16,9 +17,11 @@ import { Button } from '../../src/components/ui/Button';
 import { BackButton } from '../../src/components/ui/BackButton';
 import { COLORS, FONT_SIZE, RADIUS, SPACING } from '../../src/constants/theme';
 import { backOrReplace } from '../../src/utils/navigation';
+import { getGridItemWidth, getResponsiveColumns } from '../../src/utils/responsive';
 
 export default function ParentChildrenScreen() {
   const router = useRouter();
+  const { width } = useWindowDimensions();
   const children = useChildrenStore((state) => state.children);
   const routines = useRoutineStore((state) => state.routines);
   const rewards = useRewardStore((state) => state.rewards);
@@ -33,16 +36,21 @@ export default function ParentChildrenScreen() {
     [children, rewards, routines],
   );
 
+  const contentWidth = Math.min(width - SPACING.lg * 2, 1320);
+  const columns = getResponsiveColumns(width, { phone: 1, tablet: 2, desktop: 3, wide: 3 });
+  const cardWidth = getGridItemWidth(contentWidth, columns, SPACING.md);
+
   return (
     <SafeAreaView style={styles.safe}>
       <FlatList
+        key={`children-grid-${columns}`}
         data={childSummaries}
         keyExtractor={(item) => item.child.id}
-        numColumns={2}
-        columnWrapperStyle={childSummaries.length > 1 ? styles.columnWrapper : undefined}
-        contentContainerStyle={styles.listContent}
+        numColumns={columns}
+        columnWrapperStyle={columns > 1 ? styles.columnWrapper : undefined}
+        contentContainerStyle={[styles.listContent, styles.listContentCentered]}
         ListHeaderComponent={(
-          <View style={styles.headerBlock}>
+          <View style={[styles.headerBlock, { width: contentWidth, maxWidth: '100%' }]}>
             <View style={styles.headerRow}>
               <BackButton onPress={() => backOrReplace(router, '/parent')} style={styles.backBtn} />
               <View style={styles.headerText}>
@@ -77,7 +85,7 @@ export default function ParentChildrenScreen() {
         )}
         renderItem={({ item }) => (
           <TouchableOpacity
-            style={styles.card}
+            style={[styles.card, { width: cardWidth, maxWidth: '100%' }]}
             onPress={() => router.push(`/parent/add-child?id=${item.child.id}`)}
             activeOpacity={0.75}
           >
@@ -118,6 +126,9 @@ const styles = StyleSheet.create({
     padding: SPACING.lg,
     paddingBottom: SPACING.xxl,
   },
+  listContentCentered: {
+    alignItems: 'center',
+  },
   headerBlock: {
     marginBottom: SPACING.lg,
     gap: SPACING.md,
@@ -145,7 +156,6 @@ const styles = StyleSheet.create({
     gap: SPACING.md,
   },
   card: {
-    flex: 1,
     marginBottom: SPACING.md,
   },
   cardInner: {
@@ -154,7 +164,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.surfaceSecondary,
     paddingVertical: SPACING.lg,
-    paddingHorizontal: SPACING.md,
+    paddingHorizontal: SPACING.sm,
     alignItems: 'center',
     gap: SPACING.xs,
   },

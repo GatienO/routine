@@ -192,10 +192,10 @@ export default function RoutineSummaryScreen() {
             >
               <OpenMoji emoji={leadRoutine.icon} size={68} />
             </View>
-            <Text style={styles.routineName}>
+            <Text style={styles.routineName} selectable={false}>
               {routines.length > 1 ? `${routines.length} routines enchainees` : leadRoutine.name}
             </Text>
-            <Text style={styles.routineDesc}>
+            <Text style={styles.routineDesc} selectable={false}>
               Choisis les enfants presents puis verifie les etapes avant le lancement.
             </Text>
             <View style={styles.categoriesRow}>
@@ -204,7 +204,7 @@ export default function RoutineSummaryScreen() {
                   key={category.label}
                   style={[styles.categoryBadge, { backgroundColor: (category.color ?? COLORS.primary) + '30' }]}
                 >
-                  <Text style={styles.categoryText}>
+                  <Text style={styles.categoryText} selectable={false}>
                     {category.icon} {category.label}
                   </Text>
                 </View>
@@ -215,13 +215,13 @@ export default function RoutineSummaryScreen() {
           <Animated.View entering={FadeInDown.delay(100).duration(400)} style={[styles.infoRow, { width: contentWidth, maxWidth: '100%' }]}>
             <View style={[styles.infoCard, { borderColor: leadRoutine.color + '40' }]}>
               <ListBullets size={22} weight="duotone" color={leadRoutine.color} />
-              <Text style={styles.infoValue}>{totalSteps}</Text>
-              <Text style={styles.infoLabel}>etapes</Text>
+              <Text style={styles.infoValue} selectable={false}>{totalSteps}</Text>
+              <Text style={styles.infoLabel} selectable={false}>etapes</Text>
             </View>
             <View style={[styles.infoCard, { borderColor: leadRoutine.color + '40' }]}>
               <Clock size={22} weight="duotone" color={leadRoutine.color} />
-              <Text style={styles.infoValue}>{totalDuration}</Text>
-              <Text style={styles.infoLabel}>minutes</Text>
+              <Text style={styles.infoValue} selectable={false}>{totalDuration}</Text>
+              <Text style={styles.infoLabel} selectable={false}>minutes</Text>
             </View>
             <View
               style={[
@@ -229,18 +229,18 @@ export default function RoutineSummaryScreen() {
                 { borderColor: leadRoutine.color + '60', backgroundColor: leadRoutine.color + '15' },
               ]}
             >
-              <Text style={styles.endTimeFlag}>🏁</Text>
-              <Text style={[styles.infoValue, { color: leadRoutine.color }]}>{endTime}</Text>
-              <Text style={styles.infoLabel}>heure de fin</Text>
+              <Text style={styles.endTimeFlag} selectable={false}>🏁</Text>
+              <Text style={[styles.infoValue, { color: leadRoutine.color }]} selectable={false}>{endTime}</Text>
+              <Text style={styles.infoLabel} selectable={false}>heure de fin</Text>
             </View>
           </Animated.View>
 
           <Animated.View entering={FadeInDown.delay(180).duration(400)} style={[styles.panel, { width: contentWidth, maxWidth: '100%' }]}>
             <View style={styles.panelTitleRow}>
               <UsersThree size={20} weight="fill" color={COLORS.text} />
-              <Text style={styles.panelTitle}>Qui fera la routine ?</Text>
+              <Text style={styles.panelTitle} selectable={false}>Qui fera la routine ?</Text>
             </View>
-            <Text style={styles.panelHelpTop}>
+            <Text style={styles.panelHelpTop} selectable={false}>
               Tous les enfants presents gagneront des points.
             </Text>
             <View style={styles.childrenGrid}>
@@ -271,27 +271,27 @@ export default function RoutineSummaryScreen() {
                         </View>
                       ) : null}
                     </View>
-                    <Text style={styles.childName}>{child.name}</Text>
-                    <Text style={styles.childHint}>{isSelected ? 'selectionne' : 'ajouter'}</Text>
+                    <Text style={styles.childName} selectable={false}>{child.name}</Text>
+                    <Text style={styles.childHint} selectable={false}>{isSelected ? 'selectionne' : 'ajouter'}</Text>
                   </AnimatedPressable>
                 );
               })}
             </View>
               {selectedChildren.length > 0 ? (
-                <Text style={styles.panelHelp}>
+                <Text style={styles.panelHelp} selectable={false}>
                   {selectedChildren.length} enfant{selectedChildren.length > 1 ? 's' : ''} {selectedChildren.length > 1
                     ? 'seront invites a confirmer leur presence a l etape suivante.'
                     : 'sera invite a confirmer sa presence a l etape suivante.'}
                 </Text>
               ) : (
-              <Text style={styles.panelHelp}>Choisis au moins un enfant pour continuer.</Text>
+              <Text style={styles.panelHelp} selectable={false}>Choisis au moins un enfant pour continuer.</Text>
             )}
           </Animated.View>
 
           <Animated.View entering={FadeInDown.delay(260).duration(400)} style={[styles.panel, { width: contentWidth, maxWidth: '100%' }]}>
             <View style={styles.panelTitleRowBetween}>
-              <Text style={styles.panelTitle}>Routines et etapes</Text>
-              <Text style={styles.reorderHint}>Ordre</Text>
+              <Text style={styles.panelTitle} selectable={false}>Routines et etapes</Text>
+              <Text style={styles.reorderHint} selectable={false}>Ordre</Text>
             </View>
             {routines.map((routine, routineIndex) => (
               <React.Fragment key={routine.id}>
@@ -300,10 +300,10 @@ export default function RoutineSummaryScreen() {
                     <OpenMoji emoji={routine.icon} size={24} />
                   </View>
                   <View style={styles.routineHeaderText}>
-                    <Text style={styles.routineHeaderName}>
+                    <Text style={styles.routineHeaderName} selectable={false}>
                       {routineIndex + 1}. {routine.name}
                     </Text>
-                    <Text style={styles.routineHeaderMeta}>
+                    <Text style={styles.routineHeaderMeta} selectable={false}>
                       {routine.steps.length} etapes · {routine.steps.reduce((sum, step) => sum + step.durationMinutes, 0)} min
                     </Text>
                   </View>
@@ -345,16 +345,16 @@ export default function RoutineSummaryScreen() {
                       </TouchableOpacity>
                     </View>
                     <View style={[styles.stepNumber, { backgroundColor: routine.color + '25' }]}>
-                      <Text style={[styles.stepNumberText, { color: routine.color }]}>
+                      <Text style={[styles.stepNumberText, { color: routine.color }]} selectable={false}>
                         {index + 1}
                       </Text>
                     </View>
                     <OpenMoji emoji={step.icon} size={28} />
-                    <Text style={styles.stepName} numberOfLines={1}>
+                    <Text style={styles.stepName} numberOfLines={1} selectable={false}>
                       {step.title}
                     </Text>
                     {step.durationMinutes > 0 ? (
-                      <Text style={styles.stepDuration}>{step.durationMinutes} min</Text>
+                      <Text style={styles.stepDuration} selectable={false}>{step.durationMinutes} min</Text>
                     ) : (
                       <CheckCircle size={16} weight="duotone" color={COLORS.textLight} />
                     )}
@@ -376,7 +376,7 @@ export default function RoutineSummaryScreen() {
             scaleDown={0.95}
           >
             <Rocket size={24} weight="fill" color="#FFF" />
-            <Text style={styles.startText}>
+            <Text style={styles.startText} selectable={false}>
               {selectedChildIds.length > 0 ? 'Valider la presence' : 'Choisis au moins un enfant'}
             </Text>
           </AnimatedPressable>
@@ -388,7 +388,7 @@ export default function RoutineSummaryScreen() {
 
 const styles = StyleSheet.create({
   gradient: { flex: 1 },
-  safe: { flex: 1 },
+  safe: { flex: 1, userSelect: 'none' } as any,
   topBar: {
     paddingHorizontal: SPACING.lg,
     paddingTop: SPACING.md,
@@ -407,7 +407,8 @@ const styles = StyleSheet.create({
     padding: SPACING.lg,
     paddingTop: SPACING.sm,
     paddingBottom: 140,
-  },
+    userSelect: 'none',
+  } as any,
   scrollCentered: {
     alignItems: 'center',
   },

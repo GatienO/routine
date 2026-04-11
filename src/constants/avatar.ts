@@ -101,6 +101,17 @@ export const SHOE_COLORS = [
   { id: 'pink', color: '#EAB6CF', label: 'Rose' },
 ];
 
+export const DOUDOU_STYLES = [
+  { id: 'none', label: 'Aucun', emoji: '❌' },
+  { id: 'doudou_ours', label: 'Ours', emoji: '🐻' },
+  { id: 'doudou_panda', label: 'Panda', emoji: '🐼' },
+  { id: 'doudou_lapin', label: 'Lapin', emoji: '🐰' },
+  { id: 'doudou_chat', label: 'Chat', emoji: '🐱' },
+  { id: 'doudou_renard', label: 'Renard', emoji: '🦊' },
+  { id: 'doudou_girafe', label: 'Girafe', emoji: '🦒' },
+  { id: 'doudou_elephant', label: 'Éléphant', emoji: '🐘' },
+];
+
 export const DEFAULT_AVATAR_CONFIG: AvatarConfig = {
   skinColor: '#FFDCB5',
   hair: 'pigtails',
@@ -114,6 +125,7 @@ export const DEFAULT_AVATAR_CONFIG: AvatarConfig = {
   bottomColor: '#F0B7CD',
   shoes: 'sneakers',
   shoesColor: '#FBF8F2',
+  doudou: 'none',
 };
 
 export const EDITOR_TABS = [
@@ -124,4 +136,5 @@ export const EDITOR_TABS = [
   { id: 'top', label: 'Haut', emoji: '👕' },
   { id: 'bottom', label: 'Bas', emoji: '👖' },
   { id: 'shoes', label: 'Chaussures', emoji: '👟' },
+  { id: 'doudou', label: 'Doudou', emoji: '🧸' },
 ] as const;

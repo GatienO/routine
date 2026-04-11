@@ -9,6 +9,7 @@ import { Pressable } from 'react-native';
 
 interface AnimatedPressableProps {
   onPress: () => void;
+  containerStyle?: StyleProp<ViewStyle>;
   style?: StyleProp<ViewStyle>;
   children: React.ReactNode;
   scaleDown?: number;
@@ -24,6 +25,7 @@ const SPRING_CONFIG = {
 
 export function AnimatedPressable({
   onPress,
+  containerStyle,
   style,
   children,
   scaleDown = 0.93,
@@ -52,6 +54,7 @@ export function AnimatedPressable({
       disabled={disabled}
       hitSlop={hitSlop}
       pressRetentionOffset={16}
+      style={containerStyle}
     >
       <Animated.View style={[style, animStyle]}>{children}</Animated.View>
     </Pressable>
