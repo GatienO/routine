@@ -1,12 +1,17 @@
 import React, { memo } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { CopySimple, ShareNetwork, Trash } from 'phosphor-react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { CopySimple, ShareNetwork, Trash, Printer } from 'phosphor-react-native';
 import { Card } from '../ui/Card';
 import { OpenMoji } from '../ui/OpenMoji';
 import { Avatar } from '../ui/Avatar';
 import { COLORS, SPACING, FONT_SIZE, RADIUS, CATEGORY_CONFIG } from '../../constants/theme';
 import { Child, Routine } from '../../types';
 import { formatChildName } from '../../utils/children';
+import { printRoutine } from '../../services/exportRoutine';
+import {
+  showAppAlert,
+  showAppToast,
+} from '../feedback/AppFeedbackProvider';
 
 export type RoutineGroup = {
   key: string;
@@ -57,6 +62,8 @@ export const CompactRoutineRow = memo(function CompactRoutineRow({
         </TouchableOpacity>
 
         <RoutineActionPanel
+          routine={routine}
+          child={child}
           isActive={routine.isActive}
           statusLabel={routine.isActive ? 'Actif' : 'Off'}
           onToggle={onToggle}
@@ -121,6 +128,8 @@ export const CompactRoutineGroupRow = memo(function CompactRoutineGroupRow({
         </TouchableOpacity>
 
         <RoutineActionPanel
+          routine={group.sample}
+          child={previewChildren[0]}
           isActive={allActive}
           statusLabel={statusLabel}
           onToggle={onToggle}
@@ -134,6 +143,8 @@ export const CompactRoutineGroupRow = memo(function CompactRoutineGroupRow({
 });
 
 const RoutineActionPanel = memo(function RoutineActionPanel({
+  routine,
+  child,
   isActive,
   statusLabel,
   onToggle,
@@ -141,6 +152,8 @@ const RoutineActionPanel = memo(function RoutineActionPanel({
   onShare,
   onDelete,
 }: {
+  routine?: Routine;
+  child?: Child;
   isActive: boolean;
   statusLabel: string;
   onToggle: () => void;
@@ -148,39 +161,68 @@ const RoutineActionPanel = memo(function RoutineActionPanel({
   onShare: () => void;
   onDelete: () => void;
 }) {
-  return (
-    <View style={styles.titleControls}>
-      <View style={styles.iconActionRow}>
-        <IconAction
-          icon={<CopySimple size={15} weight="bold" color={COLORS.secondaryDark} />}
-          onPress={onDuplicate}
-          label="Dupliquer"
-        />
-        <IconAction
-          icon={<ShareNetwork size={15} weight="bold" color={COLORS.secondaryDark} />}
-          onPress={onShare}
-          label="Partager"
-        />
-        <IconAction
-          icon={<Trash size={15} weight="bold" color={COLORS.error} />}
-          onPress={onDelete}
-          label="Supprimer"
-        />
-      </View>
+  const handlePrint = async () => {
+    if (!routine || !child) return;
+    try {
+      await printRoutine(routine, child);
+      showAppToast({
+        title: 'Impression lancée',
+        message: 'Ouvre la fenêtre d\'impression',
+        tone: 'success',
+        icon: '🖨️',
+      });
+    } catch (error) {
+      showAppAlert({
+        title: 'Erreur',
+        message: 'Impossible d\'imprimer',
+        tone: 'danger',
+        icon: '⚠️',
+      });
+    }
+  };
 
-      <View style={styles.switchStatusRow}>
-        <TouchableOpacity style={styles.switchWrap} onPress={onToggle} activeOpacity={0.8}>
-          <View style={[styles.switchTrack, isActive ? styles.switchTrackActive : styles.switchTrackInactive]}>
-            <View style={[styles.switchThumb, isActive ? styles.switchThumbRight : styles.switchThumbLeft]} />
+  return (
+    <>
+      <View style={styles.titleControls}>
+        <View style={styles.iconActionRow}>
+          {Platform.OS === 'web' && routine && child && (
+            <IconAction
+              icon={<Printer size={15} weight="bold" color={COLORS.secondary} />}
+              onPress={handlePrint}
+              label="Imprimer / PDF"
+            />
+          )}
+          <IconAction
+            icon={<CopySimple size={15} weight="bold" color={COLORS.secondaryDark} />}
+            onPress={onDuplicate}
+            label="Dupliquer"
+          />
+          <IconAction
+            icon={<ShareNetwork size={15} weight="bold" color={COLORS.secondaryDark} />}
+            onPress={onShare}
+            label="Partager"
+          />
+          <IconAction
+            icon={<Trash size={15} weight="bold" color={COLORS.error} />}
+            onPress={onDelete}
+            label="Supprimer"
+          />
+        </View>
+
+        <View style={styles.switchStatusRow}>
+          <TouchableOpacity style={styles.switchWrap} onPress={onToggle} activeOpacity={0.8}>
+            <View style={[styles.switchTrack, isActive ? styles.switchTrackActive : styles.switchTrackInactive]}>
+              <View style={[styles.switchThumb, isActive ? styles.switchThumbRight : styles.switchThumbLeft]} />
+            </View>
+          </TouchableOpacity>
+          <View style={[styles.statusPill, isActive ? styles.statusPillActive : styles.statusPillInactive]}>
+            <Text style={[styles.statusText, isActive ? styles.statusTextActive : styles.statusTextInactive]}>
+              {statusLabel}
+            </Text>
           </View>
-        </TouchableOpacity>
-        <View style={[styles.statusPill, isActive ? styles.statusPillActive : styles.statusPillInactive]}>
-          <Text style={[styles.statusText, isActive ? styles.statusTextActive : styles.statusTextInactive]}>
-            {statusLabel}
-          </Text>
         </View>
       </View>
-    </View>
+    </>
   );
 });
 
