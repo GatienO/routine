@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import * as Linking from 'expo-linking';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { COLORS } from '../src/constants/theme';
+import { LocalProfileGate } from '../src/components/profile/LocalProfileGate';
 import { WebInstallHint } from '../src/components/web/WebInstallHint';
 
 export default function RootLayout() {
@@ -41,6 +42,7 @@ export default function RootLayout() {
           animation: 'slide_from_right',
         }}
       />
+      <LocalProfileGate />
       <WebInstallHint />
     </GestureHandlerRootView>
   );

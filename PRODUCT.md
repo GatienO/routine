@@ -17,16 +17,18 @@
 
 | Fonction | Description |
 |---|---|
-| Profils enfants | Créer/modifier : nom, avatar, couleur, âge, doudou, passions |
-| Création de routine | Nom, description, icône, couleur, catégorie, assignation à un ou plusieurs enfants |
+| Profils enfants | Créer/modifier : nom, avatar, couleur, âge, doudou (7 animaux), passions |
+| Création de routine | Nom, description, icône, couleur, catégorie, assignation à un ou plusieurs enfants, favoris |
 | Étapes | Titre, icône, durée, consigne, obligatoire/facultatif, image, ordre |
 | Catalogue | 27 modèles regroupés par packs avec âge conseillé, durée estimée et détail complet |
+| Favoris | Marquer/demarquer routines favorites pour accès rapide |
+| Filtres avancés | Multi-sélection d'enfants, filtrage par statut et catégorie, pagination |
 | Réorganisation | Réordonner les routines d'un enfant par glisser-déposer |
 | Duplication | Dupliquer une routine pour le même enfant ou un autre |
 | Fusion | Sélectionner plusieurs routines d'un même enfant et les fusionner en une seule |
 | Activation/désactivation | Activer ou suspendre une routine |
 | Import/export | Partage par deep link avec prévisualisation avant import |
-| Récompenses réelles | Associer des étoiles à des récompenses physiques et les marquer comme offertes |
+| Récompenses réelles | Associer des étoiles à des récompenses physiques avec cycles de recharge configurables |
 | Statistiques | Étoiles, séries, exécutions par routine et activité récente |
 | Météo | Ville configurable ou géolocalisation automatique |
 
@@ -35,7 +37,7 @@
 | Fonction | Description |
 |---|---|
 | Sélection profil | Choix tactile du profil, sélection directe s'il n'y a qu'un enfant |
-| Dashboard | Routines actives, météo, récompense en cours, humeur récente, série |
+| Dashboard | Routines actives (avec favoris en premier), météo, récompense en cours, humeur récente, série |
 | Récapitulatif | Aperçu d'une routine avant lancement : étapes, durée totale, heure de fin estimée |
 | Chaînage | Sélection de plusieurs routines pour les lancer à la suite |
 | Humeur | Choix d'humeur avant départ pour adapter l'expérience |
@@ -50,7 +52,11 @@
 - **Étoiles** : 1 par étape obligatoire + bonus de routine complétée
 - **Séries** : jours consécutifs avec au moins une routine terminée
 - **7 badges** : première étoile, premières routines, séries et caps de progression
-- **Récompenses réelles** : visibles côté parent et côté enfant avec barre d'avancement
+- **Récompenses réelles** : visibles côté parent et côté enfant avec :
+  - Barre d'avancement
+  - Cycles de recharge configurables (minutes, heures, jours, semaines)
+  - Déduction d'étoiles à la réclamation
+  - Countdown en temps réel de disponibilité
 
 ### Météo
 
@@ -164,6 +170,19 @@ RoutineExecution {
   stepsCompleted[], earnedStars, mood?, stepDurations?
 }
 ```
+
+### Doudous (Animaux compagnons)
+
+- 7 animaux en peluche au choix lors de la création d'enfant : ours, panda, lapin, chat, renard, girafe, éléphant
+- S'affiche avec l'enfant en pyjama
+- Inclus dans les recommandations de tenue "soir/dodo"
+- Élément de personnalisation du profil enfant
+
+### Favoris
+
+- Marquer/demarquer routines et les voir en premier dans le dashboard
+- Accessible côté parent et côté enfant
+- Persiste dans AsyncStorage
 
 ### Sécurité
 

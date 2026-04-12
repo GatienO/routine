@@ -7,11 +7,12 @@ Application mobile gamifiée qui transforme les tâches quotidiennes des enfants
 ## Fonctionnalités
 
 - **Multi-enfants enrichi** - profils avec avatar, couleur, doudou et passions
+- **Favoris** ❤️ - marquer routines préférées pour accès rapide
 - **Routines gamifiées** - écran récapitulatif, humeur, timer, progression et célébration
 - **Chaînage de routines** - l'enfant peut lancer plusieurs routines à la suite
-- **Récompenses** - étoiles, badges, séries et récompenses réelles
+- **Récompenses** - étoiles, badges, séries et récompenses réelles avec cycles de recharge
 - **Catalogue guidé** - 27 modèles de routines avec durée, âge conseillé et aperçu détaillé
-- **Gestion parent avancée** - duplication, fusion et réorganisation des routines
+- **Gestion parent avancée** - duplication, fusion, favoris et filtres multi-enfants
 - **Météo adaptative** - conseils vestimentaires visuels selon météo, température et moment
 - **Import/export** - partage par deep link avec prévisualisation avant import
 - **Statistiques** - historique, étoiles et activité récente par enfant
@@ -70,8 +71,9 @@ npm test
 ## Documentation
 
 - [PRODUCT.md](PRODUCT.md) - Référence produit & technique
-- [GET_STARTED.md](GET_STARTED.md) - Installation détaillée
 - [USER_GUIDE.md](USER_GUIDE.md) - Guide utilisateur complet
+- [GET_STARTED.md](GET_STARTED.md) - Installation détaillée
+- [ROUTE_VERIFICATION.md](ROUTE_VERIFICATION.md) - Checklist complète des routes et fonctionnalités
 
 ## Licence
 

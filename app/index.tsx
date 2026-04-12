@@ -1,5 +1,13 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
+  Modal,
+  Pressable,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useSharedValue,
@@ -11,10 +19,13 @@ import Animated, {
 import { useRouter } from 'expo-router';
 import { AnimatedPressable } from '../src/components/ui/AnimatedPressable';
 import { COLORS, SPACING, FONT_SIZE, SHADOWS, RADIUS } from '../src/constants/theme';
+import { useLocalProfileStore } from '../src/stores/localProfileStore';
 
 
 export default function WelcomeScreen() {
   const router = useRouter();
+  const profileName = useLocalProfileStore((state) => state.profileName);
+  const [showProfileInfo, setShowProfileInfo] = useState(false);
 
   const heroScale = useSharedValue(0.8);
 
@@ -33,6 +44,16 @@ export default function WelcomeScreen() {
     >
       <SafeAreaView style={styles.safe}>
         <View style={styles.container}>
+          {profileName ? (
+            <TouchableOpacity
+              onPress={() => setShowProfileInfo(true)}
+              style={styles.infoButton}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.infoButtonText}>!</Text>
+            </TouchableOpacity>
+          ) : null}
+
           {/* Hero */}
           <Animated.View
             entering={FadeInDown.duration(600).springify()}
@@ -63,15 +84,25 @@ export default function WelcomeScreen() {
               <Text style={styles.bigButtonText}>🧒 C'est parti !</Text>
             </AnimatedPressable>
           </Animated.View>
-
-          <Animated.Text
-            entering={FadeInUp.delay(600).duration(400)}
-            style={styles.footer}
-          >
-            Configurez les routines dans l'espace parent{'\n'}
-            puis laissez votre enfant s'amuser !
-          </Animated.Text>
         </View>
+
+        <Modal
+          transparent
+          visible={showProfileInfo}
+          animationType="fade"
+          onRequestClose={() => setShowProfileInfo(false)}
+        >
+          <Pressable style={styles.modalBackdrop} onPress={() => setShowProfileInfo(false)}>
+            <Pressable style={styles.modalCard} onPress={(event) => event.stopPropagation()}>
+              <Text style={styles.modalEyebrow}>Profil local</Text>
+              <Text style={styles.modalTitle}>{profileName}</Text>
+              <Text style={styles.modalText}>
+                Vos routines, profils et reglages restent enregistres uniquement sur
+                cet appareil. Aucun compte ni serveur distant ne sont utilises.
+              </Text>
+            </Pressable>
+          </Pressable>
+        </Modal>
       </SafeAreaView>
     </LinearGradient>
   );
@@ -85,6 +116,26 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: SPACING.xl,
+  },
+  infoButton: {
+    position: 'absolute',
+    top: SPACING.lg,
+    left: SPACING.lg,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderWidth: 1,
+    borderColor: 'rgba(45, 52, 54, 0.08)',
+    ...SHADOWS.md,
+  },
+  infoButtonText: {
+    fontSize: 24,
+    lineHeight: 28,
+    fontWeight: '900',
+    color: COLORS.text,
   },
   hero: {
     alignItems: 'center',
@@ -124,10 +175,41 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#FFF',
   },
-  footer: {
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(33, 39, 48, 0.32)',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    paddingTop: SPACING.xxl + 20,
+    paddingLeft: SPACING.lg,
+    paddingRight: SPACING.lg,
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 360,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.xl,
+    padding: SPACING.lg,
+    gap: SPACING.sm,
+    borderWidth: 1,
+    borderColor: COLORS.surfaceSecondary,
+    ...SHADOWS.lg,
+  },
+  modalEyebrow: {
     fontSize: FONT_SIZE.xs,
-    color: COLORS.textLight,
-    textAlign: 'center',
-    lineHeight: 18,
+    fontWeight: '800',
+    color: COLORS.secondaryDark,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+  modalTitle: {
+    fontSize: FONT_SIZE.lg,
+    fontWeight: '900',
+    color: COLORS.text,
+  },
+  modalText: {
+    fontSize: FONT_SIZE.sm,
+    lineHeight: 21,
+    color: COLORS.textSecondary,
   },
 });

@@ -20,10 +20,11 @@ Au premier accès parent, vous définissez un code PIN à 4 chiffres pour proté
 1. Ouvrir **Espace Parent**
 2. Appuyer sur **+ Ajouter**
 3. Renseigner le prénom, l'âge, l'avatar et la couleur
-4. Personnaliser si besoin avec un **doudou** et jusqu'à **5 passions**
-5. Enregistrer
+4. Choisir un **doudou** (animal en peluche compagnon parmi 7 options)
+5. Ajouter jusqu'à **5 passions** (intérêts favoris)
+6. Enregistrer
 
-Le profil peut ensuite être modifié à tout moment.
+Le profil peut ensuite être modifié à tout moment. Le doudou s'affichera avec l'enfant en pyjama et sera recommandé dans les tenues de nuit.
 
 ### Créer une routine
 
@@ -53,6 +54,14 @@ Le **Catalogue** contient **27 modèles** regroupés par univers. Chaque modèle
 - le détail des étapes avant import
 
 Vous pouvez ensuite l'importer pour l'enfant de votre choix.
+
+### Favoris et filtres avancés
+
+Dans la gestion des routines :
+
+- **Favoris** ❤️ : cliquer le cœur d'une routine pour la marquer préférée et la voir en premier
+- **Filtres** : sélectionner plusieurs enfants à la fois et filtrer par statut (actif/inactif) et catégorie
+- **Pagination** : les routines s'affichent par groupes de 10
 
 ### Réorganiser, dupliquer et fusionner
 
@@ -84,10 +93,14 @@ Depuis le tableau parent, chaque routine possède un interrupteur. Une routine d
 
 Dans **Récompenses** :
 
-1. Ajouter une récompense avec une description et un nombre d'étoiles
-2. Suivre la progression en temps réel
+1. Ajouter une récompense avec :
+   - une description
+   - un nombre d'étoiles requis
+   - un **cycle de recharge** (minutes, heures, jours ou semaines)
+2. Suivre la progression en temps réel avec countdown du cooldown
 3. Marquer la récompense comme **offerte** quand elle a été donnée
-4. Retrouver l'historique des récompenses déjà offertes
+4. L'enfant voit la barre d'avancement côté enfant avec temps restant avant recharge
+5. Retrouver l'historique des récompenses déjà offertes
 
 ### Statistiques
 
