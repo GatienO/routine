@@ -7,7 +7,6 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
-  Alert,
   Image,
   useWindowDimensions,
   Platform,
@@ -28,7 +27,12 @@ import {
   type ProfileTab,
 } from '../../src/constants/profileCustomization';
 import { AVATAR_ASSET_OPTIONS } from '../../src/constants/avatarAssets';
+import {
+  showAppAlert,
+  showAppConfirm,
+} from '../../src/components/feedback/AppFeedbackProvider';
 import { backOrReplace } from '../../src/utils/navigation';
+import { formatChildName } from '../../src/utils/children';
 
 const AVATAR_RING_SHADOW =
   Platform.OS === 'web'
@@ -107,7 +111,12 @@ export default function AddChildScreen() {
   const handleSave = () => {
     const ageNum = parseInt(age, 10);
     if (isNaN(ageNum) || ageNum < 1 || ageNum > 18) {
-      Alert.alert('Age invalide', "L'age doit etre entre 1 et 18 ans.");
+      showAppAlert({
+        title: 'Age invalide',
+        message: "L'age doit etre entre 1 et 18 ans.",
+        tone: 'warning',
+        icon: '🎂',
+      });
       return;
     }
 
@@ -129,27 +138,26 @@ export default function AddChildScreen() {
     backOrReplace(router, '/parent');
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!editing) return;
 
-    Alert.alert(
-      'Supprimer le profil',
-      `Supprimer ${editing.name} et toutes ses routines ?`,
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Supprimer',
-          style: 'destructive',
-          onPress: () => {
-            routines
-              .filter((routine) => routine.childId === editing.id)
-              .forEach((routine) => removeRoutine(routine.id));
-            removeChild(editing.id);
-            backOrReplace(router, '/parent');
-          },
-        },
-      ],
-    );
+    const confirmed = await showAppConfirm({
+      title: 'Supprimer le profil',
+      message: `Supprimer ${formatChildName(editing.name)} et toutes ses routines ?`,
+      tone: 'danger',
+      icon: '🧹',
+      confirmLabel: 'Supprimer',
+      cancelLabel: 'Annuler',
+      confirmKind: 'danger',
+    });
+
+    if (!confirmed) return;
+
+    routines
+      .filter((routine) => routine.childId === editing.id)
+      .forEach((routine) => removeRoutine(routine.id));
+    removeChild(editing.id);
+    backOrReplace(router, '/parent');
   };
 
   const renderAvatarTab = () => (
@@ -245,7 +253,15 @@ export default function AddChildScreen() {
         <View style={[styles.avatarSection, stackedLayout && styles.avatarSectionStacked]}>
           <View style={[styles.avatarPreviewCol, stackedLayout && styles.avatarPreviewColStacked]}>
             <View style={styles.avatarWrapper}>
-              <View style={styles.avatarRing} />
+              <View
+                style={[
+                  styles.avatarRing,
+                  {
+                    borderColor: color,
+                    backgroundColor: `${color}18`,
+                  },
+                ]}
+              />
               <Avatar emoji={avatar} color={color} size={110} style={styles.avatarMain} />
               {companion ? (
                 <View style={styles.companionBadge}>
@@ -256,7 +272,7 @@ export default function AddChildScreen() {
                 </View>
               ) : null}
             </View>
-            <Text style={styles.previewName}>{name || 'Prenom'}</Text>
+            <Text style={styles.previewName}>{formatChildName(name) || 'Prenom'}</Text>
             {passions.length > 0 ? (
               <View style={styles.passionPreview}>
                 {passions.map((passion) => (

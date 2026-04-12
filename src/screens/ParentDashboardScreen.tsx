@@ -5,28 +5,24 @@ import {
   StyleSheet,
   SafeAreaView,
   ScrollView,
-  Alert,
   FlatList,
   ListRenderItem,
   TouchableOpacity,
   TextInput,
   Switch,
-  Share,
-  Platform,
   Modal,
   Pressable,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import * as Clipboard from 'expo-clipboard';
 import { ArrowsDownUp } from 'phosphor-react-native';
 import { useChildrenStore } from '../stores/childrenStore';
 import { useRoutineStore } from '../stores/routineStore';
 import { useRewardStore } from '../stores/rewardStore';
 import { useAppStore } from '../stores/appStore';
 import { useWeatherStore } from '../stores/weatherStore';
-import { buildRoutineShareText } from '../services/sharing';
 import { Card } from '../components/ui/Card';
 import { DraggableList } from '../components/ui/DraggableList';
+import { RoutineShareModal } from '../components/routine/RoutineShareModal';
 import { COLORS, SPACING, FONT_SIZE, RADIUS } from '../constants/theme';
 import { Child, Routine } from '../types';
 import {
@@ -39,6 +35,12 @@ import {
   ParentDashboardHeader,
   StatusFilterValue,
 } from '../components/parent/ParentDashboardHeader';
+import {
+  showAppAlert,
+  showAppConfirm,
+  showAppToast,
+} from '../components/feedback/AppFeedbackProvider';
+import { formatChildName } from '../utils/children';
 
 type RoutineListItem =
   | { type: 'group'; key: string; group: RoutineGroup }
@@ -54,20 +56,6 @@ const CATEGORY_FILTER_OPTIONS: CategoryFilterValue[] = [
   'weekend',
   'custom',
 ];
-
-const confirmAction = (title: string, message: string, onConfirm: () => void) => {
-  if (Platform.OS === 'web' && typeof window !== 'undefined') {
-    if (window.confirm(`${title}\n\n${message}`)) {
-      onConfirm();
-    }
-    return;
-  }
-
-  Alert.alert(title, message, [
-    { text: 'Annuler', style: 'cancel' },
-    { text: 'Confirmer', style: 'destructive', onPress: onConfirm },
-  ]);
-};
 
 export function ParentDashboardScreen() {
   const router = useRouter();
@@ -95,6 +83,7 @@ export function ParentDashboardScreen() {
   const [showWeatherSettings, setShowWeatherSettings] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [routinesExpanded, setRoutinesExpanded] = useState(true);
+  const [routineToShare, setRoutineToShare] = useState<Routine | null>(null);
 
   const deferredSearch = useDeferredValue(searchQuery.trim().toLowerCase());
   const selectedChildIdSet = useMemo(() => new Set(selectedChildIds), [selectedChildIds]);
@@ -321,7 +310,12 @@ export function ParentDashboardScreen() {
     const trimmed = cityInput.trim();
     setWeatherCity(trimmed);
     refreshWeather({ cityName: trimmed, useGeolocation });
-    Alert.alert('Ville enregistree', trimmed ? `Meteo pour : ${trimmed}` : 'Meteo par defaut (Paris)');
+    showAppToast({
+      title: 'Ville enregistree',
+      message: trimmed ? `Meteo pour : ${trimmed}` : 'Meteo par defaut : Paris',
+      tone: 'success',
+      icon: '📍',
+    });
   };
 
   const handleToggleGeo = (value: boolean) => {
@@ -329,50 +323,64 @@ export function ParentDashboardScreen() {
     if (value) refreshWeather({ useGeolocation: true });
   };
 
-  const handleDeleteRoutine = (routine: Routine) => {
-    confirmAction(
-      'Corbeille',
-      `Mettre la routine "${routine.name}" dans la corbeille pendant 30 jours ?`,
-      () => trashRoutine(routine.id),
-    );
+  const handleDeleteRoutine = async (routine: Routine) => {
+    const confirmed = await showAppConfirm({
+      title: 'Corbeille',
+      message: `Mettre la routine "${routine.name}" dans la corbeille pendant 30 jours ?`,
+      tone: 'warning',
+      icon: '🗑️',
+      confirmLabel: 'Mettre en corbeille',
+      cancelLabel: 'Annuler',
+      confirmKind: 'danger',
+    });
+
+    if (confirmed) {
+      trashRoutine(routine.id);
+    }
   };
 
-  const handleDeleteGroup = (group: RoutineGroup) => {
+  const handleDeleteGroup = async (group: RoutineGroup) => {
     const count = group.routines.length;
     const label = count > 1
       ? `Mettre les ${count} routines du groupe "${group.sample.name}" dans la corbeille pendant 30 jours ?`
       : `Mettre la routine "${group.sample.name}" dans la corbeille pendant 30 jours ?`;
 
-    confirmAction('Corbeille', label, () =>
-      group.routines.forEach((routine) => trashRoutine(routine.id)),
-    );
+    const confirmed = await showAppConfirm({
+      title: 'Corbeille',
+      message: label,
+      tone: 'warning',
+      icon: '🗑️',
+      confirmLabel: 'Mettre en corbeille',
+      cancelLabel: 'Annuler',
+      confirmKind: 'danger',
+    });
+
+    if (confirmed) {
+      group.routines.forEach((routine) => trashRoutine(routine.id));
+    }
   };
 
   const handleDuplicateRoutine = (routine: Routine) => {
     const duplicated = duplicateRoutine(routine.id, routine.childId);
     if (duplicated) {
-      Alert.alert('Routine dupliquee', `"${duplicated.name}" a ete creee.`);
+      showAppToast({
+        title: 'Routine dupliquee',
+        message: `"${duplicated.name}" a ete creee.`,
+        tone: 'success',
+        icon: '🪄',
+      });
     } else {
-      Alert.alert('Erreur', 'Impossible de dupliquer la routine.');
+      showAppAlert({
+        title: 'Erreur',
+        message: 'Impossible de dupliquer la routine.',
+        tone: 'danger',
+        icon: '⚠️',
+      });
     }
   };
 
-  const handleShareRoutine = async (routine: Routine) => {
-    const message = buildRoutineShareText(routine);
-
-    try {
-      await Share.share({
-        title: routine.name,
-        message,
-      });
-    } catch {
-      try {
-        await Clipboard.setStringAsync(message);
-        Alert.alert('Texte copie', 'Le resume de la routine a ete copie.');
-      } catch {
-        Alert.alert('Erreur', 'Impossible de partager la routine.');
-      }
-    }
+  const handleShareRoutine = (routine: Routine) => {
+    setRoutineToShare(routine);
   };
 
   const handleToggleGroup = (group: RoutineGroup) => {
@@ -517,7 +525,7 @@ export function ParentDashboardScreen() {
   };
 
   const emptyMessage = showSingleChildView
-    ? `Aucune routine pour ${selectedChild?.name ?? 'cet enfant'} avec ces filtres.`
+    ? `Aucune routine pour ${selectedChild ? formatChildName(selectedChild.name) : 'cet enfant'} avec ces filtres.`
     : selectedChildIds.length > 1
       ? 'Aucune routine pour cette selection d enfants.'
       : 'Aucune routine ne correspond a ces filtres.';
@@ -530,7 +538,7 @@ export function ParentDashboardScreen() {
           <View style={styles.organizeHint}>
             <ArrowsDownUp size={16} weight="bold" color={COLORS.secondary} />
             <Text style={styles.organizeHintText}>
-              Appui long puis glisse pour reordonner les routines de {selectedChild.name}.
+              Appui long puis glisse pour reordonner les routines de {formatChildName(selectedChild.name)}.
             </Text>
           </View>
           <DraggableList
@@ -586,6 +594,11 @@ export function ParentDashboardScreen() {
         onToggleGeo={handleToggleGeo}
         onClose={() => setShowWeatherSettings(false)}
         onSaveCity={handleSaveCity}
+      />
+      <RoutineShareModal
+        visible={routineToShare !== null}
+        routine={routineToShare}
+        onClose={() => setRoutineToShare(null)}
       />
     </SafeAreaView>
   );

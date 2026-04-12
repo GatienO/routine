@@ -21,6 +21,7 @@ import { OpenMoji } from '../../src/components/ui/OpenMoji';
 import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS, CATEGORY_CONFIG } from '../../src/constants/theme';
 import { backOrReplace } from '../../src/utils/navigation';
 import { getGridItemWidth, getResponsiveColumns } from '../../src/utils/responsive';
+import { formatChildName } from '../../src/utils/children';
 
 function formatEndTime(totalMinutes: number): string {
   const now = new Date();
@@ -271,7 +272,7 @@ export default function RoutineSummaryScreen() {
                         </View>
                       ) : null}
                     </View>
-                    <Text style={styles.childName} selectable={false}>{child.name}</Text>
+                    <Text style={styles.childName} selectable={false}>{formatChildName(child.name)}</Text>
                     <Text style={styles.childHint} selectable={false}>{isSelected ? 'selectionne' : 'ajouter'}</Text>
                   </AnimatedPressable>
                 );

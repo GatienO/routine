@@ -1,25 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
   SafeAreaView,
   ScrollView,
+  StyleSheet,
+  Text,
   TextInput,
   TouchableOpacity,
-  Alert,
+  View,
 } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Avatar } from '../../src/components/ui/Avatar';
+import { BackButton } from '../../src/components/ui/BackButton';
+import { Button } from '../../src/components/ui/Button';
+import { Card } from '../../src/components/ui/Card';
+import { OpenMoji } from '../../src/components/ui/OpenMoji';
+import { COLORS, FONT_SIZE, RADIUS, SPACING } from '../../src/constants/theme';
+import {
+  showAppAlert,
+  showAppToast,
+} from '../../src/components/feedback/AppFeedbackProvider';
+import { importRoutine, parseRoutineImportInput } from '../../src/services/sharing';
 import { useChildrenStore } from '../../src/stores/childrenStore';
 import { useRoutineStore } from '../../src/stores/routineStore';
-import { Button } from '../../src/components/ui/Button';
-import { BackButton } from '../../src/components/ui/BackButton';
-import { Card } from '../../src/components/ui/Card';
-import { decodeRoutine, importRoutine } from '../../src/services/sharing';
-import { COLORS, SPACING, FONT_SIZE, RADIUS } from '../../src/constants/theme';
-import { OpenMoji } from '../../src/components/ui/OpenMoji';
-import { Avatar } from '../../src/components/ui/Avatar';
 import { backOrReplace } from '../../src/utils/navigation';
+import { formatChildName } from '../../src/utils/children';
 
 export default function ImportScreen() {
   const router = useRouter();
@@ -27,17 +31,21 @@ export default function ImportScreen() {
   const { children } = useChildrenStore();
   const { addRoutine } = useRoutineStore();
 
-  const [code, setCode] = useState('');
+  const [input, setInput] = useState('');
   const [selectedChildIds, setSelectedChildIds] = useState<string[]>(children[0] ? [children[0].id] : []);
-  const [preview, setPreview] = useState<ReturnType<typeof decodeRoutine>>(null);
+  const [preview, setPreview] = useState<ReturnType<typeof parseRoutineImportInput>['shareable']>(null);
+  const [errors, setErrors] = useState<string[]>([]);
+  const [source, setSource] = useState<ReturnType<typeof parseRoutineImportInput>['source']>('unknown');
 
   useEffect(() => {
-    if (params.code) {
-      const decoded = decodeURIComponent(params.code);
-      setCode(decoded);
-      const result = decodeRoutine(decoded);
-      if (result) setPreview(result);
-    }
+    if (!params.code) return;
+
+    const initialValue = decodeURIComponent(params.code);
+    setInput(initialValue);
+    const parsed = parseRoutineImportInput(initialValue);
+    setPreview(parsed.shareable);
+    setErrors(parsed.errors);
+    setSource(parsed.source);
   }, [params.code]);
 
   useEffect(() => {
@@ -46,61 +54,71 @@ export default function ImportScreen() {
       return;
     }
 
-    setSelectedChildIds((prev) => {
-      const stillValid = prev.filter((childId) => children.some((child) => child.id === childId));
+    setSelectedChildIds((previous) => {
+      const stillValid = previous.filter((childId) => children.some((child) => child.id === childId));
       return stillValid.length > 0 ? stillValid : [children[0].id];
     });
   }, [children]);
 
   const handleDecode = () => {
-    const trimmed = code.trim();
-    const cleaned = trimmed.replace(/^routine:\/\/import\//, '');
-    const result = decodeRoutine(cleaned);
-    if (!result) {
-      Alert.alert('Code invalide', 'Ce code de partage n est pas valide.');
-      return;
+    const parsed = parseRoutineImportInput(input);
+    setPreview(parsed.shareable);
+    setErrors(parsed.errors);
+    setSource(parsed.source);
+
+    if (!parsed.shareable && parsed.errors.length > 0) {
+      showAppAlert({
+        title: 'Import impossible',
+        message: parsed.errors[0],
+        tone: 'danger',
+        icon: '🧩',
+      });
     }
-    setPreview(result);
   };
 
   const handleImport = () => {
     if (!preview || selectedChildIds.length === 0) return;
 
     selectedChildIds.forEach((childId) => {
-      const routineData = importRoutine(preview, childId);
-      addRoutine(routineData);
+      addRoutine(importRoutine(preview, childId));
     });
 
-    Alert.alert(
-      'Routine importee !',
-      `La routine a ete importee pour ${selectedChildIds.length} enfant${selectedChildIds.length > 1 ? 's' : ''}.`,
-    );
+    showAppToast({
+      title: 'Routine importee',
+      message: `La routine a ete ajoutee pour ${selectedChildIds.length} enfant${selectedChildIds.length > 1 ? 's' : ''}.`,
+      tone: 'success',
+      icon: '🎉',
+    });
     backOrReplace(router, '/parent');
   };
 
+  const handleInputChange = (value: string) => {
+    setInput(value);
+    setPreview(null);
+    setErrors([]);
+    setSource('unknown');
+  };
+
   const toggleChild = (childId: string) => {
-    setSelectedChildIds((prev) =>
-      prev.includes(childId)
-        ? prev.filter((id) => id !== childId)
-        : [...prev, childId],
+    setSelectedChildIds((previous) =>
+      previous.includes(childId)
+        ? previous.filter((id) => id !== childId)
+        : [...previous, childId],
     );
   };
 
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <TouchableOpacity onPress={() => backOrReplace(router, '/parent')}>
-          <Text style={styles.back}>← Retour</Text>
-        </TouchableOpacity>
-        <Text style={styles.title}>Importer une routine</Text>
         <BackButton style={styles.backButton} onPress={() => backOrReplace(router, '/parent')} />
-        
+        <Text style={styles.title}>Importer une routine</Text>
+
         {children.length === 0 ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyIcon}>👨‍👩‍👧</Text>
             <Text style={styles.emptyTitle}>Aucun enfant configure</Text>
             <Text style={styles.emptyMessage}>
-              Creez d abord un profil enfant pour pouvoir importer des routines.
+              Creez d abord un profil enfant avant d importer une routine.
             </Text>
             <Button
               title="Ajouter un enfant"
@@ -108,53 +126,80 @@ export default function ImportScreen() {
               variant="primary"
               size="lg"
               color={COLORS.primary}
-              style={styles.emptyButton}
             />
           </View>
         ) : (
           <>
             <Text style={styles.subtitle}>
-              Collez le code de partage recu d un autre parent.
+              Collez un lien profond, un code de partage ou le contenu JSON exporte.
+              La validation est stricte avant import.
             </Text>
 
             <TextInput
               style={[styles.input, styles.codeInput]}
-              value={code}
-              onChangeText={setCode}
-              placeholder="Collez le code ici..."
+              value={input}
+              onChangeText={handleInputChange}
+              placeholder="routine://import/... ou JSON..."
               placeholderTextColor={COLORS.textLight}
               multiline
               autoFocus
             />
 
-            {!preview ? (
-              <Button
-                title="Decoder"
-                onPress={handleDecode}
-                variant="primary"
-                size="md"
-                color={COLORS.secondary}
-                disabled={code.trim().length === 0}
-              />
-            ) : (
+            <Button
+              title="Verifier et previsualiser"
+              onPress={handleDecode}
+              variant="primary"
+              size="md"
+              color={COLORS.secondary}
+              disabled={input.trim().length === 0}
+            />
+
+            {errors.length > 0 ? (
+              <Card style={styles.errorCard}>
+                <Text style={styles.errorTitle}>Validation echouee</Text>
+                {errors.map((error) => (
+                  <Text key={error} style={styles.errorText}>
+                    • {error}
+                  </Text>
+                ))}
+              </Card>
+            ) : null}
+
+            {preview ? (
               <View style={styles.previewSection}>
                 <Card color={preview.routine.color}>
-                  <View style={styles.previewIconWrap}>
-                    <OpenMoji emoji={preview.routine.icon} size={48} />
-                  </View>
-                  <Text style={styles.previewName}>{preview.routine.name}</Text>
-                  <Text style={styles.previewSteps}>
-                    {preview.routine.steps.length} etapes
-                  </Text>
-                  {preview.routine.steps.map((step, index) => (
-                    <View key={index} style={styles.previewStepRow}>
-                      <OpenMoji emoji={step.icon} size={20} />
-                      <Text>{step.title}</Text>
+                  <View style={styles.previewHeader}>
+                    <View style={styles.previewIconWrap}>
+                      <OpenMoji emoji={preview.routine.icon} size={48} />
                     </View>
-                  ))}
+                    <View style={styles.previewTextBlock}>
+                      <Text style={styles.previewName}>{preview.routine.name}</Text>
+                      <Text style={styles.previewMeta}>
+                        Source : {source === 'deep-link' ? 'lien' : source === 'json' ? 'json' : 'code'}
+                      </Text>
+                      <Text style={styles.previewMeta}>
+                        {preview.routine.steps.length} etape{preview.routine.steps.length > 1 ? 's' : ''}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {preview.routine.description ? (
+                    <Text style={styles.previewDescription}>{preview.routine.description}</Text>
+                  ) : null}
+
+                  <View style={styles.stepsList}>
+                    {preview.routine.steps.map((step, index) => (
+                      <View key={`${step.title}-${index}`} style={styles.previewStepRow}>
+                        <OpenMoji emoji={step.icon} size={20} />
+                        <Text style={styles.previewStepText}>
+                          {step.title} • {step.durationMinutes} min
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
                 </Card>
 
-                <Text style={styles.label}>Pour quels enfants ?</Text>
+                <Text style={styles.label}>Importer pour quels enfants ?</Text>
                 <View style={styles.childrenRow}>
                   {children.map((child) => (
                     <TouchableOpacity
@@ -162,11 +207,12 @@ export default function ImportScreen() {
                       style={[
                         styles.childChip,
                         selectedChildIds.includes(child.id) && {
-                          backgroundColor: child.color + '30',
+                          backgroundColor: `${child.color}26`,
                           borderColor: child.color,
                         },
                       ]}
                       onPress={() => toggleChild(child.id)}
+                      activeOpacity={0.85}
                     >
                       <Avatar
                         emoji={child.avatar}
@@ -174,7 +220,7 @@ export default function ImportScreen() {
                         size={32}
                         avatarConfig={child.avatarConfig}
                       />
-                      <Text style={styles.childChipText}>{child.name}</Text>
+                      <Text style={styles.childChipText}>{formatChildName(child.name)}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -184,10 +230,11 @@ export default function ImportScreen() {
                   onPress={handleImport}
                   variant="primary"
                   size="lg"
+                  color={COLORS.secondary}
                   disabled={selectedChildIds.length === 0}
                 />
               </View>
-            )}
+            ) : null}
           </>
         )}
       </ScrollView>
@@ -196,12 +243,29 @@ export default function ImportScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: COLORS.background },
-  scroll: { padding: SPACING.lg, paddingBottom: SPACING.xxl },
-  back: { fontSize: 0, color: 'transparent', marginBottom: 0, height: 0 },
-  backButton: { marginBottom: SPACING.lg },
-  title: { fontSize: FONT_SIZE.xl, fontWeight: '800', color: COLORS.text },
-  subtitle: { fontSize: FONT_SIZE.md, color: COLORS.textSecondary, marginTop: SPACING.xs, marginBottom: SPACING.xl },
+  safe: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  scroll: {
+    padding: SPACING.lg,
+    paddingBottom: SPACING.xxl,
+  },
+  backButton: {
+    marginBottom: SPACING.lg,
+  },
+  title: {
+    fontSize: FONT_SIZE.xl,
+    fontWeight: '800',
+    color: COLORS.text,
+  },
+  subtitle: {
+    fontSize: FONT_SIZE.md,
+    color: COLORS.textSecondary,
+    marginTop: SPACING.xs,
+    marginBottom: SPACING.xl,
+    lineHeight: 22,
+  },
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -210,7 +274,6 @@ const styles = StyleSheet.create({
   },
   emptyIcon: {
     fontSize: 64,
-    marginBottom: SPACING.md,
   },
   emptyTitle: {
     fontSize: FONT_SIZE.lg,
@@ -222,10 +285,7 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.md,
     color: COLORS.textSecondary,
     textAlign: 'center',
-    maxWidth: 300,
-  },
-  emptyButton: {
-    marginTop: SPACING.lg,
+    maxWidth: 320,
   },
   input: {
     backgroundColor: COLORS.surface,
@@ -236,14 +296,86 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.surfaceSecondary,
   },
-  codeInput: { minHeight: 100, textAlignVertical: 'top', marginBottom: SPACING.md },
-  label: { fontSize: FONT_SIZE.sm, fontWeight: '600', color: COLORS.textSecondary, marginBottom: SPACING.sm, marginTop: SPACING.lg },
-  previewSection: { marginTop: SPACING.lg, gap: SPACING.md },
-  previewIconWrap: { alignItems: 'center', marginBottom: SPACING.sm },
-  previewName: { fontSize: FONT_SIZE.lg, fontWeight: '700', color: COLORS.text, textAlign: 'center', marginTop: SPACING.xs },
-  previewSteps: { fontSize: FONT_SIZE.sm, color: COLORS.textSecondary, textAlign: 'center', marginBottom: SPACING.md },
-  previewStepRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginVertical: 2 },
-  childrenRow: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm },
+  codeInput: {
+    minHeight: 140,
+    textAlignVertical: 'top',
+    marginBottom: SPACING.md,
+  },
+  errorCard: {
+    marginTop: SPACING.md,
+    backgroundColor: '#FFF1F0',
+  },
+  errorTitle: {
+    fontSize: FONT_SIZE.md,
+    fontWeight: '800',
+    color: '#B3261E',
+    marginBottom: SPACING.xs,
+  },
+  errorText: {
+    fontSize: FONT_SIZE.sm,
+    color: '#7A1D17',
+    lineHeight: 20,
+  },
+  previewSection: {
+    marginTop: SPACING.lg,
+    gap: SPACING.md,
+  },
+  previewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.md,
+    marginBottom: SPACING.sm,
+  },
+  previewIconWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.surfaceSecondary,
+  },
+  previewTextBlock: {
+    flex: 1,
+    gap: 2,
+  },
+  previewName: {
+    fontSize: FONT_SIZE.lg,
+    fontWeight: '800',
+    color: COLORS.text,
+  },
+  previewMeta: {
+    fontSize: FONT_SIZE.sm,
+    color: COLORS.textSecondary,
+    fontWeight: '600',
+  },
+  previewDescription: {
+    fontSize: FONT_SIZE.sm,
+    color: COLORS.textSecondary,
+    marginBottom: SPACING.sm,
+  },
+  stepsList: {
+    gap: SPACING.xs,
+  },
+  previewStepRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+  },
+  previewStepText: {
+    fontSize: FONT_SIZE.sm,
+    color: COLORS.text,
+    fontWeight: '600',
+  },
+  label: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+  },
+  childrenRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.sm,
+  },
   childChip: {
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.md,
@@ -257,7 +389,7 @@ const styles = StyleSheet.create({
   },
   childChipText: {
     fontSize: FONT_SIZE.sm,
-    fontWeight: '600',
+    fontWeight: '700',
     color: COLORS.text,
   },
 });

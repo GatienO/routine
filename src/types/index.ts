@@ -128,6 +128,8 @@ export interface RealReward {
 }
 
 export interface ShareableRoutine {
+  type: 'routine-share';
   version: number;
+  exportedAt: string;
   routine: Omit<Routine, 'id' | 'childId' | 'createdAt' | 'updatedAt'>;
 }

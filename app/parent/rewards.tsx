@@ -7,7 +7,6 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
-  Alert,
   useWindowDimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -21,6 +20,10 @@ import { BackButton } from '../../src/components/ui/BackButton';
 import { Card } from '../../src/components/ui/Card';
 import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../../src/constants/theme';
 import { Child, RealRewardCooldownUnit } from '../../src/types';
+import {
+  showAppAlert,
+  showAppConfirm,
+} from '../../src/components/feedback/AppFeedbackProvider';
 import { backOrReplace } from '../../src/utils/navigation';
 import { getGridItemWidth, getResponsiveColumns } from '../../src/utils/responsive';
 import {
@@ -28,6 +31,7 @@ import {
   formatRewardCooldownLabel,
   getRewardAvailabilityForChild,
 } from '../../src/utils/realRewardAvailability';
+import { formatChildName } from '../../src/utils/children';
 
 const COOLDOWN_OPTIONS: Array<{ value: RealRewardCooldownUnit; label: string }> = [
   { value: 'minute', label: 'Minute(s)' },
@@ -113,11 +117,20 @@ export default function ParentRewardsScreen() {
     setShowForm(false);
   };
 
-  const handleDelete = (id: string, desc: string) => {
-    Alert.alert('Supprimer', `Supprimer "${desc}" ?`, [
-      { text: 'Annuler', style: 'cancel' },
-      { text: 'Supprimer', style: 'destructive', onPress: () => removeRealReward(id) },
-    ]);
+  const handleDelete = async (id: string, desc: string) => {
+    const confirmed = await showAppConfirm({
+      title: 'Supprimer',
+      message: `Supprimer "${desc}" ?`,
+      tone: 'danger',
+      icon: '🗑️',
+      confirmLabel: 'Supprimer',
+      cancelLabel: 'Annuler',
+      confirmKind: 'danger',
+    });
+
+    if (confirmed) {
+      removeRealReward(id);
+    }
   };
 
   const handleClaim = (
@@ -164,10 +177,12 @@ export default function ParentRewardsScreen() {
     if (!didSpend) {
       setPendingClaim(null);
       setIsConfirmingClaim(false);
-      Alert.alert(
-        'Etoiles insuffisantes',
-        "Cet enfant n'a plus assez d'etoiles pour recevoir cette recompense.",
-      );
+      showAppAlert({
+        title: 'Etoiles insuffisantes',
+        message: "Cet enfant n'a plus assez d'etoiles pour recevoir cette recompense.",
+        tone: 'warning',
+        icon: '?',
+      });
       return;
     }
 
@@ -182,9 +197,9 @@ export default function ParentRewardsScreen() {
         <View style={[styles.content, { width: contentWidth, maxWidth: '100%' }]}>
           <BackButton style={styles.backButton} onPress={() => backOrReplace(router, '/parent')} />
 
-        <Text style={styles.title}>Recompenses reelles</Text>
+        <Text style={styles.title}>Récompenses réelles</Text>
         <Text style={styles.subtitle}>
-          Motivez votre enfant avec des recompenses concretes !
+          Motivez votre enfant avec des récompenses concrètes !
         </Text>
 
         {children.length > 0 ? (
@@ -199,7 +214,7 @@ export default function ParentRewardsScreen() {
                     avatarConfig={child.avatarConfig}
                   />
                   <View style={styles.childSummaryText}>
-                    <Text style={styles.childSummaryName}>{child.name}</Text>
+                    <Text style={styles.childSummaryName}>{formatChildName(child.name)}</Text>
                     <View style={styles.childStarsRow}>
                       <Star size={16} weight="fill" color={COLORS.star} />
                       <Text style={styles.childSummaryStars}>{totalStars}</Text>
@@ -213,7 +228,7 @@ export default function ParentRewardsScreen() {
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>
-            Recompenses en cours ({realRewards.length})
+            Récompenses en cours ({realRewards.length})
           </Text>
           <TouchableOpacity
             onPress={() => setShowForm((current) => !current)}
@@ -226,7 +241,7 @@ export default function ParentRewardsScreen() {
               <PlusCircle size={18} weight="bold" color={COLORS.secondary} />
             )}
             <Text style={styles.createRewardButtonText}>
-              {showForm ? 'Fermer' : 'Creer une recompense'}
+              {showForm ? 'Fermer' : 'Créer une récompense'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -235,7 +250,7 @@ export default function ParentRewardsScreen() {
           <Card>
             <View style={styles.empty}>
               <Text style={styles.emptyIcon}>🎁</Text>
-              <Text style={styles.emptyText}>Aucune recompense configuree</Text>
+              <Text style={styles.emptyText}>Aucune récompense configurée</Text>
             </View>
           </Card>
         ) : (
@@ -306,7 +321,7 @@ export default function ParentRewardsScreen() {
                                 handleClaim(
                                   reward.id,
                                   reward.description,
-                                  child.name,
+                                  formatChildName(child.name),
                                   child.id,
                                   child.avatar,
                                   child.color,
@@ -930,3 +945,4 @@ const styles = StyleSheet.create({
     marginTop: SPACING.lg,
   },
 });
+

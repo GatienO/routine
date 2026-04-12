@@ -32,6 +32,7 @@ import { OpenMoji } from '../../src/components/ui/OpenMoji';
 import { Avatar } from '../../src/components/ui/Avatar';
 import { Child } from '../../src/types';
 import * as Haptics from 'expo-haptics';
+import { formatChildName } from '../../src/utils/children';
 
 function ParticipantValidationButton({
   child,
@@ -73,7 +74,7 @@ function ParticipantValidationButton({
         />
         <View style={styles.participantButtonTextWrap}>
           <Text style={styles.participantButtonName} numberOfLines={1} selectable={false}>
-            {child.name}
+            {formatChildName(child.name)}
           </Text>
           {!compact ? (
             <Text style={styles.participantButtonLabel} selectable={false}>

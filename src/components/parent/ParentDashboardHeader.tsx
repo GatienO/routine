@@ -26,6 +26,7 @@ import {
   ImportIcon,
   TrashIcon,
 } from '../ui/ModernIcons';
+import { formatChildName } from '../../utils/children';
 
 const WEB_SEARCH_INPUT_RESET = Platform.OS === 'web'
   ? ({ outlineWidth: 0, borderWidth: 0 } as const)
@@ -159,7 +160,7 @@ export const ParentDashboardHeader = memo(function ParentDashboardHeader({
           color="#C05A00"
         />
         <QuickActionTile
-          label="Recompenses"
+          label="Récompenses"
           onPress={onGoToRewards}
           icon={<GiftIcon size={18} color="#2E7D32" />}
           backgroundColor="#E8F5E9"
@@ -187,7 +188,7 @@ export const ParentDashboardHeader = memo(function ParentDashboardHeader({
           color="#B23A48"
         />
         <QuickActionTile
-          label="Meteo"
+          label="Météo"
           onPress={onOpenWeatherSettings}
           icon={<CloudSun size={18} color="#157A8A" weight="bold" />}
           backgroundColor="#E7F9FC"
@@ -222,7 +223,7 @@ export const ParentDashboardHeader = memo(function ParentDashboardHeader({
             {children.map((child) => (
               <FocusChip
                 key={child.id}
-                label={child.name}
+                label={formatChildName(child.name)}
                 child={child}
                 selected={selectedChildIds.includes(child.id)}
                 onPress={() => onToggleChild(child.id)}
@@ -247,12 +248,32 @@ export const ParentDashboardHeader = memo(function ParentDashboardHeader({
               </View>
             </View>
 
+
+
+            <MultiSelectDropdown
+              title="Moment"
+              options={CATEGORY_FILTERS}
+              selectedValues={selectedCategories}
+              isOpen={openDropdown === 'category'}
+              allLabel="Moment de la journée"
+              onToggleOpen={() => {
+                if (openDropdown === 'category') {
+                  closeDropdown();
+                } else {
+                  openAnchoredDropdown('category');
+                }
+              }}
+              onToggleValue={(value) => onToggleCategory(value as CategoryFilterValue)}
+              onClear={onClearCategories}
+              style={styles.dropdownControl}
+              buttonRef={categoryButtonRef}
+            />
             <MultiSelectDropdown
               title="Etat"
               options={STATUS_FILTERS}
               selectedValues={selectedStatuses}
               isOpen={openDropdown === 'status'}
-              allLabel="Tous les etats"
+              allLabel="Toutes les routines"
               onToggleOpen={() => {
                 if (openDropdown === 'status') {
                   closeDropdown();
@@ -266,24 +287,6 @@ export const ParentDashboardHeader = memo(function ParentDashboardHeader({
               buttonRef={statusButtonRef}
             />
 
-            <MultiSelectDropdown
-              title="Moment"
-              options={CATEGORY_FILTERS}
-              selectedValues={selectedCategories}
-              isOpen={openDropdown === 'category'}
-              allLabel="Tous les moments"
-              onToggleOpen={() => {
-                if (openDropdown === 'category') {
-                  closeDropdown();
-                } else {
-                  openAnchoredDropdown('category');
-                }
-              }}
-              onToggleValue={(value) => onToggleCategory(value as CategoryFilterValue)}
-              onClear={onClearCategories}
-              style={styles.dropdownControl}
-              buttonRef={categoryButtonRef}
-            />
           </View>
         </>
       ) : (

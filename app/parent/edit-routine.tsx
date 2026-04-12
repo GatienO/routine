@@ -1,49 +1,46 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  Alert,
   Image,
   Modal,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
-import { CaretDown, CaretUp, SquaresFour, X, Heart } from 'phosphor-react-native';
+import { CaretDown, CaretUp, House, SquaresFour, X } from 'phosphor-react-native';
 import { useRoutineStore } from '../../src/stores/routineStore';
+import { useChildrenStore } from '../../src/stores/childrenStore';
 import { Button } from '../../src/components/ui/Button';
 import { BackButton } from '../../src/components/ui/BackButton';
-import { EmojiPicker, ColorPicker } from '../../src/components/ui/Pickers';
+import { ColorSelectionField, IconSelectionField, CategorySelectionField } from '../../src/components/ui/Pickers';
 import { Card } from '../../src/components/ui/Card';
-import { ROUTINE_ICONS, STEP_ICONS } from '../../src/constants/icons';
-import {
-  COLORS,
-  CHILD_COLORS,
-  CATEGORY_CONFIG,
-  SPACING,
-  FONT_SIZE,
-  RADIUS,
-  SHADOWS,
-} from '../../src/constants/theme';
-import { RoutineCategory, RoutineStep } from '../../src/types';
-import { generateId } from '../../src/utils/id';
+import { Avatar } from '../../src/components/ui/Avatar';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
-import { backOrReplace } from '../../src/utils/navigation';
+import { showAppConfirm } from '../../src/components/feedback/AppFeedbackProvider';
 import { StepCatalogPicker } from '../../src/components/routine/StepCatalogPicker';
+import { ICON_PICKER_GROUPS, ROUTINE_ICONS, STEP_ICONS } from '../../src/constants/icons';
 import { StepCatalogItem } from '../../src/constants/stepCatalog';
+import { CATEGORY_CONFIG, CHILD_COLORS, COLORS, FONT_SIZE, RADIUS, SHADOWS, SPACING } from '../../src/constants/theme';
+import { RoutineCategory, RoutineStep } from '../../src/types';
+import { formatChildName } from '../../src/utils/children';
+import { generateId } from '../../src/utils/id';
+import { backOrReplace } from '../../src/utils/navigation';
 
 const CATEGORIES = Object.entries(CATEGORY_CONFIG) as [RoutineCategory, typeof CATEGORY_CONFIG[string]][];
 
 export default function EditRoutineScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ id: string }>();
+  const { children } = useChildrenStore();
   const { getRoutine, updateRoutine, removeRoutine } = useRoutineStore();
 
   const routine = getRoutine(params.id ?? '');
+
   if (!routine) {
     return (
       <SafeAreaView style={styles.safe}>
@@ -55,12 +52,12 @@ export default function EditRoutineScreen() {
     );
   }
 
+  const [childId, setChildId] = useState(routine.childId);
   const [name, setName] = useState(routine.name);
   const [description, setDescription] = useState(routine.description ?? '');
   const [icon, setIcon] = useState(routine.icon);
   const [color, setColor] = useState(routine.color);
   const [category, setCategory] = useState<RoutineCategory>(routine.category);
-  const [isFavorite, setIsFavorite] = useState(routine.isFavorite ?? false);
   const [steps, setSteps] = useState<RoutineStep[]>([...routine.steps]);
 
   const [showNewStepForm, setShowNewStepForm] = useState(false);
@@ -77,16 +74,16 @@ export default function EditRoutineScreen() {
   const initialSnapshot = useMemo(
     () =>
       JSON.stringify({
+        childId: routine.childId,
         name: routine.name,
         description: routine.description ?? '',
         icon: routine.icon,
         color: routine.color,
         category: routine.category,
-        isFavorite: routine.isFavorite ?? false,
         steps: routine.steps,
         stepDraft: {
           title: '',
-          icon: 'ðŸª¥',
+          icon: '🪥',
           duration: '2',
           instruction: '',
           required: true,
@@ -101,12 +98,12 @@ export default function EditRoutineScreen() {
   const currentSnapshot = useMemo(
     () =>
       JSON.stringify({
+        childId,
         name,
         description,
         icon,
         color,
         category,
-        isFavorite,
         steps,
         stepDraft: {
           title: stepTitle,
@@ -120,12 +117,12 @@ export default function EditRoutineScreen() {
         },
       }),
     [
+      childId,
       category,
       color,
       description,
       editingStepId,
       icon,
-      isFavorite,
       name,
       showNewStepForm,
       stepDuration,
@@ -139,7 +136,6 @@ export default function EditRoutineScreen() {
   );
 
   const hasUnsavedChanges = currentSnapshot !== initialSnapshot;
-
   const canSave = name.trim().length > 0 && steps.length > 0;
 
   const resetStepForm = () => {
@@ -175,7 +171,9 @@ export default function EditRoutineScreen() {
   };
 
   const addStep = () => {
-    if (!stepTitle.trim()) return;
+    if (!stepTitle.trim()) {
+      return;
+    }
 
     const step: RoutineStep = {
       id: generateId(),
@@ -189,15 +187,17 @@ export default function EditRoutineScreen() {
       mediaUri: stepMediaUri || undefined,
     };
 
-    setSteps([...steps, step]);
+    setSteps((prev) => [...prev, step]);
     resetStepForm();
   };
 
   const saveEditedStep = () => {
-    if (!stepTitle.trim() || !editingStepId) return;
+    if (!stepTitle.trim() || !editingStepId) {
+      return;
+    }
 
-    setSteps(
-      steps.map((step) =>
+    setSteps((prev) =>
+      prev.map((step) =>
         step.id === editingStepId
           ? {
               ...step,
@@ -216,7 +216,7 @@ export default function EditRoutineScreen() {
   };
 
   const removeStep = (id: string) => {
-    setSteps(steps.filter((step) => step.id !== id).map((step, index) => ({ ...step, order: index })));
+    setSteps((prev) => prev.filter((step) => step.id !== id).map((step, index) => ({ ...step, order: index })));
     if (editingStepId === id) {
       resetStepForm();
     }
@@ -224,7 +224,9 @@ export default function EditRoutineScreen() {
 
   const moveStep = (index: number, direction: -1 | 1) => {
     const newIndex = index + direction;
-    if (newIndex < 0 || newIndex >= steps.length) return;
+    if (newIndex < 0 || newIndex >= steps.length) {
+      return;
+    }
 
     const nextSteps = [...steps];
     [nextSteps[index], nextSteps[newIndex]] = [nextSteps[newIndex], nextSteps[index]];
@@ -253,12 +255,13 @@ export default function EditRoutineScreen() {
 
   const handleSave = () => {
     updateRoutine(routine.id, {
+      childId,
       name: name.trim(),
       description: description.trim(),
       icon,
       color,
       category,
-      isFavorite,
+      isFavorite: routine.isFavorite ?? false,
       steps,
     });
     backOrReplace(router, '/parent');
@@ -282,18 +285,23 @@ export default function EditRoutineScreen() {
     handleSave();
   };
 
-  const handleDelete = () => {
-    Alert.alert('Supprimer', `Supprimer "${routine.name}" ?`, [
-      { text: 'Annuler', style: 'cancel' },
-      {
-        text: 'Supprimer',
-        style: 'destructive',
-        onPress: () => {
-          removeRoutine(routine.id);
-          backOrReplace(router, '/parent');
-        },
-      },
-    ]);
+  const handleDelete = async () => {
+    const confirmed = await showAppConfirm({
+      title: 'Supprimer',
+      message: `Supprimer "${routine.name}" ?`,
+      tone: 'danger',
+      icon: '🗑️',
+      confirmLabel: 'Supprimer',
+      cancelLabel: 'Annuler',
+      confirmKind: 'danger',
+    });
+
+    if (!confirmed) {
+      return;
+    }
+
+    removeRoutine(routine.id);
+    backOrReplace(router, '/parent');
   };
 
   const pickStepImage = async () => {
@@ -324,9 +332,7 @@ export default function EditRoutineScreen() {
 
   const renderStepEditor = (mode: 'edit' | 'new') => (
     <View style={styles.stepEditor}>
-      <Text style={styles.stepEditorTitle}>
-        {mode === 'edit' ? "Modifier l'etape" : 'Nouvelle etape'}
-      </Text>
+      <Text style={styles.stepEditorTitle}>{mode === 'edit' ? "Modifier l'etape" : 'Nouvelle etape'}</Text>
 
       <TextInput
         style={styles.input}
@@ -335,11 +341,18 @@ export default function EditRoutineScreen() {
         placeholder="Titre de l'etape"
         placeholderTextColor={COLORS.textLight}
         maxLength={40}
-        autoFocus={mode === 'edit'}
+        autoFocus
       />
 
       <Text style={styles.sublabel}>Icone</Text>
-      <EmojiPicker emojis={STEP_ICONS} selected={stepIcon} onSelect={setStepIcon} size={40} />
+      <IconSelectionField
+        emojis={STEP_ICONS}
+        groups={ICON_PICKER_GROUPS}
+        selected={stepIcon}
+        onSelect={setStepIcon}
+        title="Choisir l'icône de l'étape"
+        previewSize={60}
+      />
 
       <Text style={styles.sublabel}>Duree (minutes)</Text>
       <TextInput
@@ -365,14 +378,15 @@ export default function EditRoutineScreen() {
         <Text style={styles.sublabel}>Obligatoire ?</Text>
         <TouchableOpacity
           style={[styles.toggle, stepRequired && styles.toggleActive]}
-          onPress={() => setStepRequired(!stepRequired)}
+          onPress={() => setStepRequired((prev) => !prev)}
+          activeOpacity={0.85}
         >
           <Text>{stepRequired ? 'Oui' : 'Non'}</Text>
         </TouchableOpacity>
       </View>
 
       <Text style={styles.sublabel}>Image (optionnel)</Text>
-      <TouchableOpacity style={styles.mediaPicker} onPress={pickStepImage}>
+      <TouchableOpacity style={styles.mediaPicker} onPress={pickStepImage} activeOpacity={0.85}>
         {stepMediaUri ? (
           <Image source={{ uri: stepMediaUri }} style={styles.mediaPreview} />
         ) : (
@@ -395,12 +409,48 @@ export default function EditRoutineScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.scroll}>
-        <BackButton style={styles.backButton} onPress={handleBack} />
-        <Text style={styles.title}>Modifier la routine</Text>
+      <View style={styles.header}>
+        <View style={styles.headerSide}>
+          <BackButton onPress={handleBack} />
+        </View>
+        <Text style={styles.headerTitle}>Modifier la routine</Text>
+        <View style={[styles.headerSide, styles.headerSideRight]}>
+          <TouchableOpacity
+            onPress={() => router.replace('/parent')}
+            style={styles.headerIconButton}
+            activeOpacity={0.8}
+          >
+            <House size={24} weight="bold" color={COLORS.textSecondary} />
+          </TouchableOpacity>
+        </View>
+      </View>
 
-        <Text style={styles.label}>Nom</Text>
+      <ScrollView contentContainerStyle={styles.scroll}>
+        <Text style={styles.label}>Nom de la routine</Text>
         <TextInput style={styles.input} value={name} onChangeText={setName} maxLength={40} />
+
+        <Text style={styles.label}>Pour quel(s) enfant(s) ?</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <View style={styles.row}>
+            {children.map((child) => (
+              <TouchableOpacity
+                key={child.id}
+                style={[
+                  styles.childChip,
+                  childId === child.id && {
+                    backgroundColor: `${child.color}30`,
+                    borderColor: child.color,
+                  },
+                ]}
+                onPress={() => setChildId(child.id)}
+                activeOpacity={0.85}
+              >
+                <Avatar emoji={child.avatar} color={child.color} size={24} avatarConfig={child.avatarConfig} />
+                <Text style={styles.childChipText}>{formatChildName(child.name)}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </ScrollView>
 
         <Text style={styles.label}>Description</Text>
         <TextInput
@@ -413,76 +463,65 @@ export default function EditRoutineScreen() {
           maxLength={140}
         />
 
-        <Text style={styles.label}>Moment</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.row}>
-            {CATEGORIES.map(([key, config]) => (
-              <TouchableOpacity
-                key={key}
-                style={[
-                  styles.categoryChip,
-                  category === key && {
-                    backgroundColor: config.color + '30',
-                    borderColor: config.color,
-                  },
-                ]}
-                onPress={() => setCategory(key)}
-              >
-                <View style={styles.categoryChipContent}>
-                  <OpenMoji emoji={config.icon} size={16} />
-                  <Text>{config.label}</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
+        <View style={styles.selectionRow}>
+          <View style={styles.selectionItem}>
+            <Text style={styles.label}>Moment</Text>
+            <CategorySelectionField
+              options={CATEGORIES.map(([key, config]) => ({ key, ...config }))}
+              selected={category}
+              onSelect={(value) => setCategory(value as RoutineCategory)}
+              title="Choisir le moment de la routine"
+            />
           </View>
-        </ScrollView>
+          <View style={styles.selectionItem}>
+            <Text style={styles.label}>Icône</Text>
+            <IconSelectionField
+              emojis={ROUTINE_ICONS}
+              groups={ICON_PICKER_GROUPS}
+              selected={icon}
+              onSelect={setIcon}
+              title="Choisir l'icône de la routine"
+            />
+          </View>
+          <View style={styles.selectionItem}>
+            <Text style={styles.label}>Couleur</Text>
+            <ColorSelectionField
+              colors={CHILD_COLORS}
+              selected={color}
+              onSelect={setColor}
+              title="Choisir la couleur de la routine"
+            />
+          </View>
+        </View>
 
-        <Text style={styles.label}>Icone</Text>
-        <EmojiPicker emojis={ROUTINE_ICONS} selected={icon} onSelect={setIcon} size={44} />
-
-        <Text style={styles.label}>Couleur</Text>
-        <ColorPicker colors={CHILD_COLORS} selected={color} onSelect={setColor} size={36} />
-
-        {/* Favorite */}
-        <TouchableOpacity
-          style={[styles.favoriteButton, isFavorite && styles.favoriteButtonActive]}
-          onPress={() => setIsFavorite(!isFavorite)}
-          activeOpacity={0.7}
-        >
-          <Heart
-            size={20}
-            weight={isFavorite ? 'fill' : 'regular'}
-            color={isFavorite ? COLORS.error : COLORS.textSecondary}
-          />
-          <Text style={[styles.favoriteButtonText, isFavorite && styles.favoriteButtonTextActive]}>
-            {isFavorite ? 'Favoris' : 'Ajouter aux favoris'}
-          </Text>
-        </TouchableOpacity>
-
-        <Text style={[styles.label, styles.stepsLabel]}>Etapes ({steps.length})</Text>
-
-        <TouchableOpacity
-          onPress={() => setShowStepCatalog(true)}
-          activeOpacity={0.85}
-          style={[styles.catalogButton, { borderColor: color }]}
-        >
-          <SquaresFour size={18} weight="fill" color={color} />
-          <Text style={[styles.catalogButtonText, { color }]}>Catalogue d'etapes</Text>
-        </TouchableOpacity>
+        <View style={styles.stepsHeader}>
+          <Text style={[styles.label, styles.stepsLabel]}>Étapes ({steps.length})</Text>
+          <View style={styles.stepButtonsRow}>
+            <Button
+              title="+ Ajouter une étape"
+              onPress={openNewStepForm}
+              variant="outline"
+              size="md"
+              color={COLORS.secondary}
+              style={styles.stepActionButton}
+            />
+            <TouchableOpacity
+              onPress={() => setShowStepCatalog(true)}
+              activeOpacity={0.85}
+              style={styles.catalogButton}
+            >
+              <SquaresFour size={18} weight="fill" color="#A14D00" />
+              <Text style={styles.catalogButtonText}>Catalogue d'etapes</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
 
         {steps.map((step, index) => {
           const isOpen = editingStepId === step.id;
 
           return (
-            <Card
-              key={step.id}
-              style={[styles.stepCard, isOpen && styles.stepCardOpen]}
-            >
-              <TouchableOpacity
-                activeOpacity={0.85}
-                onPress={() => toggleEditStep(step)}
-                style={styles.stepHeader}
-              >
+            <Card key={step.id} style={[styles.stepCard, isOpen && styles.stepCardOpen]}>
+              <TouchableOpacity activeOpacity={0.85} onPress={() => toggleEditStep(step)} style={styles.stepHeader}>
                 <View style={styles.stepHeaderMain}>
                   <Text style={styles.stepOrder}>{index + 1}</Text>
                   <OpenMoji emoji={step.icon} size={28} />
@@ -531,19 +570,8 @@ export default function EditRoutineScreen() {
         })}
 
         {showNewStepForm ? (
-          <Card style={styles.newStepCard}>
-            {renderStepEditor('new')}
-          </Card>
-        ) : (
-          <Button
-            title="+ Ajouter une etape"
-            onPress={openNewStepForm}
-            variant="outline"
-            size="md"
-            color={COLORS.secondary}
-            style={styles.addStepButton}
-          />
-        )}
+          <Card style={styles.newStepCard}>{renderStepEditor('new')}</Card>
+        ) : null}
 
         <View style={styles.mainActions}>
           <Button title="Enregistrer" onPress={handleSave} variant="primary" size="lg" disabled={!canSave} />
@@ -570,15 +598,13 @@ export default function EditRoutineScreen() {
                 <TouchableOpacity
                   onPress={() => setShowStepCatalog(false)}
                   style={styles.catalogCloseButton}
+                  activeOpacity={0.85}
                 >
                   <X size={18} weight="bold" color={COLORS.textSecondary} />
                 </TouchableOpacity>
               </View>
 
-              <ScrollView
-                contentContainerStyle={styles.catalogScroll}
-                showsVerticalScrollIndicator={false}
-              >
+              <ScrollView contentContainerStyle={styles.catalogScroll} showsVerticalScrollIndicator={false}>
                 <StepCatalogPicker accentColor={color} onSelect={handleSelectCatalogStep} />
               </ScrollView>
             </View>
@@ -626,16 +652,54 @@ export default function EditRoutineScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: COLORS.background },
-  scroll: { padding: SPACING.lg, paddingBottom: SPACING.xxl },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  centerBackButton: { marginTop: SPACING.lg },
-  backButton: { marginBottom: SPACING.lg },
-  title: {
+  safe: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  centerBackButton: {
+    marginTop: SPACING.lg,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: SPACING.sm,
+    paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.sm,
+    paddingBottom: SPACING.sm,
+  },
+  headerSide: {
+    width: 56,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+  },
+  headerSideRight: {
+    alignItems: 'flex-end',
+  },
+  headerTitle: {
+    flex: 1,
     fontSize: FONT_SIZE.xl,
     fontWeight: '800',
     color: COLORS.text,
-    marginBottom: SPACING.xl,
+    textAlign: 'center',
+  },
+  headerIconButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: COLORS.surfaceSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...SHADOWS.sm,
+  },
+  scroll: {
+    paddingHorizontal: SPACING.lg,
+    paddingBottom: SPACING.xxl,
   },
   label: {
     fontSize: FONT_SIZE.sm,
@@ -660,9 +724,43 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.surfaceSecondary,
   },
-  inputSmall: { width: 80 },
-  inputMultiline: { minHeight: 60, textAlignVertical: 'top' },
-  row: { flexDirection: 'row', gap: SPACING.sm },
+  inputSmall: {
+    width: 80,
+  },
+  inputMultiline: {
+    minHeight: 60,
+    textAlignVertical: 'top',
+  },
+  row: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+  },
+  childChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    borderRadius: RADIUS.full,
+    borderWidth: 2,
+    borderColor: COLORS.surfaceSecondary,
+    backgroundColor: COLORS.surface,
+  },
+  childChipText: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  selectionRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: SPACING.xl,
+    flexWrap: 'wrap',
+  },
+  selectionItem: {
+    alignItems: 'flex-start',
+    minWidth: 84,
+  },
   categoryChip: {
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.md,
@@ -676,8 +774,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
   },
-  stepsLabel: {
+  stepsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: SPACING.md,
     marginTop: SPACING.xl,
+    marginBottom: SPACING.sm,
+    flexWrap: 'wrap',
+  },
+  stepsLabel: {
+    marginTop: 0,
+    marginBottom: 0,
+  },
+  stepButtonsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.md,
+    flexWrap: 'wrap',
+  },
+  stepActionButton: {
+    alignSelf: 'flex-start',
   },
   stepCard: {
     marginBottom: SPACING.sm,
@@ -700,10 +817,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   stepOrder: {
+    width: 22,
     fontSize: FONT_SIZE.sm,
     fontWeight: '800',
     color: COLORS.textLight,
-    width: 22,
   },
   stepInfo: {
     flex: 1,
@@ -795,51 +912,23 @@ const styles = StyleSheet.create({
     marginTop: SPACING.sm,
   },
   catalogButton: {
-    marginBottom: SPACING.sm,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    alignSelf: 'flex-start',
     gap: SPACING.sm,
     minHeight: 50,
-    borderWidth: 2,
-    borderRadius: RADIUS.lg,
-    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderRadius: RADIUS.full,
+    backgroundColor: '#FFF3E0',
+    borderColor: 'rgba(161, 77, 0, 0.12)',
     paddingVertical: SPACING.md,
     paddingHorizontal: SPACING.lg,
   },
   catalogButtonText: {
-    fontSize: FONT_SIZE.md,
-    fontWeight: '700',
-  },
-  favoriteButton: {
-    marginBottom: SPACING.sm,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: SPACING.sm,
-    minHeight: 50,
-    borderWidth: 2,
-    borderRadius: RADIUS.lg,
-    backgroundColor: 'transparent',
-    borderColor: COLORS.textLight,
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.lg,
-  },
-  favoriteButtonActive: {
-    borderColor: COLORS.error,
-    backgroundColor: COLORS.error + '10',
-  },
-  favoriteButtonText: {
-    fontSize: FONT_SIZE.md,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
-  },
-  favoriteButtonTextActive: {
-    color: COLORS.error,
-    fontWeight: '700',
-  },
-  addStepButton: {
-    marginTop: SPACING.sm,
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '800',
+    color: '#A14D00',
   },
   mainActions: {
     marginTop: SPACING.xl,

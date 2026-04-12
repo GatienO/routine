@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import * as Linking from 'expo-linking';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { COLORS } from '../src/constants/theme';
+import { AppFeedbackProvider } from '../src/components/feedback/AppFeedbackProvider';
 import { LocalProfileGate } from '../src/components/profile/LocalProfileGate';
 import { WebInstallHint } from '../src/components/web/WebInstallHint';
 
@@ -26,24 +27,29 @@ export default function RootLayout() {
   }, []);
 
   function handleDeepLink(url: string) {
-    const match = url.match(/routine:\/\/import\/(.+)/);
-    if (match && match[1]) {
-      router.push(`/parent/import?code=${encodeURIComponent(match[1])}`);
+    const pathMatch = url.match(/routine:\/\/import\/([^?]+)/);
+    const queryMatch = url.match(/[?&](?:code|payload)=([^&]+)/);
+    const payload = pathMatch?.[1] ?? queryMatch?.[1];
+
+    if (payload) {
+      router.push(`/parent/import?code=${encodeURIComponent(payload)}`);
     }
   }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <StatusBar style="dark" />
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: COLORS.background },
-          animation: 'slide_from_right',
-        }}
-      />
-      <LocalProfileGate />
-      <WebInstallHint />
+      <AppFeedbackProvider>
+        <StatusBar style="dark" />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: COLORS.background },
+            animation: 'slide_from_right',
+          }}
+        />
+        <LocalProfileGate />
+        <WebInstallHint />
+      </AppFeedbackProvider>
     </GestureHandlerRootView>
   );
 }

@@ -25,6 +25,7 @@ import {
   formatRemainingCooldown,
   formatRewardCooldownLabel,
 } from '../../src/utils/realRewardAvailability';
+import { formatChildName } from '../../src/utils/children';
 
 const BADGE_TABS: Array<{
   key: 'routines' | 'streak' | 'stars';
@@ -144,7 +145,7 @@ export default function ChildRewardsScreen() {
                     avatarConfig={item.avatarConfig}
                   />
                   <Text style={styles.childPickerName} numberOfLines={1}>
-                    {item.name}
+                    {formatChildName(item.name)}
                   </Text>
                 </TouchableOpacity>
               );

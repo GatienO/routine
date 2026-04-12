@@ -31,6 +31,7 @@ import {
   getWeatherTheme,
 } from '../../src/constants/weatherThemes';
 import { WEATHER_LIVE_REFRESH_MS } from '../../src/services/weather';
+import { formatChildName } from '../../src/utils/children';
 
 export default function ChildLauncherScreen() {
   const router = useRouter();
@@ -206,9 +207,11 @@ export default function ChildLauncherScreen() {
                         avatarConfig={section.child.avatarConfig}
                       />
                       <View style={styles.childMeta}>
-                        <Text style={[styles.childName, { color: textColor }]}>{section.child.name}</Text>
+                        <Text style={[styles.childName, { color: textColor }]}>
+                          {formatChildName(section.child.name)}
+                        </Text>
                         <Text style={[styles.childHint, { color: secondaryColor }]}>
-                          {section.routines.length} routine{section.routines.length > 1 ? 's' : ''} pour {section.child.name}
+                          {section.routines.length} routine{section.routines.length > 1 ? 's' : ''} pour {formatChildName(section.child.name)}
                         </Text>
                       </View>
                     </View>
@@ -260,7 +263,7 @@ export default function ChildLauncherScreen() {
                                 </Text>
                                 {owner ? (
                                   <Text style={[styles.routineOwner, { color: secondaryColor }]}>
-                                    Routine de {owner.name}
+                                    Routine de {formatChildName(owner.name)}
                                   </Text>
                                 ) : null}
                               </View>

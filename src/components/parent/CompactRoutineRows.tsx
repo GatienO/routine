@@ -6,6 +6,7 @@ import { OpenMoji } from '../ui/OpenMoji';
 import { Avatar } from '../ui/Avatar';
 import { COLORS, SPACING, FONT_SIZE, RADIUS, CATEGORY_CONFIG } from '../../constants/theme';
 import { Child, Routine } from '../../types';
+import { formatChildName } from '../../utils/children';
 
 export type RoutineGroup = {
   key: string;
@@ -51,7 +52,7 @@ export const CompactRoutineRow = memo(function CompactRoutineRow({
             <Text style={styles.meta}>
               {category?.label ?? routine.category} · {routine.steps.length} etapes · ~{totalDuration} min
             </Text>
-            {child ? <Text style={styles.subMeta}>Pour {child.name}</Text> : null}
+            {child ? <Text style={styles.subMeta}>Pour {formatChildName(child.name)}</Text> : null}
           </View>
         </TouchableOpacity>
 

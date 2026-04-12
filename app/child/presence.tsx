@@ -13,6 +13,7 @@ import { BackButton } from '../../src/components/ui/BackButton';
 import { COLORS, SPACING, FONT_SIZE, SHADOWS, RADIUS } from '../../src/constants/theme';
 import { backOrReplace } from '../../src/utils/navigation';
 import { getGridItemWidth, getResponsiveColumns } from '../../src/utils/responsive';
+import { formatChildName } from '../../src/utils/children';
 
 export default function ChildPresenceScreen() {
   const router = useRouter();
@@ -137,7 +138,7 @@ export default function ChildPresenceScreen() {
                         </View>
                       ) : null}
                     </View>
-                    <Text style={styles.childName}>{child.name}</Text>
+                    <Text style={styles.childName}>{formatChildName(child.name)}</Text>
                     <View style={styles.tapBubble}>
                       {isConfirmed ? (
                         <Text style={styles.tapText}>Pret !</Text>

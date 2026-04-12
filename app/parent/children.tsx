@@ -18,6 +18,7 @@ import { BackButton } from '../../src/components/ui/BackButton';
 import { COLORS, FONT_SIZE, RADIUS, SPACING } from '../../src/constants/theme';
 import { backOrReplace } from '../../src/utils/navigation';
 import { getGridItemWidth, getResponsiveColumns } from '../../src/utils/responsive';
+import { formatChildName } from '../../src/utils/children';
 
 export default function ParentChildrenScreen() {
   const router = useRouter();
@@ -96,7 +97,7 @@ export default function ParentChildrenScreen() {
                 size={64}
                 avatarConfig={item.child.avatarConfig}
               />
-              <Text style={styles.childName}>{item.child.name}</Text>
+              <Text style={styles.childName}>{formatChildName(item.child.name)}</Text>
               <Text style={styles.childMeta}>{item.child.age} ans</Text>
               <View style={styles.statsRow}>
                 <View style={styles.statPill}>

@@ -1,42 +1,35 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
+  Image,
+  Modal,
+  Platform,
   SafeAreaView,
   ScrollView,
+  StyleSheet,
+  Text,
   TextInput,
   TouchableOpacity,
-  Alert,
-  Image,
-  Platform,
-  Modal,
+  View,
 } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
-import { SquaresFour, X, Heart } from 'phosphor-react-native';
+import { House, SquaresFour, X } from 'phosphor-react-native';
 import { useChildrenStore } from '../../src/stores/childrenStore';
 import { useRoutineStore } from '../../src/stores/routineStore';
+import { Avatar } from '../../src/components/ui/Avatar';
 import { Button } from '../../src/components/ui/Button';
 import { BackButton } from '../../src/components/ui/BackButton';
-import { EmojiPicker, ColorPicker } from '../../src/components/ui/Pickers';
+import { ColorSelectionField, IconSelectionField, CategorySelectionField } from '../../src/components/ui/Pickers';
 import { Card } from '../../src/components/ui/Card';
-import { ROUTINE_ICONS, STEP_ICONS } from '../../src/constants/icons';
-import {
-  COLORS,
-  CHILD_COLORS,
-  CATEGORY_CONFIG,
-  SPACING,
-  FONT_SIZE,
-  RADIUS,
-  SHADOWS,
-} from '../../src/constants/theme';
-import { RoutineCategory, RoutineStep } from '../../src/types';
-import { generateId } from '../../src/utils/id';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
-import { backOrReplace } from '../../src/utils/navigation';
 import { StepCatalogPicker } from '../../src/components/routine/StepCatalogPicker';
+import { ICON_PICKER_GROUPS, ROUTINE_ICONS, STEP_ICONS } from '../../src/constants/icons';
 import { StepCatalogItem } from '../../src/constants/stepCatalog';
+import { CATEGORY_CONFIG, CHILD_COLORS, COLORS, FONT_SIZE, RADIUS, SHADOWS, SPACING } from '../../src/constants/theme';
+import { Routine, RoutineCategory, RoutineStep } from '../../src/types';
+import { formatChildName } from '../../src/utils/children';
+import { generateId } from '../../src/utils/id';
+import { backOrReplace } from '../../src/utils/navigation';
 
 const CATEGORIES = Object.entries(CATEGORY_CONFIG) as [RoutineCategory, typeof CATEGORY_CONFIG[string]][];
 
@@ -46,39 +39,47 @@ export default function AddRoutineScreen() {
   const { children } = useChildrenStore();
   const { addRoutine, getRoutine: getRoutineById } = useRoutineStore();
 
-  // Merge mode: pre-fill from selected routines
-  const mergeSources = React.useMemo(() => {
-    if (!params.mergeIds) return [];
-    return params.mergeIds.split(',').map((id) => getRoutineById(id)).filter(Boolean) as import('../../src/types').Routine[];
-  }, [params.mergeIds]);
+  const mergeSources = useMemo(() => {
+    if (!params.mergeIds) {
+      return [];
+    }
+
+    return params.mergeIds
+      .split(',')
+      .map((id) => getRoutineById(id))
+      .filter(Boolean) as Routine[];
+  }, [getRoutineById, params.mergeIds]);
+
   const isMerge = mergeSources.length >= 2;
 
-  const mergedSteps = React.useMemo(() => {
-    if (!isMerge) return [];
+  const mergedSteps = useMemo(() => {
+    if (!isMerge) {
+      return [];
+    }
+
     let order = 0;
-    return mergeSources.flatMap((r) =>
-      r.steps.map((s) => ({ ...s, id: generateId(), order: order++ }))
+    return mergeSources.flatMap((routine) =>
+      routine.steps.map((step) => ({
+        ...step,
+        id: generateId(),
+        order: order++,
+      })),
     );
-  }, [isMerge]);
+  }, [isMerge, mergeSources]);
 
-  const mergeNames = isMerge ? mergeSources.map((r) => r.name).join(' + ') : '';
+  const mergeNames = isMerge ? mergeSources.map((routine) => routine.name).join(' + ') : '';
 
-  const [childIds, setChildIds] = useState<string[]>(isMerge ? [mergeSources[0].childId] : children[0] ? [children[0].id] : []);
-
-  const toggleChild = (id: string) => {
-    setChildIds((prev) =>
-      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id],
-    );
-  };
+  const [childIds, setChildIds] = useState<string[]>(
+    isMerge ? [mergeSources[0].childId] : children[0] ? [children[0].id] : [],
+  );
   const [name, setName] = useState(isMerge ? mergeNames : '');
   const [description, setDescription] = useState('');
   const [icon, setIcon] = useState(isMerge ? mergeSources[0].icon : '🌅');
   const [color, setColor] = useState<string>(isMerge ? mergeSources[0].color : CHILD_COLORS[0]);
   const [category, setCategory] = useState<RoutineCategory>(isMerge ? mergeSources[0].category : 'morning');
-  const [isFavorite, setIsFavorite] = useState(isMerge ? mergeSources[0].isFavorite ?? false : false);
+  const [isFavorite] = useState(isMerge ? mergeSources[0].isFavorite ?? false : false);
   const [steps, setSteps] = useState<RoutineStep[]>(isMerge ? mergedSteps : []);
 
-  // Step form
   const [showStepForm, setShowStepForm] = useState(false);
   const [editingStepId, setEditingStepId] = useState<string | null>(null);
   const [stepTitle, setStepTitle] = useState('');
@@ -96,14 +97,14 @@ export default function AddRoutineScreen() {
         childIds: isMerge ? [mergeSources[0].childId] : children[0] ? [children[0].id] : [],
         name: isMerge ? mergeNames : '',
         description: '',
-        icon: isMerge ? mergeSources[0].icon : 'ðŸŒ…',
+        icon: isMerge ? mergeSources[0].icon : '🌅',
         color: isMerge ? mergeSources[0].color : CHILD_COLORS[0],
         category: isMerge ? mergeSources[0].category : 'morning',
         isFavorite: isMerge ? mergeSources[0].isFavorite ?? false : false,
         steps: isMerge ? mergedSteps : [],
         stepDraft: {
           title: '',
-          icon: 'ðŸª¥',
+          icon: '🪥',
           duration: '2',
           instruction: '',
           required: true,
@@ -158,24 +159,10 @@ export default function AddRoutineScreen() {
   );
 
   const hasUnsavedChanges = currentSnapshot !== initialSnapshot;
-
   const canSave = name.trim().length > 0 && childIds.length > 0 && steps.length > 0;
 
-  const addStep = () => {
-    if (!stepTitle.trim()) return;
-    const step: RoutineStep = {
-      id: generateId(),
-      title: stepTitle.trim(),
-      icon: stepIcon,
-      color: color,
-      durationMinutes: parseInt(stepDuration, 10) || 2,
-      instruction: stepInstruction.trim(),
-      isRequired: stepRequired,
-      order: steps.length,
-      mediaUri: stepMediaUri || undefined,
-    };
-    setSteps([...steps, step]);
-    resetStepForm();
+  const toggleChild = (id: string) => {
+    setChildIds((prev) => (prev.includes(id) ? prev.filter((childId) => childId !== id) : [...prev, id]));
   };
 
   const resetStepForm = () => {
@@ -187,6 +174,27 @@ export default function AddRoutineScreen() {
     setStepMediaUri('');
     setEditingStepId(null);
     setShowStepForm(false);
+  };
+
+  const addStep = () => {
+    if (!stepTitle.trim()) {
+      return;
+    }
+
+    const step: RoutineStep = {
+      id: generateId(),
+      title: stepTitle.trim(),
+      icon: stepIcon,
+      color,
+      durationMinutes: parseInt(stepDuration, 10) || 2,
+      instruction: stepInstruction.trim(),
+      isRequired: stepRequired,
+      order: steps.length,
+      mediaUri: stepMediaUri || undefined,
+    };
+
+    setSteps((prev) => [...prev, step]);
+    resetStepForm();
   };
 
   const editStep = (step: RoutineStep) => {
@@ -201,33 +209,41 @@ export default function AddRoutineScreen() {
   };
 
   const saveEditedStep = () => {
-    if (!stepTitle.trim() || !editingStepId) return;
-    setSteps(steps.map((s) =>
-      s.id === editingStepId
-        ? {
-            ...s,
-            title: stepTitle.trim(),
-            icon: stepIcon,
-            durationMinutes: parseInt(stepDuration, 10) || 2,
-            instruction: stepInstruction.trim(),
-            isRequired: stepRequired,
-            mediaUri: stepMediaUri || undefined,
-          }
-        : s
-    ));
+    if (!stepTitle.trim() || !editingStepId) {
+      return;
+    }
+
+    setSteps((prev) =>
+      prev.map((step) =>
+        step.id === editingStepId
+          ? {
+              ...step,
+              title: stepTitle.trim(),
+              icon: stepIcon,
+              durationMinutes: parseInt(stepDuration, 10) || 2,
+              instruction: stepInstruction.trim(),
+              isRequired: stepRequired,
+              mediaUri: stepMediaUri || undefined,
+            }
+          : step,
+      ),
+    );
     resetStepForm();
   };
 
   const removeStep = (id: string) => {
-    setSteps(steps.filter((s) => s.id !== id).map((s, i) => ({ ...s, order: i })));
+    setSteps((prev) => prev.filter((step) => step.id !== id).map((step, index) => ({ ...step, order: index })));
   };
 
   const moveStep = (index: number, direction: -1 | 1) => {
     const newIndex = index + direction;
-    if (newIndex < 0 || newIndex >= steps.length) return;
-    const newSteps = [...steps];
-    [newSteps[index], newSteps[newIndex]] = [newSteps[newIndex], newSteps[index]];
-    setSteps(newSteps.map((s, i) => ({ ...s, order: i })));
+    if (newIndex < 0 || newIndex >= steps.length) {
+      return;
+    }
+
+    const reorderedSteps = [...steps];
+    [reorderedSteps[index], reorderedSteps[newIndex]] = [reorderedSteps[newIndex], reorderedSteps[index]];
+    setSteps(reorderedSteps.map((step, order) => ({ ...step, order })));
   };
 
   const addCatalogStep = (template: StepCatalogItem) => {
@@ -251,19 +267,20 @@ export default function AddRoutineScreen() {
   };
 
   const handleSave = () => {
-    childIds.forEach((cid) => {
+    childIds.forEach((childId) => {
       addRoutine({
-        childId: cid,
+        childId,
         name: name.trim(),
         description: description.trim(),
         icon,
         color,
         category,
         isFavorite,
-        steps: steps.map((s) => ({ ...s, id: generateId() })),
+        steps: steps.map((step) => ({ ...step, id: generateId() })),
         isActive: true,
       });
     });
+
     backOrReplace(router, '/parent');
   };
 
@@ -272,6 +289,7 @@ export default function AddRoutineScreen() {
       backOrReplace(router, '/parent');
       return;
     }
+
     setShowExitConfirm(true);
   };
 
@@ -301,34 +319,23 @@ export default function AddRoutineScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
+      <View style={styles.header}>
+        <View style={styles.headerSide}>
+          <BackButton onPress={handleBack} />
+        </View>
+        <Text style={styles.headerTitle}>{isMerge ? 'Fusionner des routines' : 'Nouvelle routine'}</Text>
+        <View style={[styles.headerSide, styles.headerSideRight]}>
+          <TouchableOpacity
+            onPress={() => router.replace('/parent')}
+            style={styles.headerIconButton}
+            activeOpacity={0.8}
+          >
+            <House size={24} weight="bold" color={COLORS.textSecondary} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
       <ScrollView contentContainerStyle={styles.scroll}>
-        <TouchableOpacity onPress={handleBack}>
-          <Text style={styles.back}>← Retour</Text>
-        </TouchableOpacity>
-        <Text style={styles.title}>{isMerge ? '🔀 Fusionner des routines' : 'Nouvelle routine'}</Text>
-
-        <BackButton style={styles.backButton} onPress={handleBack} />
-        {/* Child selector */}
-        <Text style={styles.label}>Pour quel(s) enfant(s) ?</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.row}>
-            {children.map((child) => (
-              <TouchableOpacity
-                key={child.id}
-                style={[
-                  styles.childChip,
-                  childIds.includes(child.id) && { backgroundColor: child.color + '30', borderColor: child.color },
-                ]}
-                onPress={() => toggleChild(child.id)}
-              >
-                <OpenMoji emoji={child.avatar} size={18} />
-                <Text style={styles.childChipText}>{child.name}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </ScrollView>
-
-        {/* Name */}
         <Text style={styles.label}>Nom de la routine</Text>
         <TextInput
           style={styles.input}
@@ -338,6 +345,29 @@ export default function AddRoutineScreen() {
           placeholderTextColor={COLORS.textLight}
           maxLength={40}
         />
+
+        <Text style={styles.label}>Pour quel(s) enfant(s) ?</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <View style={styles.row}>
+            {children.map((child) => (
+              <TouchableOpacity
+                key={child.id}
+                style={[
+                  styles.childChip,
+                  childIds.includes(child.id) && {
+                    backgroundColor: `${child.color}30`,
+                    borderColor: child.color,
+                  },
+                ]}
+                onPress={() => toggleChild(child.id)}
+                activeOpacity={0.85}
+              >
+                <Avatar emoji={child.avatar} color={child.color} size={24} avatarConfig={child.avatarConfig} />
+                <Text style={styles.childChipText}>{formatChildName(child.name)}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </ScrollView>
 
         <Text style={styles.label}>Description</Text>
         <TextInput
@@ -350,68 +380,61 @@ export default function AddRoutineScreen() {
           maxLength={140}
         />
 
-        {/* Category */}
-        <Text style={styles.label}>Moment</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.row}>
-            {CATEGORIES.map(([key, config]) => (
-              <TouchableOpacity
-                key={key}
-                style={[
-                  styles.categoryChip,
-                  category === key && { backgroundColor: config.color + '30', borderColor: config.color },
-                ]}
-                onPress={() => setCategory(key)}
-              >
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                  <OpenMoji emoji={config.icon} size={16} />
-                  <Text>{config.label}</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
+        <View style={styles.selectionRow}>
+          <View style={styles.selectionItem}>
+            <Text style={styles.label}>Moment</Text>
+            <CategorySelectionField
+              options={CATEGORIES.map(([key, config]) => ({ key, ...config }))}
+              selected={category}
+              onSelect={(value) => setCategory(value as RoutineCategory)}
+              title="Choisir le moment de la routine"
+            />
           </View>
-        </ScrollView>
+          <View style={styles.selectionItem}>
+            <Text style={styles.label}>Icône</Text>
+            <IconSelectionField
+              emojis={ROUTINE_ICONS}
+              groups={ICON_PICKER_GROUPS}
+              selected={icon}
+              onSelect={setIcon}
+              title="Choisir l'icône de la routine"
+            />
+          </View>
+          <View style={styles.selectionItem}>
+            <Text style={styles.label}>Couleur</Text>
+            <ColorSelectionField
+              colors={CHILD_COLORS}
+              selected={color}
+              onSelect={setColor}
+              title="Choisir la couleur de la routine"
+            />
+          </View>
+        </View>
 
-        {/* Icon */}
-        <Text style={styles.label}>Icône</Text>
-        <EmojiPicker emojis={ROUTINE_ICONS} selected={icon} onSelect={setIcon} size={44} />
-
-        {/* Color */}
-        <Text style={styles.label}>Couleur</Text>
-        <ColorPicker colors={CHILD_COLORS} selected={color} onSelect={setColor} size={36} />
-
-        {/* Favorite */}
-        <TouchableOpacity
-          style={[styles.favoriteButton, isFavorite && styles.favoriteButtonActive]}
-          onPress={() => setIsFavorite(!isFavorite)}
-          activeOpacity={0.7}
-        >
-          <Heart
-            size={20}
-            weight={isFavorite ? 'fill' : 'regular'}
-            color={isFavorite ? COLORS.error : COLORS.textSecondary}
-          />
-          <Text style={[styles.favoriteButtonText, isFavorite && styles.favoriteButtonTextActive]}>
-            {isFavorite ? 'Favoris' : 'Ajouter aux favoris'}
-          </Text>
-        </TouchableOpacity>
-
-        {/* Steps */}
-        <Text style={[styles.label, { marginTop: SPACING.xl }]}>
-          Étapes ({steps.length})
-        </Text>
-
-        <TouchableOpacity
-          onPress={() => setShowStepCatalog(true)}
-          activeOpacity={0.85}
-          style={[styles.catalogButton, { borderColor: color }]}
-        >
-          <SquaresFour size={18} weight="fill" color={color} />
-          <Text style={[styles.catalogButtonText, { color }]}>Catalogue d'etapes</Text>
-        </TouchableOpacity>
+        <View style={styles.stepsHeader}>
+          <Text style={[styles.label, styles.stepsLabel]}>Étapes ({steps.length})</Text>
+          <View style={styles.stepButtonsRow}>
+            <Button
+              title="+ Ajouter une étape"
+              onPress={() => setShowStepForm(true)}
+              variant="outline"
+              size="md"
+              color={COLORS.secondary}
+              style={styles.stepActionButton}
+            />
+            <TouchableOpacity
+              onPress={() => setShowStepCatalog(true)}
+              activeOpacity={0.85}
+              style={styles.catalogButton}
+            >
+              <SquaresFour size={18} weight="fill" color="#A14D00" />
+              <Text style={styles.catalogButtonText}>Catalogue d'étapes</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
 
         {steps.map((step, index) => (
-          <TouchableOpacity key={step.id} activeOpacity={0.7} onPress={() => editStep(step)}>
+          <TouchableOpacity key={step.id} activeOpacity={0.72} onPress={() => editStep(step)}>
             <Card style={[styles.stepCard, editingStepId === step.id && styles.stepCardEditing]}>
               <View style={styles.stepRow}>
                 <Text style={styles.stepOrder}>{index + 1}</Text>
@@ -423,17 +446,17 @@ export default function AddRoutineScreen() {
                   </Text>
                 </View>
                 <View style={styles.stepActions}>
-                  {index > 0 && (
-                    <TouchableOpacity onPress={() => moveStep(index, -1)}>
+                  {index > 0 ? (
+                    <TouchableOpacity onPress={() => moveStep(index, -1)} hitSlop={6}>
                       <Text style={styles.moveBtn}>↑</Text>
                     </TouchableOpacity>
-                  )}
-                  {index < steps.length - 1 && (
-                    <TouchableOpacity onPress={() => moveStep(index, 1)}>
+                  ) : null}
+                  {index < steps.length - 1 ? (
+                    <TouchableOpacity onPress={() => moveStep(index, 1)} hitSlop={6}>
                       <Text style={styles.moveBtn}>↓</Text>
                     </TouchableOpacity>
-                  )}
-                  <TouchableOpacity onPress={() => removeStep(step.id)}>
+                  ) : null}
+                  <TouchableOpacity onPress={() => removeStep(step.id)} hitSlop={6}>
                     <Text style={styles.deleteBtn}>✕</Text>
                   </TouchableOpacity>
                 </View>
@@ -444,7 +467,7 @@ export default function AddRoutineScreen() {
 
         {showStepForm ? (
           <Card style={styles.stepFormCard}>
-            <Text style={styles.stepFormTitle}>{editingStepId ? 'Modifier l\'étape' : 'Nouvelle étape'}</Text>
+            <Text style={styles.stepFormTitle}>{editingStepId ? "Modifier l'étape" : 'Nouvelle étape'}</Text>
 
             <TextInput
               style={styles.input}
@@ -457,13 +480,20 @@ export default function AddRoutineScreen() {
             />
 
             <Text style={styles.sublabel}>Icône</Text>
-            <EmojiPicker emojis={STEP_ICONS} selected={stepIcon} onSelect={setStepIcon} size={40} />
+            <IconSelectionField
+              emojis={STEP_ICONS}
+              groups={ICON_PICKER_GROUPS}
+              selected={stepIcon}
+              onSelect={setStepIcon}
+              title="Choisir l'icône de l'étape"
+              previewSize={60}
+            />
 
             <Text style={styles.sublabel}>Durée (minutes)</Text>
             <TextInput
               style={[styles.input, styles.inputSmall]}
               value={stepDuration}
-              onChangeText={(t) => setStepDuration(t.replace(/[^0-9]/g, ''))}
+              onChangeText={(value) => setStepDuration(value.replace(/[^0-9]/g, ''))}
               keyboardType="number-pad"
               maxLength={2}
             />
@@ -483,7 +513,8 @@ export default function AddRoutineScreen() {
               <Text style={styles.sublabel}>Obligatoire ?</Text>
               <TouchableOpacity
                 style={[styles.toggle, stepRequired && styles.toggleActive]}
-                onPress={() => setStepRequired(!stepRequired)}
+                onPress={() => setStepRequired((prev) => !prev)}
+                activeOpacity={0.85}
               >
                 <Text>{stepRequired ? '✅ Oui' : '⬜ Non'}</Text>
               </TouchableOpacity>
@@ -499,6 +530,7 @@ export default function AddRoutineScreen() {
                   allowsEditing: true,
                   base64: Platform.OS === 'web',
                 });
+
                 if (!result.canceled && result.assets[0]) {
                   const asset = result.assets[0];
                   const imageUri =
@@ -508,6 +540,7 @@ export default function AddRoutineScreen() {
                   setStepMediaUri(imageUri);
                 }
               }}
+              activeOpacity={0.85}
             >
               {stepMediaUri ? (
                 <Image source={{ uri: stepMediaUri }} style={styles.mediaPreview} />
@@ -519,7 +552,7 @@ export default function AddRoutineScreen() {
             <View style={styles.stepFormActions}>
               <Button title="Annuler" onPress={resetStepForm} variant="ghost" size="sm" />
               <Button
-                title={editingStepId ? 'Enregistrer' : 'Ajouter l\'étape'}
+                title={editingStepId ? 'Enregistrer' : "Ajouter l'étape"}
                 onPress={editingStepId ? saveEditedStep : addStep}
                 variant="primary"
                 size="sm"
@@ -527,18 +560,8 @@ export default function AddRoutineScreen() {
               />
             </View>
           </Card>
-        ) : (
-          <Button
-            title="+ Ajouter une étape"
-            onPress={() => setShowStepForm(true)}
-            variant="outline"
-            size="md"
-            color={COLORS.secondary}
-            style={{ marginTop: SPACING.sm }}
-          />
-        )}
+        ) : null}
 
-        {/* Save */}
         <View style={styles.saveArea}>
           <Button
             title="Enregistrer la routine"
@@ -569,15 +592,13 @@ export default function AddRoutineScreen() {
                 <TouchableOpacity
                   onPress={() => setShowStepCatalog(false)}
                   style={styles.catalogCloseButton}
+                  activeOpacity={0.85}
                 >
                   <X size={18} weight="bold" color={COLORS.textSecondary} />
                 </TouchableOpacity>
               </View>
 
-              <ScrollView
-                contentContainerStyle={styles.catalogScroll}
-                showsVerticalScrollIndicator={false}
-              >
+              <ScrollView contentContainerStyle={styles.catalogScroll} showsVerticalScrollIndicator={false}>
                 <StepCatalogPicker accentColor={color} onSelect={handleSelectCatalogStep} />
               </ScrollView>
             </View>
@@ -599,9 +620,7 @@ export default function AddRoutineScreen() {
                 Tu peux enregistrer tes modifications maintenant ou les annuler pour revenir aux routines parent.
               </Text>
               {!canSave ? (
-                <Text style={styles.exitHint}>
-                  Complete d abord la routine pour pouvoir l enregistrer.
-                </Text>
+                <Text style={styles.exitHint}>Complete d'abord la routine pour pouvoir l'enregistrer.</Text>
               ) : null}
               <View style={styles.exitActions}>
                 <Button
@@ -630,109 +649,255 @@ export default function AddRoutineScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: COLORS.background },
-  scroll: { padding: SPACING.lg, paddingBottom: SPACING.xxl },
-  back: { fontSize: 0, color: 'transparent', marginBottom: 0, height: 0 },
-  backButton: { marginBottom: SPACING.lg },
-  title: { fontSize: FONT_SIZE.xl, fontWeight: '800', color: COLORS.text, marginBottom: SPACING.xl },
+  safe: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: SPACING.sm,
+    paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.sm,
+    paddingBottom: SPACING.sm,
+  },
+  headerSide: {
+    width: 56,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+  },
+  headerSideRight: {
+    alignItems: 'flex-end',
+  },
+  headerTitle: {
+    flex: 1,
+    fontSize: FONT_SIZE.xl,
+    fontWeight: '800',
+    color: COLORS.text,
+    textAlign: 'center',
+  },
+  headerIconButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: COLORS.surfaceSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...SHADOWS.sm,
+  },
+  scroll: {
+    paddingHorizontal: SPACING.lg,
+    paddingBottom: SPACING.xxl,
+  },
   label: {
-    fontSize: FONT_SIZE.sm, fontWeight: '600', color: COLORS.textSecondary,
-    marginBottom: SPACING.sm, marginTop: SPACING.md,
-  },
-  sublabel: {
-    fontSize: FONT_SIZE.xs, fontWeight: '600', color: COLORS.textSecondary,
-    marginBottom: SPACING.xs, marginTop: SPACING.md,
-  },
-  input: {
-    backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, padding: SPACING.md,
-    fontSize: FONT_SIZE.md, color: COLORS.text, borderWidth: 1, borderColor: COLORS.surfaceSecondary,
-  },
-  inputSmall: { width: 80 },
-  inputMultiline: { minHeight: 60, textAlignVertical: 'top' },
-  row: { flexDirection: 'row', gap: SPACING.sm },
-  childChip: {
-    flexDirection: 'row', alignItems: 'center', gap: SPACING.xs,
-    paddingVertical: SPACING.sm, paddingHorizontal: SPACING.md,
-    borderRadius: RADIUS.full, borderWidth: 2, borderColor: COLORS.surfaceSecondary,
-    backgroundColor: COLORS.surface,
-  },
-  childChipEmoji: { fontSize: 20 },
-  childChipText: { fontSize: FONT_SIZE.sm, fontWeight: '600', color: COLORS.text },
-  categoryChip: {
-    paddingVertical: SPACING.sm, paddingHorizontal: SPACING.md,
-    borderRadius: RADIUS.full, borderWidth: 2, borderColor: COLORS.surfaceSecondary,
-    backgroundColor: COLORS.surface,
-  },
-  stepCard: { marginBottom: SPACING.sm },
-  stepCardEditing: { borderWidth: 2, borderColor: COLORS.secondary },
-  stepRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
-  stepOrder: { fontSize: FONT_SIZE.sm, fontWeight: '800', color: COLORS.textLight, width: 20 },
-  stepIcon: { fontSize: 28 },
-  stepInfo: { flex: 1 },
-  stepTitle: { fontSize: FONT_SIZE.md, fontWeight: '600', color: COLORS.text },
-  stepMeta: { fontSize: FONT_SIZE.xs, color: COLORS.textSecondary },
-  stepActions: { flexDirection: 'row', gap: SPACING.sm },
-  moveBtn: { fontSize: 18, color: COLORS.textSecondary, padding: 4 },
-  deleteBtn: { fontSize: 16, color: COLORS.error, padding: 4 },
-  stepFormCard: { marginTop: SPACING.sm },
-  stepFormTitle: { fontSize: FONT_SIZE.md, fontWeight: '700', color: COLORS.text, marginBottom: SPACING.md },
-  requiredRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: SPACING.md },
-  toggle: {
-    paddingVertical: SPACING.xs, paddingHorizontal: SPACING.md,
-    borderRadius: RADIUS.full, backgroundColor: COLORS.surfaceSecondary,
-  },
-  toggleActive: { backgroundColor: COLORS.successLight },
-  stepFormActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: SPACING.sm, marginTop: SPACING.lg },
-  mediaPicker: {
-    borderWidth: 1, borderColor: COLORS.surfaceSecondary, borderRadius: RADIUS.lg,
-    borderStyle: 'dashed', padding: SPACING.md, alignItems: 'center', marginTop: SPACING.xs,
-  },
-  mediaPreview: { width: 120, height: 120, borderRadius: RADIUS.md },
-  mediaPlaceholder: { fontSize: FONT_SIZE.sm, color: COLORS.textLight },
-  saveArea: { marginTop: SPACING.xl },
-  catalogButton: {
-    marginBottom: SPACING.sm,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: SPACING.sm,
-    minHeight: 50,
-    borderWidth: 2,
-    borderRadius: RADIUS.lg,
-    backgroundColor: 'transparent',
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.lg,
-  },
-  catalogButtonText: {
-    fontSize: FONT_SIZE.md,
-    fontWeight: '700',
-  },
-  favoriteButton: {
-    marginBottom: SPACING.sm,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: SPACING.sm,
-    minHeight: 50,
-    borderWidth: 2,
-    borderRadius: RADIUS.lg,
-    backgroundColor: 'transparent',
-    borderColor: COLORS.textLight,
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.lg,
-  },
-  favoriteButtonActive: {
-    borderColor: COLORS.error,
-    backgroundColor: COLORS.error + '10',
-  },
-  favoriteButtonText: {
-    fontSize: FONT_SIZE.md,
+    fontSize: FONT_SIZE.sm,
     fontWeight: '600',
     color: COLORS.textSecondary,
+    marginTop: SPACING.md,
+    marginBottom: SPACING.sm,
   },
-  favoriteButtonTextActive: {
+  stepsLabel: {
+    marginTop: 0,
+    marginBottom: 0,
+  },
+  stepsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: SPACING.md,
+    marginTop: SPACING.xl,
+    marginBottom: SPACING.sm,
+    flexWrap: 'wrap',
+  },
+  sublabel: {
+    fontSize: FONT_SIZE.xs,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+    marginTop: SPACING.md,
+    marginBottom: SPACING.xs,
+  },
+  input: {
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.md,
+    fontSize: FONT_SIZE.md,
+    color: COLORS.text,
+    borderWidth: 1,
+    borderColor: COLORS.surfaceSecondary,
+  },
+  inputSmall: {
+    width: 80,
+  },
+  inputMultiline: {
+    minHeight: 60,
+    textAlignVertical: 'top',
+  },
+  row: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+  },
+  childChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    borderRadius: RADIUS.full,
+    borderWidth: 2,
+    borderColor: COLORS.surfaceSecondary,
+    backgroundColor: COLORS.surface,
+  },
+  childChipText: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  selectionRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: SPACING.xl,
+    flexWrap: 'wrap',
+  },
+  selectionItem: {
+    alignItems: 'flex-start',
+    minWidth: 84,
+  },
+  categoryChip: {
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    borderRadius: RADIUS.full,
+    borderWidth: 2,
+    borderColor: COLORS.surfaceSecondary,
+    backgroundColor: COLORS.surface,
+  },
+  categoryChipContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  stepButtonsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.md,
+    flexWrap: 'wrap',
+  },
+  stepActionButton: {
+    alignSelf: 'flex-start',
+  },
+  stepCard: {
+    marginBottom: SPACING.sm,
+  },
+  stepCardEditing: {
+    borderWidth: 2,
+    borderColor: COLORS.secondary,
+  },
+  stepRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  stepOrder: {
+    width: 20,
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '800',
+    color: COLORS.textLight,
+  },
+  stepInfo: {
+    flex: 1,
+  },
+  stepTitle: {
+    fontSize: FONT_SIZE.md,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  stepMeta: {
+    fontSize: FONT_SIZE.xs,
+    color: COLORS.textSecondary,
+  },
+  stepActions: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+  },
+  moveBtn: {
+    fontSize: 18,
+    color: COLORS.textSecondary,
+    padding: 4,
+  },
+  deleteBtn: {
+    fontSize: 16,
     color: COLORS.error,
+    padding: 4,
+  },
+  stepFormCard: {
+    marginTop: SPACING.sm,
+  },
+  stepFormTitle: {
+    fontSize: FONT_SIZE.md,
     fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: SPACING.md,
+  },
+  requiredRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: SPACING.md,
+  },
+  toggle: {
+    paddingVertical: SPACING.xs,
+    paddingHorizontal: SPACING.md,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.surfaceSecondary,
+  },
+  toggleActive: {
+    backgroundColor: COLORS.successLight,
+  },
+  mediaPicker: {
+    marginTop: SPACING.xs,
+    alignItems: 'center',
+    padding: SPACING.md,
+    borderWidth: 1,
+    borderColor: COLORS.surfaceSecondary,
+    borderRadius: RADIUS.lg,
+    borderStyle: 'dashed',
+  },
+  mediaPreview: {
+    width: 120,
+    height: 120,
+    borderRadius: RADIUS.md,
+  },
+  mediaPlaceholder: {
+    fontSize: FONT_SIZE.sm,
+    color: COLORS.textLight,
+  },
+  stepFormActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: SPACING.sm,
+    marginTop: SPACING.lg,
+  },
+  saveArea: {
+    marginTop: SPACING.xl,
+  },
+  catalogButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'flex-start',
+    gap: SPACING.sm,
+    minHeight: 50,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    borderWidth: 1,
+    borderRadius: RADIUS.full,
+    borderColor: 'rgba(161, 77, 0, 0.12)',
+    backgroundColor: '#FFF3E0',
+  },
+  catalogButtonText: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '800',
+    color: '#A14D00',
   },
   catalogOverlay: {
     flex: 1,
@@ -745,9 +910,9 @@ const styles = StyleSheet.create({
   catalogSheet: {
     flex: 1,
     marginTop: SPACING.xl,
-    backgroundColor: COLORS.background,
-    borderRadius: RADIUS.xl,
     padding: SPACING.lg,
+    borderRadius: RADIUS.xl,
+    backgroundColor: COLORS.background,
     ...SHADOWS.lg,
   },
   catalogHeader: {
@@ -785,11 +950,11 @@ const styles = StyleSheet.create({
   },
   exitSheet: {
     marginTop: SPACING.xxl,
-    backgroundColor: COLORS.background,
-    borderRadius: RADIUS.xl,
     padding: SPACING.lg,
-    ...SHADOWS.lg,
+    borderRadius: RADIUS.xl,
+    backgroundColor: COLORS.background,
     gap: SPACING.md,
+    ...SHADOWS.lg,
   },
   exitTitle: {
     fontSize: FONT_SIZE.lg,
@@ -803,14 +968,14 @@ const styles = StyleSheet.create({
   },
   exitHint: {
     fontSize: FONT_SIZE.sm,
-    color: COLORS.error,
     fontWeight: '600',
+    color: COLORS.error,
   },
   exitActions: {
     flexDirection: 'row',
-    gap: SPACING.sm,
     justifyContent: 'flex-end',
     flexWrap: 'wrap',
+    gap: SPACING.sm,
   },
   exitGhostButton: {
     minWidth: 220,

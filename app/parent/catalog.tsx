@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -20,10 +20,12 @@ import {
 } from '../../src/constants/routineTemplates';
 import { Child } from '../../src/types';
 import { CATEGORY_CONFIG, COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../../src/constants/theme';
+import { showAppToast } from '../../src/components/feedback/AppFeedbackProvider';
 import { generateId } from '../../src/utils/id';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
 import { Avatar } from '../../src/components/ui/Avatar';
 import { backOrReplace } from '../../src/utils/navigation';
+import { formatChildName } from '../../src/utils/children';
 
 export default function CatalogScreen() {
   const router = useRouter();
@@ -32,20 +34,9 @@ export default function CatalogScreen() {
   const [expandedPack, setExpandedPack] = useState<string | null>(ROUTINE_PACKS[0]?.id ?? null);
   const [selectedTemplate, setSelectedTemplate] = useState<RoutineTemplate | null>(null);
   const [pendingImportTemplate, setPendingImportTemplate] = useState<RoutineTemplate | null>(null);
-  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
-
-  // Auto-hide feedback message after 5 seconds
-  useEffect(() => {
-    if (!feedbackMessage) return;
-    const timer = setTimeout(() => {
-      setFeedbackMessage(null);
-    }, 5000);
-    return () => clearTimeout(timer);
-  }, [feedbackMessage]);
 
   // Hide feedback when accessing a template details
   const handleSelectTemplate = (template: RoutineTemplate) => {
-    setFeedbackMessage(null);
     setSelectedTemplate(template);
   };
 
@@ -76,9 +67,12 @@ export default function CatalogScreen() {
 
     setPendingImportTemplate(null);
     setSelectedTemplate(null);
-    setFeedbackMessage(
-      `"${template.name}" a ete ajoutee pour ${childIds.length} enfant${childIds.length > 1 ? 's' : ''}.`,
-    );
+    showAppToast({
+      title: 'Routine ajoutée',
+      message: `"${template.name}" a été ajoutée pour ${childIds.length} enfant${childIds.length > 1 ? 's' : ''}.`,
+      tone: 'success',
+      icon: '✨',
+    });
   };
 
   const handleImport = (template: RoutineTemplate) => {
@@ -109,23 +103,14 @@ export default function CatalogScreen() {
       <SafeAreaView style={styles.safe}>
         <ScrollView contentContainerStyle={styles.scroll}>
           <TouchableOpacity onPress={() => {
-            setFeedbackMessage(null);
             setSelectedTemplate(null);
           }}>
             <Text style={styles.back}>← Retour au catalogue</Text>
           </TouchableOpacity>
 
           <BackButton style={styles.backButton} onPress={() => {
-            setFeedbackMessage(null);
             setSelectedTemplate(null);
           }} />
-          {feedbackMessage ? (
-            <TouchableOpacity onPress={() => setFeedbackMessage(null)} activeOpacity={0.85}>
-              <View style={styles.feedbackBanner}>
-                <Text style={styles.feedbackText}>{feedbackMessage}</Text>
-              </View>
-            </TouchableOpacity>
-          ) : null}
 
           <View style={styles.detailHeader}>
             <View style={styles.detailIconWrap}>
@@ -203,13 +188,6 @@ export default function CatalogScreen() {
         </TouchableOpacity>
 
         <BackButton style={styles.backButton} onPress={() => backOrReplace(router, '/parent')} />
-        {feedbackMessage ? (
-          <TouchableOpacity onPress={() => setFeedbackMessage(null)} activeOpacity={0.85}>
-            <View style={styles.feedbackBanner}>
-              <Text style={styles.feedbackText}>{feedbackMessage}</Text>
-            </View>
-          </TouchableOpacity>
-        ) : null}
 
         <Text style={styles.title}>Catalogue de routines</Text>
         <Text style={styles.subtitle}>
@@ -343,7 +321,7 @@ function ChildPickerModal({
                   size={32}
                   avatarConfig={child.avatarConfig}
                 />
-                <Text style={styles.childChoiceText}>{child.name}</Text>
+                <Text style={styles.childChoiceText}>{formatChildName(child.name)}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -390,20 +368,6 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.md,
     color: COLORS.textSecondary,
     marginBottom: SPACING.xl,
-  },
-  feedbackBanner: {
-    backgroundColor: COLORS.success + '18',
-    borderWidth: 1,
-    borderColor: COLORS.success + '35',
-    borderRadius: RADIUS.lg,
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.md,
-    marginBottom: SPACING.lg,
-  },
-  feedbackText: {
-    color: COLORS.text,
-    fontSize: FONT_SIZE.sm,
-    fontWeight: '700',
   },
   packSection: { marginBottom: SPACING.lg },
   packHeader: {

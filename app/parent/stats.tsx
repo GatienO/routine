@@ -20,6 +20,7 @@ import { BADGES } from '../../src/constants/badges';
 import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../../src/constants/theme';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
 import { backOrReplace } from '../../src/utils/navigation';
+import { formatChildName } from '../../src/utils/children';
 
 const ROUTINES_PER_PAGE = 10;
 
@@ -123,7 +124,7 @@ export default function StatsScreen() {
                       selectedChildId === child.id && styles.childTabTextActive,
                     ]}
                   >
-                    {child.name}
+                    {formatChildName(child.name)}
                   </Text>
                 </TouchableOpacity>
               ))}

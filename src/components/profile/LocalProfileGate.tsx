@@ -32,7 +32,7 @@ export function LocalProfileGate() {
         <View style={styles.loadingCard}>
           <Text style={styles.loadingTitle}>Chargement du profil local...</Text>
           <Text style={styles.loadingText}>
-            Les donnees restent sur cet appareil, sans compte ni backend.
+            Les données restent sur cet appareil, sans compte ni backend.
           </Text>
         </View>
       </View>
@@ -57,16 +57,16 @@ export function LocalProfileGate() {
             <Text style={styles.profileId}>ID {shortProfileId}</Text>
           </View>
 
-          <Text style={styles.title}>Creez votre profil sur cet appareil</Text>
+          <Text style={styles.title}>Créez votre profil sur cet appareil</Text>
           <Text style={styles.subtitle}>
-            Chaque utilisateur conserve ses enfants, routines et recompenses uniquement
+            Chaque utilisateur conserve ses enfants, routines et récompenses uniquement
             dans son navigateur ou son appareil. Aucune connexion et aucun partage
             automatique.
           </Text>
 
           <View style={styles.infoGrid}>
-            <InfoCard title="Pas de compte" text="Aucune inscription n est necessaire." />
-            <InfoCard title="Donnees locales" text="Tout reste stocke ici, sur cet appareil." />
+            <InfoCard title="Pas de compte" text="Aucune inscription n'est nécessaire." />
+            <InfoCard title="Données locales" text="Tout reste stocké ici, sur cet appareil." />
             <InfoCard title="Profil unique" text="Chaque appareil ou navigateur garde son propre espace." />
           </View>
 
@@ -87,7 +87,7 @@ export function LocalProfileGate() {
             }}
           />
           <Text style={styles.hint}>
-            Ce nom sert uniquement a identifier ce profil local sur cet appareil.
+            Ce nom sert uniquement à identifier ce profil local sur cet appareil.
           </Text>
 
           <Button

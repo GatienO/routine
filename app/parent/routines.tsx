@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   FlatList,
   TextInput,
-  Alert,
   ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -18,7 +17,13 @@ import { DraggableList } from '../../src/components/ui/DraggableList';
 import { Button } from '../../src/components/ui/Button';
 import { BackButton } from '../../src/components/ui/BackButton';
 import { CATEGORY_CONFIG, COLORS, FONT_SIZE, RADIUS, SPACING } from '../../src/constants/theme';
+import {
+  showAppAlert,
+  showAppConfirm,
+  showAppToast,
+} from '../../src/components/feedback/AppFeedbackProvider';
 import { Routine, RoutineCategory } from '../../src/types';
+import { formatChildName } from '../../src/utils/children';
 import { backOrReplace } from '../../src/utils/navigation';
 
 type StatusFilter = 'all' | 'active' | 'inactive';
@@ -86,20 +91,30 @@ export default function ParentRoutinesScreen() {
   const displayedRoutines = organizeMode ? childRoutines : filteredRoutines;
   const selectedChild = children.find((child) => child.id === selectedChildId);
 
-  const handleDeleteRoutine = (routine: Routine) => {
-    Alert.alert(
-      'Supprimer',
-      `Supprimer la routine "${routine.name}" ?`,
-      [
-        { text: 'Annuler', style: 'cancel' },
-        { text: 'Supprimer', style: 'destructive', onPress: () => removeRoutine(routine.id) },
-      ],
-    );
+  const handleDeleteRoutine = async (routine: Routine) => {
+    const confirmed = await showAppConfirm({
+      title: 'Supprimer',
+      message: `Supprimer la routine "${routine.name}" ?`,
+      tone: 'danger',
+      icon: '🗑️',
+      confirmLabel: 'Supprimer',
+      cancelLabel: 'Annuler',
+      confirmKind: 'danger',
+    });
+
+    if (confirmed) {
+      removeRoutine(routine.id);
+    }
   };
 
   const handleDuplicateRoutine = (routine: Routine) => {
     duplicateRoutine(routine.id, routine.childId);
-    Alert.alert('Routine dupliquee', `"${routine.name}" a ete dupliquee.`);
+    showAppToast({
+      title: 'Routine dupliquee',
+      message: `"${routine.name}" a ete dupliquee.`,
+      tone: 'success',
+      icon: '🪄',
+    });
   };
 
   const toggleMergeSelect = (routineId: string) => {
@@ -112,7 +127,12 @@ export default function ParentRoutinesScreen() {
 
   const handleMerge = () => {
     if (mergeSelection.length < 2) {
-      Alert.alert('Selection', 'Selectionnez au moins 2 routines a fusionner.');
+      showAppAlert({
+        title: 'Selection',
+        message: 'Selectionnez au moins 2 routines a fusionner.',
+        tone: 'warning',
+        icon: '🧩',
+      });
       return;
     }
 
@@ -156,7 +176,7 @@ export default function ParentRoutinesScreen() {
               }}
             >
               <Text style={[styles.childTabText, isSelected && styles.childTabTextActive]}>
-                {item.name} · {count}
+                {formatChildName(item.name)} · {count}
               </Text>
             </TouchableOpacity>
           );
@@ -237,7 +257,7 @@ export default function ParentRoutinesScreen() {
       {organizeMode ? (
         <View style={styles.modeBanner}>
           <Text style={styles.modeBannerText}>
-            Mode organiser actif. Vous reordonnez toutes les routines de {selectedChild?.name ?? 'cet enfant'}.
+            Mode organiser actif. Vous reordonnez toutes les routines de {selectedChild ? formatChildName(selectedChild.name) : 'cet enfant'}.
           </Text>
         </View>
       ) : null}
@@ -257,11 +277,9 @@ export default function ParentRoutinesScreen() {
       <SafeAreaView style={styles.safe}>
         <ScrollView contentContainerStyle={styles.listContent}>
           {header}
-          <View
-            style={styles.emptyWrapper}
-          >
+          <View style={styles.emptyWrapper}>
             <View style={styles.empty}>
-              <Text style={styles.emptyIcon}>📋</Text>
+              <Text style={styles.emptyIcon}>ðŸ“‹</Text>
               <Text style={styles.emptyTitle}>Ajoutez d abord un enfant</Text>
               <Button
                 title="Creer un profil"
@@ -312,7 +330,7 @@ export default function ParentRoutinesScreen() {
         ListHeaderComponent={header}
         ListEmptyComponent={(
           <View style={styles.empty}>
-            <Text style={styles.emptyIcon}>🔎</Text>
+            <Text style={styles.emptyIcon}>ðŸ”Ž</Text>
             <Text style={styles.emptyTitle}>Aucune routine visible</Text>
             <Text style={styles.emptyText}>
               Ajustez votre recherche ou vos filtres pour afficher plus de routines.

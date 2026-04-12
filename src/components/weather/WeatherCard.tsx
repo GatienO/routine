@@ -152,7 +152,7 @@ export function WeatherCard({ weather }: Props) {
 
         <View style={[styles.storyCard, isNightTheme && styles.surfaceNight]}>
           <Text style={[styles.storyEyebrow, { color: secondaryColor }]}>
-            {isNightRoutine ? 'Pour cette soiree' : 'Pour aujourd hui'}
+            {isNightRoutine ? 'Pour cette soiree' : "Aujourd'hui"}
           </Text>
           <Text style={[styles.storyTitle, { color: textColor }]}>{theme.kidMessage}</Text>
           <Text style={[styles.storyTip, { color: secondaryColor }]}>{outfitPlan.headline}</Text>
@@ -181,7 +181,7 @@ export function WeatherCard({ weather }: Props) {
 
       <View style={[styles.mainPanel, isNightTheme && styles.mainPanelNight]}>
         <View style={styles.panelHeader}>
-          <Text style={[styles.panelEyebrow, { color: secondaryColor }]}>Vetements recommandes</Text>
+          <Text style={[styles.panelEyebrow, { color: secondaryColor }]}>Vêtements recommandés</Text>
         </View>
 
         <View style={[styles.outfitSummaryCard, isNightTheme && styles.outfitSummaryCardNight]}>

@@ -1,3 +1,5 @@
+import { showAppConfirm } from '../components/feedback/AppFeedbackProvider';
+
 type RouterLike = {
   back: () => void;
   replace: (href: any) => void;
@@ -19,17 +21,17 @@ export function backOrReplace(router: RouterLike, fallbackHref: any) {
   router.replace(fallbackHref);
 }
 
-export function confirmAction({ title, message, onConfirm }: ConfirmOptions) {
-  if (typeof window !== 'undefined' && typeof window.confirm === 'function') {
-    if (window.confirm(`${title}\n\n${message}`)) {
-      onConfirm();
-    }
-    return;
-  }
+export async function confirmAction({ title, message, onConfirm }: ConfirmOptions) {
+  const confirmed = await showAppConfirm({
+    title,
+    message,
+    tone: 'warning',
+    confirmLabel: 'Confirmer',
+    cancelLabel: 'Annuler',
+    confirmKind: 'danger',
+  });
 
-  const { Alert } = require('react-native');
-  Alert.alert(title, message, [
-    { text: 'Annuler', style: 'cancel' },
-    { text: 'Confirmer', style: 'destructive', onPress: onConfirm },
-  ]);
+  if (confirmed) {
+    onConfirm();
+  }
 }

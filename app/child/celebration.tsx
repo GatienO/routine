@@ -31,6 +31,7 @@ import { Avatar } from '../../src/components/ui/Avatar';
 import { useChildrenStore } from '../../src/stores/childrenStore';
 import { CompletionRewardSummary } from '../../src/types';
 import * as Haptics from 'expo-haptics';
+import { formatChildName } from '../../src/utils/children';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -220,7 +221,9 @@ export default function CelebrationScreen() {
                       </View>
                     )}
                     <View style={styles.childHeaderText}>
-                      <Text style={styles.childName} selectable={false}>{child?.name ?? 'Routine'}</Text>
+                      <Text style={styles.childName} selectable={false}>
+                        {child ? formatChildName(child.name) : 'Routine'}
+                      </Text>
                       <Text style={styles.childStars} selectable={false}>
                         +{entry.starsEarned} etoile{entry.starsEarned > 1 ? 's' : ''}
                       </Text>
