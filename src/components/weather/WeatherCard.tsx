@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Text, StyleSheet, View } from 'react-native';
+import { Text, StyleSheet, View, useWindowDimensions } from 'react-native';
 import Animated, {
   Easing,
   FadeIn,
@@ -19,27 +19,13 @@ import {
 import {
   buildOutfitPlan,
   OutfitTile,
+  OutfitVisualId,
   OutfitVisualItem,
 } from '../../constants/weatherOutfits';
 import { FONT_SIZE, RADIUS, SHADOWS, SPACING } from '../../constants/theme';
 
 interface Props {
   weather: WeatherData;
-}
-
-type DayPeriod = 'morning' | 'day' | 'night';
-
-const PERIOD_CONFIG: Record<DayPeriod, { emoji: string; greeting: string }> = {
-  morning: { emoji: '🌅', greeting: 'Bonjour !' },
-  day: { emoji: '☀️', greeting: 'Bonne journee !' },
-  night: { emoji: '🌙', greeting: 'Bientot au dodo !' },
-};
-
-function getDayPeriod(): DayPeriod {
-  const hour = new Date().getHours();
-  if (hour >= 6 && hour < 12) return 'morning';
-  if (hour >= 12 && hour < 17) return 'day';
-  return 'night';
 }
 
 function BouncingEmoji({ emoji }: { emoji: string }) {
@@ -54,7 +40,7 @@ function BouncingEmoji({ emoji }: { emoji: string }) {
       -1,
       true,
     );
-  }, []);
+  }, [translateY]);
 
   const style = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
@@ -68,17 +54,19 @@ function OutfitTileInline({
   index,
   textColor,
   isNight,
+  size,
 }: {
   tile: OutfitTile;
   index: number;
   textColor: string;
   isNight: boolean;
+  size: number;
 }) {
   const item = tile.items[0];
 
   return (
     <View style={[styles.inlineItem, isNight && styles.inlineItemNight]}>
-      <ClothingIcon code={item.id} size={42} variant={index} />
+      <ClothingIcon code={item.id} size={size} variant={index} />
       <Text style={[styles.inlineItemLabel, { color: textColor }]}>{item.label}</Text>
     </View>
   );
@@ -89,28 +77,35 @@ function ExtraTile({
   index,
   textColor,
   isNight,
+  stacked,
 }: {
   item: OutfitVisualItem;
   index: number;
   textColor: string;
   isNight: boolean;
+  stacked: boolean;
 }) {
   return (
-    <View style={[styles.extraTile, isNight && styles.extraTileNight]}>
-      <ClothingIcon code={item.id} size={38} variant={index} />
+    <View
+      style={[
+        styles.extraTile,
+        isNight && styles.extraTileNight,
+        stacked && styles.extraTileStacked,
+      ]}
+    >
+      <ClothingIcon code={item.id} size={40} variant={index} />
       <Text style={[styles.extraLabel, { color: textColor }]}>{item.label}</Text>
     </View>
   );
 }
 
 export function WeatherCard({ weather }: Props) {
+  const { width } = useWindowDimensions();
   const theme = getWeatherTheme(weather.condition, weather.isDay);
   const textColor = getWeatherTextColor(weather.isDay);
   const secondaryColor = getWeatherSecondaryTextColor(weather.isDay);
-  const period = getDayPeriod();
-  const periodInfo = PERIOD_CONFIG[period];
   const isNightTheme = !weather.isDay;
-  const isNightRoutine = period === 'night';
+  const isNightRoutine = !weather.isDay;
   const outfitForecast = isNightRoutine ? weather.nightForecast : weather.dayForecast;
   const outfitTemperature = isNightRoutine ? outfitForecast.minTemperature : weather.temperature;
   const outfitCondition = isNightRoutine ? outfitForecast.dominantCondition : weather.condition;
@@ -122,6 +117,15 @@ export function WeatherCard({ weather }: Props) {
     isNightRoutine ? 'night' : 'day',
   );
   const temperatureLabel = `${weather.temperature}°C`;
+  const duplicatedWeatherExtraMap: Partial<Record<typeof weather.condition, OutfitVisualId>> = {
+    rain: 'pluie',
+    snow: 'neige',
+  };
+  const visibleExtras = outfitPlan.extras.filter(
+    (item) => item.id !== duplicatedWeatherExtraMap[weather.condition],
+  );
+  const isWideLayout = width >= 920;
+  const clothingIconSize = isWideLayout ? 76 : 60;
 
   return (
     <Animated.View
@@ -134,19 +138,50 @@ export function WeatherCard({ weather }: Props) {
         },
       ]}
     >
-      <View style={styles.headerRow}>
-        <View style={styles.periodRow}>
-          <Text style={styles.periodEmoji}>{periodInfo.emoji}</Text>
-          <Text style={[styles.periodGreeting, { color: textColor }]}>{periodInfo.greeting}</Text>
+      <View style={[styles.topGrid, isWideLayout && styles.topGridWide]}>
+        <View style={[styles.weatherSummaryCard, isNightTheme && styles.surfaceNight]}>
+          <View style={styles.summaryRow}>
+            <BouncingEmoji emoji={theme.emoji} />
+            <View style={styles.summaryTextBlock}>
+              <Text style={[styles.cityText, { color: secondaryColor }]}>📍 {weather.city}</Text>
+              <Text style={[styles.weatherLabel, { color: textColor }]}>{theme.label}</Text>
+              <Text style={[styles.tempText, { color: textColor }]}>{temperatureLabel}</Text>
+            </View>
+          </View>
         </View>
+
+        <View style={[styles.storyCard, isNightTheme && styles.surfaceNight]}>
+          <Text style={[styles.storyEyebrow, { color: secondaryColor }]}>
+            {isNightRoutine ? 'Pour cette soiree' : 'Pour aujourd hui'}
+          </Text>
+          <Text style={[styles.storyTitle, { color: textColor }]}>{theme.kidMessage}</Text>
+          <Text style={[styles.storyTip, { color: secondaryColor }]}>{outfitPlan.headline}</Text>
+        </View>
+
+        {visibleExtras.length > 0 ? (
+          <View style={[styles.extrasAside, isNightTheme && styles.surfaceNight]}>
+            <Text style={[styles.extrasTitle, { color: secondaryColor }]}>
+              En plus avec cette meteo
+            </Text>
+            <View style={[styles.extrasGrid, isWideLayout && styles.extrasGridAside]}>
+              {visibleExtras.map((item, index) => (
+                <ExtraTile
+                  key={`extra-${item.id}-${index}`}
+                  item={item}
+                  index={index}
+                  textColor={textColor}
+                  isNight={isNightTheme}
+                  stacked={isWideLayout}
+                />
+              ))}
+            </View>
+          </View>
+        ) : null}
       </View>
 
       <View style={[styles.mainPanel, isNightTheme && styles.mainPanelNight]}>
         <View style={styles.panelHeader}>
-          <Text style={[styles.panelEyebrow, { color: secondaryColor }]}>
-            {isNightRoutine ? 'Pour le dodo' : 'Habits a mettre'}
-          </Text>
-          <Text style={[styles.panelTitle, { color: textColor }]}>{outfitPlan.headline}</Text>
+          <Text style={[styles.panelEyebrow, { color: secondaryColor }]}>Vetements recommandes</Text>
         </View>
 
         <View style={[styles.outfitSummaryCard, isNightTheme && styles.outfitSummaryCardNight]}>
@@ -157,47 +192,10 @@ export function WeatherCard({ weather }: Props) {
               index={index}
               textColor={textColor}
               isNight={isNightTheme}
+              size={clothingIconSize}
             />
           ))}
         </View>
-
-        {outfitPlan.extras.length > 0 ? (
-          <View style={styles.extrasSection}>
-            <Text style={[styles.extrasTitle, { color: secondaryColor }]}>
-              En plus avec cette meteo
-            </Text>
-            <View style={styles.extrasGrid}>
-              {outfitPlan.extras.map((item, index) => (
-                <ExtraTile
-                  key={`extra-${item.id}-${index}`}
-                  item={item}
-                  index={index}
-                  textColor={textColor}
-                  isNight={isNightTheme}
-                />
-              ))}
-            </View>
-          </View>
-        ) : null}
-      </View>
-
-      <View style={styles.footerRow}>
-        <View style={styles.footerMain}>
-          <BouncingEmoji emoji={theme.emoji} />
-          <View style={[styles.tempBadge, isNightTheme && styles.tempBadgeNight]}>
-            <Text style={[styles.tempBadgeText, { color: textColor }]}>{temperatureLabel}</Text>
-          </View>
-          <View style={styles.footerInfo}>
-            <Text style={[styles.weatherLabel, { color: textColor }]}>{theme.label}</Text>
-            <Text style={[styles.cityText, { color: secondaryColor }]}>📍 {weather.city}</Text>
-          </View>
-        </View>
-      </View>
-
-      <Text style={[styles.message, { color: textColor }]}>{theme.kidMessage}</Text>
-
-      <View style={[styles.tipRow, isNightTheme && styles.tipRowNight]}>
-        <Text style={[styles.tipText, { color: secondaryColor }]}>💡 {theme.tip}</Text>
       </View>
     </Animated.View>
   );
@@ -207,100 +205,89 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: 'rgba(255,255,255,0.55)',
     borderRadius: RADIUS.xl,
-    padding: SPACING.md,
-    marginBottom: SPACING.lg,
+    padding: SPACING.sm,
+    marginBottom: SPACING.sm,
     gap: SPACING.sm,
     ...SHADOWS.sm,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.4)',
   },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  surfaceNight: {
+    backgroundColor: 'rgba(255,255,255,0.10)',
+  },
+  topGrid: {
     gap: SPACING.sm,
   },
-  periodRow: {
+  topGridWide: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  weatherSummaryCard: {
+    minWidth: 180,
+    width: 180,
+    minHeight: 120,
+    justifyContent: 'center',
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.sm,
+  },
+  summaryRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.sm,
-    flex: 1,
   },
-  periodEmoji: {
-    fontSize: 24,
-  },
-  periodGreeting: {
-    fontSize: FONT_SIZE.md,
-    fontWeight: '800',
+  summaryTextBlock: {
+    gap: 2,
     flexShrink: 1,
   },
-  tempBadge: {
-    backgroundColor: 'rgba(255,255,255,0.55)',
-    borderRadius: RADIUS.full,
-    paddingVertical: 6,
-    paddingHorizontal: SPACING.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
+  weatherEmoji: {
+    fontSize: 42,
   },
-  tempBadgeNight: {
-    backgroundColor: 'rgba(255,255,255,0.12)',
-  },
-  tempBadgeText: {
+  cityText: {
     fontSize: FONT_SIZE.sm,
+    fontWeight: '700',
+  },
+  weatherLabel: {
+    fontSize: FONT_SIZE.lg,
     fontWeight: '900',
   },
-  mainPanel: {
-    backgroundColor: 'rgba(255,255,255,0.6)',
-    borderRadius: RADIUS.xl,
-    padding: SPACING.md,
-    gap: SPACING.md,
+  tempText: {
+    fontSize: FONT_SIZE.md,
+    fontWeight: '900',
   },
-  mainPanelNight: {
-    backgroundColor: 'rgba(255,255,255,0.12)',
-  },
-  panelHeader: {
+  storyCard: {
+    flex: 1,
+    minHeight: 120,
+    justifyContent: 'center',
+    borderRadius: RADIUS.lg,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.lg,
     gap: 4,
   },
-  panelEyebrow: {
+  storyEyebrow: {
     fontSize: FONT_SIZE.xs,
     fontWeight: '800',
     textTransform: 'uppercase',
-    letterSpacing: 0.4,
-  },
-  panelTitle: {
-    fontSize: FONT_SIZE.xl,
-    fontWeight: '900',
-  },
-  outfitSummaryCard: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    gap: SPACING.md,
-    backgroundColor: 'rgba(255,255,255,0.84)',
-    borderRadius: RADIUS.lg,
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.md,
-  },
-  outfitSummaryCardNight: {
-    backgroundColor: 'rgba(255,255,255,0.18)',
-  },
-  inlineItem: {
-    minWidth: 72,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: SPACING.xs,
-    paddingHorizontal: SPACING.xs,
-  },
-  inlineItemNight: {
-    opacity: 0.96,
-  },
-  inlineItemLabel: {
-    fontSize: FONT_SIZE.xs,
-    fontWeight: '800',
+    letterSpacing: 0.3,
     textAlign: 'center',
   },
-  extrasSection: {
+  storyTitle: {
+    fontSize: FONT_SIZE.xl,
+    fontWeight: '900',
+    textAlign: 'center',
+  },
+  storyTip: {
+    fontSize: FONT_SIZE.md,
+    fontWeight: '800',
+    lineHeight: 22,
+    textAlign: 'center',
+  },
+  extrasAside: {
+    minWidth: 230,
+    width: 230,
+    minHeight: 120,
+    justifyContent: 'center',
+    borderRadius: RADIUS.xl,
+    padding: SPACING.md,
     gap: SPACING.sm,
   },
   extrasTitle: {
@@ -314,6 +301,10 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: SPACING.sm,
   },
+  extrasGridAside: {
+    flexDirection: 'column',
+    flexWrap: 'nowrap',
+  },
   extraTile: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -326,54 +317,60 @@ const styles = StyleSheet.create({
   extraTileNight: {
     backgroundColor: 'rgba(255,255,255,0.16)',
   },
+  extraTileStacked: {
+    width: '100%',
+  },
   extraLabel: {
     fontSize: FONT_SIZE.sm,
     fontWeight: '800',
   },
-  footerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  mainPanel: {
+    width: '100%',
+    backgroundColor: 'rgba(255,255,255,0.6)',
+    borderRadius: RADIUS.xl,
+    padding: SPACING.xs,
     gap: SPACING.sm,
   },
-  footerMain: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.sm,
-    flex: 1,
+  mainPanelNight: {
+    backgroundColor: 'rgba(255,255,255,0.12)',
   },
-  weatherEmoji: {
-    fontSize: 42,
+  panelHeader: {
+    gap: 4,
   },
-  footerInfo: {
-    gap: 2,
-    flexShrink: 1,
-  },
-  weatherLabel: {
-    fontSize: FONT_SIZE.md,
-    fontWeight: '900',
-  },
-  cityText: {
-    fontSize: FONT_SIZE.sm,
-    fontWeight: '700',
-  },
-  message: {
+  panelEyebrow: {
     fontSize: FONT_SIZE.md,
     fontWeight: '800',
-    lineHeight: 20,
+    letterSpacing: 0.2,
   },
-  tipRow: {
-    backgroundColor: 'rgba(255,255,255,0.4)',
+  outfitSummaryCard: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: SPACING.xs,
     borderRadius: RADIUS.lg,
-    paddingVertical: SPACING.xs + 2,
+    paddingVertical: SPACING.xs,
     paddingHorizontal: SPACING.sm,
   },
-  tipRowNight: {
-    backgroundColor: 'rgba(255,255,255,0.08)',
+  outfitSummaryCardNight: {
+    backgroundColor: 'rgba(255,255,255,0.18)',
   },
-  tipText: {
-    fontSize: FONT_SIZE.sm,
-    fontWeight: '600',
-    lineHeight: 20,
+  inlineItem: {
+    flexGrow: 1,
+    flexBasis: 108,
+    minWidth: 108,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+  },
+  inlineItemNight: {
+    opacity: 0.96,
+  },
+  inlineItemLabel: {
+    fontSize: FONT_SIZE.xs,
+    fontWeight: '800',
+    textAlign: 'center',
   },
 });

@@ -182,7 +182,7 @@ export default function ChildLauncherScreen() {
                 scaleDown={0.97}
               >
                 <Gift size={16} weight="fill" color={COLORS.secondary} />
-                <Text style={[styles.topRewardsText, { color: textColor }]}>badges & recompenses</Text>
+                <Text style={[styles.topRewardsText, { color: textColor }]}>Badges & Récompenses</Text>
               </AnimatedPressable>
             </Animated.View>
 

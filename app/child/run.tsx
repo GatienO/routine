@@ -116,6 +116,7 @@ export default function RunRoutineScreen() {
   const activeChildId = currentExecution?.childId;
   const isLeavingFlowRef = useRef(false);
   const isAdvancingStepRef = useRef(false);
+  const completingStepIdRef = useRef<string | null>(null);
   const [confirmedChildIds, setConfirmedChildIds] = useState<string[]>([]);
   const [stepConfirmationEnabled, setStepConfirmationEnabled] = useState(false);
   const [pauseHoldProgress, setPauseHoldProgress] = useState(0);
@@ -177,8 +178,6 @@ export default function RunRoutineScreen() {
   const currentStep = activeSteps[currentStepIndex];
   const progress = totalSteps > 0 ? completedCount / totalSteps : 0;
 
-  const lastCompletionTime = useRef(0);
-  const STEP_COOLDOWN_MS = 800;
   const STEP_START_LOCK_MS = 650;
 
   const timerDuration = currentStep ? currentStep.durationMinutes * 60 : 0;
@@ -216,6 +215,7 @@ export default function RunRoutineScreen() {
   useEffect(() => {
     setConfirmedChildIds([]);
     isAdvancingStepRef.current = false;
+    completingStepIdRef.current = null;
     setStepConfirmationEnabled(false);
 
     const unlockTimer = setTimeout(() => {
@@ -232,11 +232,14 @@ export default function RunRoutineScreen() {
   };
 
   const handleComplete = useCallback(async () => {
-    if (!currentStep || !routine) return;
+    if (!currentStep || !routine) {
+      isAdvancingStepRef.current = false;
+      completingStepIdRef.current = null;
+      return;
+    }
+    if (completingStepIdRef.current === currentStep.id) return;
 
-    const now = Date.now();
-    if (now - lastCompletionTime.current < STEP_COOLDOWN_MS) return;
-    lastCompletionTime.current = now;
+    completingStepIdRef.current = currentStep.id;
 
     try {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -288,24 +291,40 @@ export default function RunRoutineScreen() {
 
   const handleParticipantComplete = useCallback(
     async (childId: string) => {
-      if (!stepConfirmationEnabled) return;
-      if (confirmedChildIds.includes(childId) || isAdvancingStepRef.current) return;
+      if (!stepConfirmationEnabled || !currentStep) return;
 
-      const nextConfirmedIds = [...confirmedChildIds, childId];
-      setConfirmedChildIds(nextConfirmedIds);
+      let acceptedPress = false;
+      let shouldAdvance = false;
+
+      setConfirmedChildIds((prev) => {
+        if (
+          prev.includes(childId) ||
+          isAdvancingStepRef.current ||
+          completingStepIdRef.current === currentStep.id
+        ) {
+          return prev;
+        }
+
+        acceptedPress = true;
+        const nextConfirmedIds = [...prev, childId];
+        shouldAdvance = nextConfirmedIds.length >= participantChildren.length;
+        return nextConfirmedIds;
+      });
+
+      if (!acceptedPress) return;
 
       try {
         await Haptics.selectionAsync();
       } catch {}
 
-      if (nextConfirmedIds.length >= participantChildren.length) {
+      if (shouldAdvance) {
         isAdvancingStepRef.current = true;
         setTimeout(() => {
           void handleComplete();
         }, 140);
       }
     },
-    [confirmedChildIds, handleComplete, participantChildren.length, stepConfirmationEnabled],
+    [currentStep, handleComplete, participantChildren.length, stepConfirmationEnabled],
   );
 
   const handleQuit = () => {
