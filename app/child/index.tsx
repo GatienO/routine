@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useDeferredValue } from 'react';
 import {
   View,
   Text,
@@ -22,6 +22,7 @@ import { Avatar } from '../../src/components/ui/Avatar';
 import { AnimatedPressable } from '../../src/components/ui/AnimatedPressable';
 import { BackButton } from '../../src/components/ui/BackButton';
 import { WeatherCard } from '../../src/components/weather/WeatherCard';
+import { ChildDashboardHeader, CategoryFilterValue } from '../../src/components/child/ChildDashboardHeader';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
 import { COLORS, SPACING, FONT_SIZE, SHADOWS, RADIUS } from '../../src/constants/theme';
 import {
@@ -33,6 +34,11 @@ import {
 import { WEATHER_LIVE_REFRESH_MS } from '../../src/services/weather';
 import { formatChildName } from '../../src/utils/children';
 
+const ROUTINES_PER_PAGE = 10;
+
+export type StatusFilterValue = 'active' | 'inactive';
+export type FavoriteFilterValue = 'all' | 'favorites' | 'others';
+
 export default function ChildLauncherScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
@@ -41,7 +47,12 @@ export default function ChildLauncherScreen() {
   const { routines, toggleFavorite } = useRoutineStore();
   const { weather, refresh: refreshWeather } = useWeatherStore();
   const [selectedRoutineIds, setSelectedRoutineIds] = useState<string[]>([]);
-  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+  const [selectedChildIds, setSelectedChildIds] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategories, setSelectedCategories] = useState<CategoryFilterValue[]>([]);
+  const [selectedStatuses, setSelectedStatuses] = useState<StatusFilterValue[]>([]);
+  const [selectedFavorite, setSelectedFavorite] = useState<FavoriteFilterValue>('all');
 
   const weatherTheme = weather
     ? getWeatherTheme(weather.condition, weather.isDay)
@@ -50,6 +61,70 @@ export default function ChildLauncherScreen() {
   const secondaryColor = weather ? getWeatherSecondaryTextColor(weather.isDay) : COLORS.textSecondary;
   const isNight = weather ? !weather.isDay : false;
   const contentWidth = Math.min(width - SPACING.lg * 2, 1100);
+
+  const deferredSearch = useDeferredValue(searchQuery.trim().toLowerCase());
+
+  const matchesCategoryFilter = (category: CategoryFilterValue) => {
+    if (selectedCategories.length === 0) return true;
+    return selectedCategories.includes(category);
+  };
+
+  const matchesChildFilter = (childId: string) => {
+    if (selectedChildIds.length === 0) return true;
+    return selectedChildIds.includes(childId);
+  };
+
+  const matchesStatusFilter = (isActive: boolean) => {
+    if (selectedStatuses.length === 0) return true;
+    if (selectedStatuses.includes('active') && isActive) return true;
+    if (selectedStatuses.includes('inactive') && !isActive) return true;
+    return false;
+  };
+
+  const matchesFavoriteFilter = (isFavorite: boolean | undefined) => {
+    const fav = isFavorite ?? false;
+    if (selectedFavorite === 'all') return true;
+    if (selectedFavorite === 'favorites') return fav;
+    if (selectedFavorite === 'others') return !fav;
+    return true;
+  };
+
+  // Créer une liste plate de toutes les routines filtrées
+  const filteredRoutines = useMemo(
+    () =>
+      routines
+        .filter((routine) => matchesStatusFilter(routine.isActive))
+        .filter((routine) => matchesChildFilter(routine.childId))
+        .filter((routine) => matchesCategoryFilter(routine.category))
+        .filter((routine) => matchesFavoriteFilter(routine.isFavorite))
+        .filter((routine) => {
+          if (!deferredSearch) return true;
+          const haystack = [
+            routine.name,
+            routine.description ?? '',
+            routine.steps.map((step) => step.title).join(' '),
+          ].join(' ').toLowerCase();
+          return haystack.includes(deferredSearch);
+        })
+        .sort((a, b) => (b.isFavorite ? 1 : 0) - (a.isFavorite ? 1 : 0)),
+    [routines, selectedChildIds, selectedCategories, selectedStatuses, selectedFavorite, deferredSearch],
+  );
+
+  // Pagination
+  const totalPages = Math.ceil(filteredRoutines.length / ROUTINES_PER_PAGE);
+  const validPage = Math.max(1, Math.min(currentPage, totalPages || 1));
+  const paginatedRoutines = filteredRoutines.slice(
+    (validPage - 1) * ROUTINES_PER_PAGE,
+    validPage * ROUTINES_PER_PAGE,
+  );
+
+  const selectedRoutines = selectedRoutineIds
+    .map((routineId) => routines.find((routine) => routine.id === routineId))
+    .filter((routine): routine is NonNullable<typeof routine> => Boolean(routine));
+  const selectedDuration = selectedRoutines.reduce(
+    (sum, routine) => sum + routine.steps.reduce((stepSum, step) => stepSum + step.durationMinutes, 0),
+    0,
+  );
 
   useEffect(() => {
     refreshWeather(
@@ -71,28 +146,6 @@ export default function ChildLauncherScreen() {
     return () => subscription.remove();
   }, [weatherCity, useGeolocation, refreshWeather]);
 
-  const sections = useMemo(
-    () =>
-      children
-        .map((child) => ({
-          child,
-          routines: routines
-            .filter((routine) => routine.childId === child.id && routine.isActive)
-            .sort((a, b) => (b.isFavorite ? 1 : 0) - (a.isFavorite ? 1 : 0)),
-        }))
-        .filter((section) => section.routines.length > 0),
-    [children, routines],
-  );
-
-  const totalRoutines = sections.reduce((sum, section) => sum + section.routines.length, 0);
-  const selectedRoutines = selectedRoutineIds
-    .map((routineId) => routines.find((routine) => routine.id === routineId))
-    .filter((routine): routine is NonNullable<typeof routine> => Boolean(routine));
-  const selectedDuration = selectedRoutines.reduce(
-    (sum, routine) => sum + routine.steps.reduce((stepSum, step) => stepSum + step.durationMinutes, 0),
-    0,
-  );
-
   const handleGoBack = () => {
     selectChild(null);
     router.replace('/');
@@ -110,12 +163,66 @@ export default function ChildLauncherScreen() {
     );
   };
 
-  const toggleSection = (childId: string) => {
-    setCollapsedSections((prev) => ({
-      ...prev,
-      [childId]: !prev[childId],
-    }));
+  const handleToggleChild = (childId: string) => {
+    setSelectedChildIds((previous) => {
+      const next = previous.includes(childId)
+        ? previous.filter((id) => id !== childId)
+        : [...previous, childId];
+      return next;
+    });
   };
+
+  const handleClearChildSelection = () => {
+    setSelectedChildIds([]);
+  };
+
+  const handleToggleCategory = (value: CategoryFilterValue) => {
+    setSelectedCategories((previous) => {
+      const next = previous.includes(value)
+        ? previous.filter((currentValue) => currentValue !== value)
+        : [...previous, value];
+
+      const CATEGORY_FILTER_OPTIONS: CategoryFilterValue[] = [
+        'morning',
+        'evening',
+        'school',
+        'home',
+        'weekend',
+        'custom',
+      ];
+
+      return next.length === CATEGORY_FILTER_OPTIONS.length ? [] : next;
+    });
+  };
+
+  const handleClearCategories = () => {
+    setSelectedCategories([]);
+  };
+
+  const handleToggleStatus = (value: StatusFilterValue) => {
+    setSelectedStatuses((previous) => {
+      const next = previous.includes(value)
+        ? previous.filter((currentValue) => currentValue !== value)
+        : [...previous, value];
+      return next.length === 2 ? [] : next;
+    });
+    setCurrentPage(1);
+  };
+
+  const handleClearStatuses = () => {
+    setSelectedStatuses([]);
+    setCurrentPage(1);
+  };
+
+  const handleToggleFavorite = (value: FavoriteFilterValue) => {
+    setSelectedFavorite(value);
+    setCurrentPage(1);
+  };
+
+  // Réinitialiser la page quand les filtres changent
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedChildIds, selectedCategories, deferredSearch]);
 
   const handleContinue = () => {
     if (selectedRoutineIds.length === 0) return;
@@ -146,7 +253,7 @@ export default function ChildLauncherScreen() {
     );
   }
 
-  if (sections.length === 0) {
+  if (filteredRoutines.length === 0) {
     return (
       <LinearGradient colors={weatherTheme.gradient} style={styles.gradient}>
         <SafeAreaView style={styles.safe}>
@@ -189,111 +296,158 @@ export default function ChildLauncherScreen() {
 
             {weather ? <WeatherCard weather={weather} /> : null}
 
-            {sections.map((section, sectionIndex) => {
-              const isCollapsed = Boolean(collapsedSections[section.child.id]);
-
-              return (
-                <Animated.View
-                  key={section.child.id}
-                  entering={FadeInUp.delay(80 + sectionIndex * 70).duration(300)}
-                  style={[styles.sectionCard, isNight && { backgroundColor: 'rgba(15,23,42,0.2)' }]}
+            {/* Chips de sélection d'enfants */}
+            <View style={styles.childrenChipsContainer}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.childrenChips}>
+                <TouchableOpacity
+                  style={[
+                    styles.childChip,
+                    selectedChildIds.length === 0 && {
+                      backgroundColor: '#A5D6A7',
+                      borderColor: '#66BB6A',
+                    },
+                  ]}
+                  onPress={handleClearChildSelection}
+                  activeOpacity={0.75}
                 >
-                  <View style={styles.sectionHeader}>
-                    <View style={styles.childIdentity}>
-                      <Avatar
-                        emoji={section.child.avatar}
-                        color={section.child.color}
-                        size={54}
-                        avatarConfig={section.child.avatarConfig}
-                      />
-                      <View style={styles.childMeta}>
-                        <Text style={[styles.childName, { color: textColor }]}>
-                          {formatChildName(section.child.name)}
-                        </Text>
-                        <Text style={[styles.childHint, { color: secondaryColor }]}>
-                          {section.routines.length} routine{section.routines.length > 1 ? 's' : ''} pour {formatChildName(section.child.name)}
-                        </Text>
-                      </View>
-                    </View>
+                  <Text style={[
+                    styles.childChipText,
+                    selectedChildIds.length === 0 && { color: COLORS.text, fontWeight: '800' },
+                  ]}>
+                    Tous
+                  </Text>
+                </TouchableOpacity>
+                {children.map((child) => (
+                  <TouchableOpacity
+                    key={child.id}
+                    style={[
+                      styles.childChip,
+                      selectedChildIds.includes(child.id) && {
+                        backgroundColor: '#A5D6A7',
+                        borderColor: '#66BB6A',
+                      },
+                    ]}
+                    onPress={() => handleToggleChild(child.id)}
+                    activeOpacity={0.75}
+                  >
+                    <Avatar emoji={child.avatar} color={child.color} size={20} avatarConfig={child.avatarConfig} />
+                    <Text style={[
+                      styles.childChipText,
+                      selectedChildIds.includes(child.id) && { color: COLORS.text, fontWeight: '800' },
+                    ]}>
+                      {formatChildName(child.name)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
 
-                    <TouchableOpacity
-                      onPress={() => toggleSection(section.child.id)}
-                      style={[styles.sectionToggle, isNight && { backgroundColor: 'rgba(255,255,255,0.12)' }]}
+            <ChildDashboardHeader
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              selectedCategories={selectedCategories}
+              onToggleCategory={handleToggleCategory}
+              onClearCategories={handleClearCategories}
+              selectedStatuses={selectedStatuses}
+              onToggleStatus={handleToggleStatus}
+              onClearStatuses={handleClearStatuses}
+              selectedFavorite={selectedFavorite}
+              onToggleFavorite={handleToggleFavorite}
+            />
+
+            {/* Titre et routines */}
+            <View style={styles.routinesHeader}>
+              <Text style={[styles.routinesTitle, { color: textColor }]}>Routines</Text>
+              <Text style={[styles.routinesCount, { color: secondaryColor }]}>
+                {filteredRoutines.length} routine{filteredRoutines.length !== 1 ? 's' : ''}
+              </Text>
+            </View>
+
+            {/* Liste des routines paginée */}
+            <View style={styles.routinesTable}>
+              {paginatedRoutines.map((routine, index) => {
+                const duration = routine.steps.reduce((sum, step) => sum + step.durationMinutes, 0);
+                const isSelected = selectedRoutineIds.includes(routine.id);
+                const owner = getChild(routine.childId);
+
+                return (
+                  <Animated.View
+                    key={routine.id}
+                    entering={FadeInUp.delay(50 + index * 30).duration(250)}
+                  >
+                    <AnimatedPressable
+                      style={[
+                        styles.routineTableRow,
+                        {
+                          borderColor: `${routine.color}45`,
+                          backgroundColor: `${routine.color}16`,
+                        },
+                        isSelected && styles.routineRowSelected,
+                      ]}
+                      onPress={() => toggleRoutine(routine.id)}
+                      scaleDown={0.98}
+                      hitSlop={8}
                     >
-                      {isCollapsed ? (
-                        <CaretDown size={18} weight="bold" color={secondaryColor} />
-                      ) : (
-                        <CaretUp size={18} weight="bold" color={secondaryColor} />
-                      )}
-                    </TouchableOpacity>
-                  </View>
+                      <View style={styles.routineRowMain}>
+                        <View style={[styles.routineIcon, { backgroundColor: `${routine.color}24` }]}>
+                          <OpenMoji emoji={routine.icon} size={24} />
+                        </View>
+                        <View style={styles.routineRowContent}>
+                          <Text style={[styles.routineRowName, { color: textColor }]} numberOfLines={1}>
+                            {routine.name}
+                          </Text>
+                          <Text style={[styles.routineRowMeta, { color: secondaryColor }]}>
+                            {routine.steps.length} étapes · {duration} min
+                            {owner ? ` · ${formatChildName(owner.name)}` : ''}
+                          </Text>
+                        </View>
+                      </View>
 
-                  {!isCollapsed ? (
-                    <View style={styles.routineList}>
-                      {section.routines.map((routine) => {
-                        const duration = routine.steps.reduce((sum, step) => sum + step.durationMinutes, 0);
-                        const isSelected = selectedRoutineIds.includes(routine.id);
-                        const owner = getChild(routine.childId);
+                      <View style={styles.routineRowActions}>
+                        <TouchableOpacity
+                          onPress={() => toggleFavorite(routine.id)}
+                          hitSlop={12}
+                        >
+                          <Heart
+                            size={18}
+                            weight={routine.isFavorite ? 'fill' : 'regular'}
+                            color={routine.isFavorite ? COLORS.error : secondaryColor}
+                          />
+                        </TouchableOpacity>
+                        <View style={[styles.orderBadge, isSelected && styles.orderBadgeActive]}>
+                          <Text style={[styles.orderBadgeText, isSelected && styles.orderBadgeTextActive]}>
+                            {isSelected ? selectedRoutineIds.indexOf(routine.id) + 1 : '+'}
+                          </Text>
+                        </View>
+                      </View>
+                    </AnimatedPressable>
+                  </Animated.View>
+                );
+              })}
+            </View>
 
-                        return (
-                          <AnimatedPressable
-                            key={routine.id}
-                            style={[
-                              styles.routineCard,
-                              {
-                                borderColor: `${routine.color}45`,
-                                backgroundColor: `${routine.color}16`,
-                              },
-                              isSelected && styles.routineCardSelected,
-                            ]}
-                            onPress={() => toggleRoutine(routine.id)}
-                            scaleDown={0.97}
-                            hitSlop={10}
-                          >
-                            <View style={styles.routineMain}>
-                              <View style={[styles.routineIcon, { backgroundColor: `${routine.color}24` }]}>
-                                <OpenMoji emoji={routine.icon} size={30} />
-                              </View>
-                              <View style={styles.routineText}>
-                                <Text style={[styles.routineName, { color: textColor }]} numberOfLines={1}>
-                                  {routine.name}
-                                </Text>
-                                <Text style={[styles.routineMeta, { color: secondaryColor }]}>
-                                  {routine.steps.length} etapes · {duration} min
-                                </Text>
-                                {owner ? (
-                                  <Text style={[styles.routineOwner, { color: secondaryColor }]}>
-                                    Routine de {formatChildName(owner.name)}
-                                  </Text>
-                                ) : null}
-                              </View>
-                            </View>
-
-                            <View style={styles.routineActions}>
-                              <TouchableOpacity
-                                onPress={() => toggleFavorite(routine.id)}
-                                hitSlop={12}
-                              >
-                                <Heart
-                                  size={20}
-                                  weight={routine.isFavorite ? 'fill' : 'regular'}
-                                  color={routine.isFavorite ? COLORS.error : secondaryColor}
-                                />
-                              </TouchableOpacity>
-                              <View style={[styles.orderBadge, isSelected && styles.orderBadgeActive]}>
-                                <Text style={[styles.orderBadgeText, isSelected && styles.orderBadgeTextActive]}>
-                                  {isSelected ? selectedRoutineIds.indexOf(routine.id) + 1 : '+'}
-                                </Text>
-                              </View>
-                            </View>
-                          </AnimatedPressable>
-                        );
-                      })}
-                    </View>
-                  ) : null}
-                </Animated.View>
-              );
-            })}
+            {/* Pagination */}
+            {totalPages > 1 ? (
+              <View style={styles.paginationContainer}>
+                <TouchableOpacity
+                  onPress={() => setCurrentPage(Math.max(1, validPage - 1))}
+                  disabled={validPage === 1}
+                  style={[styles.paginationButton, validPage === 1 && styles.paginationButtonDisabled]}
+                >
+                  <CaretDown size={14} weight="bold" color={validPage === 1 ? COLORS.textLight : COLORS.textSecondary} style={{ transform: [{ rotate: '90deg' }] }} />
+                </TouchableOpacity>
+                <Text style={[styles.paginationText, { color: secondaryColor }]}>
+                  Page {validPage} sur {totalPages}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setCurrentPage(Math.min(totalPages, validPage + 1))}
+                  disabled={validPage === totalPages}
+                  style={[styles.paginationButton, validPage === totalPages && styles.paginationButtonDisabled]}
+                >
+                  <CaretDown size={14} weight="bold" color={validPage === totalPages ? COLORS.textLight : COLORS.textSecondary} />
+                </TouchableOpacity>
+              </View>
+            ) : null}
           </View>
         </ScrollView>
 
@@ -341,7 +495,7 @@ const styles = StyleSheet.create({
   },
   content: {
     width: '100%',
-    gap: SPACING.md,
+    gap: SPACING.xs,
   },
   topBar: {
     flexDirection: 'row',
@@ -526,4 +680,105 @@ const styles = StyleSheet.create({
   emptyTitle: { fontSize: FONT_SIZE.xl, fontWeight: '800', color: COLORS.text, textAlign: 'center' },
   emptyText: { fontSize: FONT_SIZE.md, color: COLORS.textSecondary, textAlign: 'center' },
   emptyBackButton: { marginTop: SPACING.xl },
+  // Children chips
+  childrenChipsContainer: {
+    marginVertical: SPACING.xs,
+  },
+  childrenChips: {
+    gap: SPACING.sm,
+    paddingHorizontal: 0,
+  },
+  childChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: SPACING.md,
+    borderRadius: RADIUS.full,
+    borderWidth: 1,
+    borderColor: COLORS.surfaceSecondary,
+    backgroundColor: COLORS.surface,
+  },
+  childChipText: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+  },
+  // Routines header
+  routinesHeader: {
+    marginVertical: SPACING.md,
+    marginBottom: SPACING.sm,
+  },
+  routinesTitle: {
+    fontSize: FONT_SIZE.lg,
+    fontWeight: '800',
+  },
+  routinesCount: {
+    fontSize: FONT_SIZE.xs,
+    fontWeight: '600',
+    marginTop: 4,
+  },
+  // Routines table
+  routinesTable: {
+    gap: SPACING.sm,
+  },
+  routineTableRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: SPACING.md,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+    minHeight: 80,
+  },
+  routineRowSelected: {
+    borderColor: COLORS.secondary,
+    backgroundColor: `${COLORS.secondary}08`,
+  },
+  routineRowMain: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.md,
+  },
+  routineRowContent: {
+    flex: 1,
+    gap: 2,
+  },
+  routineRowName: {
+    fontSize: FONT_SIZE.md,
+    fontWeight: '800',
+  },
+  routineRowMeta: {
+    fontSize: FONT_SIZE.xs,
+    fontWeight: '600',
+  },
+  routineRowActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.md,
+  },
+  // Pagination
+  paginationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.md,
+    marginVertical: SPACING.lg,
+  },
+  paginationButton: {
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.surfaceSecondary,
+  },
+  paginationButtonDisabled: {
+    opacity: 0.5,
+  },
+  paginationText: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '700',
+  },
 });
