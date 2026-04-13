@@ -33,7 +33,7 @@ export function LocalProfileGate() {
         <View style={styles.loadingCard}>
           <Text style={styles.loadingTitle}>Chargement du profil local...</Text>
           <Text style={styles.loadingText}>
-            Les données restent sur cet appareil, sans compte ni backend.
+            Les données restent sur cet appareil, sans compte ni base de données.
           </Text>
         </View>
       </View>
@@ -97,7 +97,7 @@ export function LocalProfileGate() {
             </Text>
 
             <Button
-              title="Commencer sans backend"
+              title="J'ai compris !"
               onPress={() => initializeProfile(trimmedName)}
               variant="primary"
               size="lg"

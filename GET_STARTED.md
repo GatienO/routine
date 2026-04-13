@@ -105,7 +105,7 @@ Aucune variable d'environnement n'est requise.
 
 ## 7. Notes utiles
 
-- L'app fonctionne **sans backend**
+- L'app fonctionne **sans base de données**
 - Les données sont stockées **localement**
 - Le catalogue embarqué contient **27 modèles de routines**
 - Les parcours récents incluent le **récapitulatif avant lancement**, le **chaînage de routines** et la **gestion parent avancée** (duplication, fusion, réorganisation)
