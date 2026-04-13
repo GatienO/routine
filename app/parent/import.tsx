@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Avatar } from '../../src/components/ui/Avatar';
-import { BackButton } from '../../src/components/ui/BackButton';
+import { AppPageHeader } from '../../src/components/ui/AppPageHeader';
 import { Button } from '../../src/components/ui/Button';
 import { Card } from '../../src/components/ui/Card';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
@@ -111,8 +111,11 @@ export default function ImportScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <BackButton style={styles.backButton} onPress={() => backOrReplace(router, '/parent')} />
-        <Text style={styles.title}>Importer une routine</Text>
+        <AppPageHeader
+          title="Importer une routine"
+          onBack={() => backOrReplace(router, '/parent')}
+          onHome={() => router.replace('/parent')}
+        />
 
         {children.length === 0 ? (
           <View style={styles.emptyState}>

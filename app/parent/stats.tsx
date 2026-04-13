@@ -15,7 +15,7 @@ import { Avatar } from '../../src/components/ui/Avatar';
 import { Card } from '../../src/components/ui/Card';
 import { StarCounter } from '../../src/components/rewards/Counters';
 import { ProgressBar } from '../../src/components/ui/ProgressBar';
-import { BackButton } from '../../src/components/ui/BackButton';
+import { AppPageHeader } from '../../src/components/ui/AppPageHeader';
 import { BADGES } from '../../src/constants/badges';
 import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../../src/constants/theme';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
@@ -86,11 +86,11 @@ export default function StatsScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <View style={styles.header}>
-          <BackButton onPress={() => backOrReplace(router, '/parent')} />
-          <Text style={styles.title}>Statistiques</Text>
-          <View style={styles.headerSpacer} />
-        </View>
+        <AppPageHeader
+          title="Statistiques"
+          onBack={() => backOrReplace(router, '/parent')}
+          onHome={() => router.replace('/parent')}
+        />
 
         {children.length > 1 && (
           <ScrollView

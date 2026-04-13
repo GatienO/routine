@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAppStore } from '../src/stores/appStore';
-import { BackButton } from '../src/components/ui/BackButton';
+import { AppPageHeader } from '../src/components/ui/AppPageHeader';
 import { COLORS, SPACING, FONT_SIZE } from '../src/constants/theme';
 import { backOrReplace } from '../src/utils/navigation';
 
@@ -68,10 +68,13 @@ export default function PinScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
-        <BackButton style={styles.back} onPress={() => backOrReplace(router, '/')} />
+        <AppPageHeader
+          title={isSetup ? setupTitle : 'Code parent'}
+          onBack={() => backOrReplace(router, '/')}
+          onHome={() => router.replace('/')}
+        />
 
         <Text style={styles.emoji}>🔒</Text>
-        <Text style={styles.title}>{isSetup ? setupTitle : 'Code parent'}</Text>
         <Text style={styles.subtitle}>
           {isSetup ? setupSubtitle : 'Entrez votre code a 4 chiffres'}
         </Text>

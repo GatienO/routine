@@ -72,6 +72,9 @@ export default function EditRoutineScreen() {
   const [stepMediaUri, setStepMediaUri] = useState('');
   const [showStepCatalog, setShowStepCatalog] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [nameTouched, setNameTouched] = useState(false);
+  const [stepTitleTouched, setStepTitleTouched] = useState(false);
+  const [stepDurationTouched, setStepDurationTouched] = useState(false);
 
   const initialSnapshot = useMemo(
     () =>
@@ -153,6 +156,8 @@ export default function EditRoutineScreen() {
     setStepMediaUri('');
     setEditingStepId(null);
     setShowNewStepForm(false);
+    setStepTitleTouched(false);
+    setStepDurationTouched(false);
   };
 
   const openNewStepForm = () => {
@@ -344,10 +349,16 @@ export default function EditRoutineScreen() {
     <View style={styles.stepEditor}>
       <Text style={styles.stepEditorTitle}>{mode === 'edit' ? "Modifier l'etape" : 'Nouvelle etape'}</Text>
 
+      <Text style={styles.sublabel}>
+        Titre de l'etape
+        <Text style={styles.requiredAsterisk}> *</Text>
+      </Text>
+
       <TextInput
-        style={styles.input}
+        style={[styles.input, stepTitleTouched && stepTitle.trim().length === 0 && styles.inputError]}
         value={stepTitle}
         onChangeText={setStepTitle}
+        onBlur={() => setStepTitleTouched(true)}
         placeholder="Titre de l'etape"
         placeholderTextColor={COLORS.textLight}
         maxLength={40}
@@ -366,11 +377,15 @@ export default function EditRoutineScreen() {
 
       <View style={styles.durationRow}>
         <View style={styles.durationField}>
-          <Text style={styles.sublabel}>Duree (minutes)</Text>
+          <Text style={styles.sublabel}>
+            Duree (minutes)
+            <Text style={styles.requiredAsterisk}> *</Text>
+          </Text>
           <TextInput
-            style={[styles.input, styles.inputSmall]}
+            style={[styles.input, styles.inputSmall, stepDurationTouched && stepDuration.trim().length === 0 && styles.inputError]}
             value={stepDuration}
             onChangeText={(value) => setStepDuration(value.replace(/[^0-9.,]/g, ''))}
+            onBlur={() => setStepDurationTouched(true)}
             keyboardType="number-pad"
             maxLength={5}
           />
@@ -450,10 +465,22 @@ export default function EditRoutineScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={styles.label}>Nom de la routine</Text>
-        <TextInput style={styles.input} value={name} onChangeText={setName} maxLength={40} />
+        <Text style={styles.label}>
+          Nom de la routine
+          <Text style={styles.requiredAsterisk}> *</Text>
+        </Text>
+        <TextInput
+          style={[styles.input, nameTouched && name.trim().length === 0 && styles.inputError]}
+          value={name}
+          onChangeText={setName}
+          onBlur={() => setNameTouched(true)}
+          maxLength={40}
+        />
 
-        <Text style={styles.label}>Pour quel(s) enfant(s) ?</Text>
+        <Text style={styles.label}>
+          Pour quel(s) enfant(s)
+          <Text style={styles.requiredAsterisk}> *</Text>
+        </Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.row}>
             {children.map((child) => (
@@ -489,7 +516,10 @@ export default function EditRoutineScreen() {
 
         <View style={styles.selectionRow}>
           <View style={styles.selectionItem}>
-            <Text style={styles.label}>Moment</Text>
+            <Text style={styles.label}>
+              Moment
+              <Text style={styles.requiredAsterisk}> *</Text>
+            </Text>
             <CategorySelectionField
               options={CATEGORIES.map(([key, config]) => ({ key, ...config }))}
               selected={category}
@@ -498,7 +528,10 @@ export default function EditRoutineScreen() {
             />
           </View>
           <View style={styles.selectionItem}>
-            <Text style={styles.label}>Icône</Text>
+            <Text style={styles.label}>
+              Icône
+              <Text style={styles.requiredAsterisk}> *</Text>
+            </Text>
             <IconSelectionField
               emojis={ROUTINE_ICONS}
               groups={ICON_PICKER_GROUPS}
@@ -508,7 +541,10 @@ export default function EditRoutineScreen() {
             />
           </View>
           <View style={styles.selectionItem}>
-            <Text style={styles.label}>Couleur</Text>
+            <Text style={styles.label}>
+              Couleur
+              <Text style={styles.requiredAsterisk}> *</Text>
+            </Text>
             <ColorSelectionField
               colors={CHILD_COLORS}
               selected={color}
@@ -519,7 +555,10 @@ export default function EditRoutineScreen() {
         </View>
 
         <View style={styles.stepsHeader}>
-          <Text style={[styles.label, styles.stepsLabel]}>Étapes ({steps.length})</Text>
+          <Text style={[styles.label, styles.stepsLabel]}>
+            Étapes
+            <Text style={styles.requiredAsterisk}> *</Text> ({steps.length})
+          </Text>
           <View style={styles.stepButtonsRow}>
             <Button
               title="+ Ajouter une étape"
@@ -728,6 +767,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.lg,
     paddingBottom: SPACING.xxl,
   },
+  requiredAsterisk: {
+    color: COLORS.error,
+    fontWeight: '800',
+  },
   label: {
     fontSize: FONT_SIZE.sm,
     fontWeight: '600',
@@ -750,6 +793,9 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     borderWidth: 1,
     borderColor: COLORS.surfaceSecondary,
+  },
+  inputError: {
+    borderColor: COLORS.error,
   },
   inputSmall: {
     width: 80,

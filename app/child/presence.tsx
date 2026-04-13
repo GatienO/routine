@@ -9,7 +9,7 @@ import { useChildrenStore } from '../../src/stores/childrenStore';
 import { useRoutineStore } from '../../src/stores/routineStore';
 import { Avatar } from '../../src/components/ui/Avatar';
 import { AnimatedPressable } from '../../src/components/ui/AnimatedPressable';
-import { BackButton } from '../../src/components/ui/BackButton';
+import { AppPageHeader } from '../../src/components/ui/AppPageHeader';
 import { COLORS, SPACING, FONT_SIZE, SHADOWS, RADIUS } from '../../src/constants/theme';
 import { backOrReplace } from '../../src/utils/navigation';
 import { getGridItemWidth, getResponsiveColumns } from '../../src/utils/responsive';
@@ -97,7 +97,11 @@ export default function ChildPresenceScreen() {
     <LinearGradient colors={['#FFF8F0', '#FFE8D6', '#FFDCC8']} style={styles.gradient}>
       <SafeAreaView style={styles.safe}>
         <View style={styles.container}>
-          <BackButton onPress={() => backOrReplace(router, summaryHref)} style={styles.backBtn} />
+          <AppPageHeader
+            title="Presence"
+            onBack={() => backOrReplace(router, summaryHref)}
+            onHome={() => router.replace('/child')}
+          />
 
           <Animated.Text entering={FadeIn.duration(400)} style={styles.title}>
             Qui est bien la ?

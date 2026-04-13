@@ -2,7 +2,7 @@ import React, { useEffect, useMemo } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ArrowCounterClockwise, Trash } from 'phosphor-react-native';
-import { BackButton } from '../../src/components/ui/BackButton';
+import { AppPageHeader } from '../../src/components/ui/AppPageHeader';
 import { Card } from '../../src/components/ui/Card';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
 import { COLORS, FONT_SIZE, RADIUS, SPACING } from '../../src/constants/theme';
@@ -35,13 +35,12 @@ export default function ParentTrashScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <BackButton style={styles.back} onPress={() => router.replace('/parent')} />
-
         <View style={styles.header}>
-          <View style={styles.titleRow}>
-            <Trash size={24} weight="duotone" color={COLORS.error} />
-            <Text style={styles.title}>Corbeille</Text>
-          </View>
+          <AppPageHeader
+            title="Corbeille"
+            onBack={() => router.replace('/parent')}
+            onHome={() => router.replace('/parent')}
+          />
           <Text style={styles.subtitle}>
             Les routines supprimees restent restaurables pendant 30 jours.
           </Text>

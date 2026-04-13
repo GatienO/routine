@@ -15,7 +15,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useChildrenStore } from '../../src/stores/childrenStore';
 import { useRoutineStore } from '../../src/stores/routineStore';
 import { Button } from '../../src/components/ui/Button';
-import { BackButton } from '../../src/components/ui/BackButton';
+import { AppPageHeader } from '../../src/components/ui/AppPageHeader';
 import { EmojiPicker, ColorPicker } from '../../src/components/ui/Pickers';
 import { Avatar } from '../../src/components/ui/Avatar';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
@@ -93,6 +93,8 @@ export default function AddChildScreen() {
   const [companion, setCompanion] = useState(editing?.companion ?? '');
   const [passions, setPassions] = useState<string[]>(editing?.passions ?? []);
   const [activeTab, setActiveTab] = useState<ProfileTab>('avatar');
+  const [nameTouched, setNameTouched] = useState(false);
+  const [ageTouched, setAgeTouched] = useState(false);
   const stackedLayout = width < 980;
   const contentWidth = Math.min(width - SPACING.lg * 2, 1180);
 
@@ -246,9 +248,11 @@ export default function AddChildScreen() {
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={[styles.scroll, styles.scrollCentered]}>
         <View style={[styles.content, { width: contentWidth, maxWidth: '100%' }]}>
-          <BackButton style={styles.back} onPress={() => backOrReplace(router, '/parent')} />
-
-        <Text style={styles.title}>{editing ? 'Modifier le profil' : 'Nouvel enfant'}</Text>
+          <AppPageHeader
+            title={editing ? 'Modifier le profil' : 'Nouvel enfant'}
+            onBack={() => backOrReplace(router, '/parent')}
+            onHome={() => router.replace('/parent')}
+          />
 
         <View style={[styles.avatarSection, stackedLayout && styles.avatarSectionStacked]}>
           <View style={[styles.avatarPreviewCol, stackedLayout && styles.avatarPreviewColStacked]}>
@@ -283,22 +287,30 @@ export default function AddChildScreen() {
           </View>
 
           <View style={[styles.fieldsCol, stackedLayout && styles.fieldsColStacked]}>
-            <Text style={styles.fieldLabel}>Prenom</Text>
+            <Text style={styles.fieldLabel}>
+              Prenom
+              <Text style={styles.requiredAsterisk}> *</Text>
+            </Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, nameTouched && name.trim().length === 0 && styles.inputError]}
               value={name}
               onChangeText={setName}
+              onBlur={() => setNameTouched(true)}
               placeholder="Prenom"
               placeholderTextColor={COLORS.textLight}
               maxLength={20}
               autoFocus={!editing}
             />
 
-            <Text style={styles.fieldLabel}>Age</Text>
+            <Text style={styles.fieldLabel}>
+              Age
+              <Text style={styles.requiredAsterisk}> *</Text>
+            </Text>
             <TextInput
-              style={[styles.input, styles.inputSmall]}
+              style={[styles.input, styles.inputSmall, ageTouched && age.trim().length === 0 && styles.inputError]}
               value={age}
               onChangeText={(value) => setAge(value.replace(/[^0-9]/g, ''))}
+              onBlur={() => setAgeTouched(true)}
               placeholder="5"
               placeholderTextColor={COLORS.textLight}
               keyboardType="number-pad"
@@ -336,7 +348,10 @@ export default function AddChildScreen() {
           </View>
         </View>
 
-        <Text style={[styles.label, { marginTop: SPACING.lg }]}>Couleur</Text>
+        <Text style={[styles.label, { marginTop: SPACING.lg }]}>
+          Couleur
+          <Text style={styles.requiredAsterisk}> *</Text>
+        </Text>
         <ColorPicker colors={CHILD_COLORS} selected={color} onSelect={setColor} />
 
         <View style={styles.actions}>
@@ -498,6 +513,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.textSecondary,
   },
+  requiredAsterisk: {
+    color: COLORS.error,
+    fontWeight: '800',
+  },
   avatarCustomCol: {
     width: '50%',
     backgroundColor: COLORS.surface,
@@ -624,6 +643,9 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     borderWidth: 1,
     borderColor: COLORS.surfaceSecondary,
+  },
+  inputError: {
+    borderColor: COLORS.error,
   },
   inputSmall: {
     width: 80,

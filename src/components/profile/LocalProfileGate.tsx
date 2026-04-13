@@ -3,6 +3,7 @@ import {
   Modal,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -49,56 +50,62 @@ export function LocalProfileGate() {
   return (
     <Modal transparent visible animationType="fade" onRequestClose={() => undefined}>
       <Pressable style={styles.backdrop}>
-        <View style={styles.modalCard}>
-          <View style={styles.badgeRow}>
-            <View style={styles.localBadge}>
-              <Text style={styles.localBadgeText}>Profil local</Text>
+        <ScrollView
+          style={styles.modalScroll}
+          contentContainerStyle={styles.modalScrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.modalCard}>
+            <View style={styles.badgeRow}>
+              <View style={styles.localBadge}>
+                <Text style={styles.localBadgeText}>Profil local</Text>
+              </View>
+              <Text style={styles.profileId}>ID {shortProfileId}</Text>
             </View>
-            <Text style={styles.profileId}>ID {shortProfileId}</Text>
+
+            <Text style={styles.title}>Créez votre profil sur cet appareil</Text>
+            <Text style={styles.subtitle}>
+              Chaque utilisateur conserve ses enfants, routines et récompenses uniquement
+              dans son navigateur ou son appareil. Aucune connexion et aucun partage
+              automatique.
+            </Text>
+
+            <View style={styles.infoGrid}>
+              <InfoCard title="Pas de compte" text="Aucune inscription n'est nécessaire." />
+              <InfoCard title="Données locales" text="Tout reste stocké ici, sur cet appareil." />
+              <InfoCard title="Profil unique" text="Chaque appareil ou navigateur garde son propre espace." />
+            </View>
+
+            <Text style={styles.label}>Nom du profil</Text>
+            <TextInput
+              style={styles.input}
+              value={draftName}
+              onChangeText={setDraftName}
+              placeholder="Ex : Famille Martin"
+              placeholderTextColor={COLORS.textLight}
+              maxLength={40}
+              autoFocus={Platform.OS !== 'web'}
+              returnKeyType="done"
+              onSubmitEditing={() => {
+                if (trimmedName) {
+                  initializeProfile(trimmedName);
+                }
+              }}
+            />
+            <Text style={styles.hint}>
+              Ce nom sert uniquement à identifier ce profil local sur cet appareil.
+            </Text>
+
+            <Button
+              title="Commencer sans backend"
+              onPress={() => initializeProfile(trimmedName)}
+              variant="primary"
+              size="lg"
+              color={COLORS.secondary}
+              disabled={!trimmedName}
+            />
           </View>
-
-          <Text style={styles.title}>Créez votre profil sur cet appareil</Text>
-          <Text style={styles.subtitle}>
-            Chaque utilisateur conserve ses enfants, routines et récompenses uniquement
-            dans son navigateur ou son appareil. Aucune connexion et aucun partage
-            automatique.
-          </Text>
-
-          <View style={styles.infoGrid}>
-            <InfoCard title="Pas de compte" text="Aucune inscription n'est nécessaire." />
-            <InfoCard title="Données locales" text="Tout reste stocké ici, sur cet appareil." />
-            <InfoCard title="Profil unique" text="Chaque appareil ou navigateur garde son propre espace." />
-          </View>
-
-          <Text style={styles.label}>Nom du profil</Text>
-          <TextInput
-            style={styles.input}
-            value={draftName}
-            onChangeText={setDraftName}
-            placeholder="Ex : Famille Martin"
-            placeholderTextColor={COLORS.textLight}
-            maxLength={40}
-            autoFocus={Platform.OS !== 'web'}
-            returnKeyType="done"
-            onSubmitEditing={() => {
-              if (trimmedName) {
-                initializeProfile(trimmedName);
-              }
-            }}
-          />
-          <Text style={styles.hint}>
-            Ce nom sert uniquement à identifier ce profil local sur cet appareil.
-          </Text>
-
-          <Button
-            title="Commencer sans backend"
-            onPress={() => initializeProfile(trimmedName)}
-            variant="primary"
-            size="lg"
-            color={COLORS.secondary}
-            disabled={!trimmedName}
-          />
-        </View>
+        </ScrollView>
       </Pressable>
     </Modal>
   );
@@ -148,13 +155,19 @@ const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
     backgroundColor: 'rgba(33, 39, 48, 0.42)',
-    alignItems: 'center',
-    justifyContent: 'center',
     padding: SPACING.lg,
+  },
+  modalScroll: {
+    width: '100%',
+  },
+  modalScrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
   },
   modalCard: {
     width: '100%',
     maxWidth: 720,
+    alignSelf: 'center',
     backgroundColor: COLORS.surface,
     borderRadius: RADIUS.xl,
     padding: SPACING.xl,

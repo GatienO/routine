@@ -16,7 +16,7 @@ import { useRewardStore } from '../../src/stores/rewardStore';
 import { useRealRewardStore } from '../../src/stores/realRewardStore';
 import { Avatar } from '../../src/components/ui/Avatar';
 import { Button } from '../../src/components/ui/Button';
-import { BackButton } from '../../src/components/ui/BackButton';
+import { AppPageHeader } from '../../src/components/ui/AppPageHeader';
 import { Card } from '../../src/components/ui/Card';
 import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../../src/constants/theme';
 import { Child, RealRewardCooldownUnit } from '../../src/types';
@@ -195,12 +195,14 @@ export default function ParentRewardsScreen() {
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={[styles.scroll, styles.scrollCentered]}>
         <View style={[styles.content, { width: contentWidth, maxWidth: '100%' }]}>
-          <BackButton style={styles.backButton} onPress={() => backOrReplace(router, '/parent')} />
-
-        <Text style={styles.title}>Récompenses réelles</Text>
-        <Text style={styles.subtitle}>
-          Motivez votre enfant avec des récompenses concrètes !
-        </Text>
+          <AppPageHeader
+            title="Recompenses reelles"
+            onBack={() => backOrReplace(router, '/parent')}
+            onHome={() => router.replace('/parent')}
+          />
+          <Text style={styles.subtitle}>
+            Motivez votre enfant avec des récompenses concrètes !
+          </Text>
 
         {children.length > 0 ? (
           <Card style={styles.childrenPanel}>

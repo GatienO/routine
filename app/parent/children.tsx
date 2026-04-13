@@ -14,7 +14,7 @@ import { useRoutineStore } from '../../src/stores/routineStore';
 import { useRewardStore } from '../../src/stores/rewardStore';
 import { Avatar } from '../../src/components/ui/Avatar';
 import { Button } from '../../src/components/ui/Button';
-import { BackButton } from '../../src/components/ui/BackButton';
+import { AppPageHeader } from '../../src/components/ui/AppPageHeader';
 import { COLORS, FONT_SIZE, RADIUS, SPACING } from '../../src/constants/theme';
 import { backOrReplace } from '../../src/utils/navigation';
 import { getGridItemWidth, getResponsiveColumns } from '../../src/utils/responsive';
@@ -52,15 +52,14 @@ export default function ParentChildrenScreen() {
         contentContainerStyle={[styles.listContent, styles.listContentCentered]}
         ListHeaderComponent={(
           <View style={[styles.headerBlock, { width: contentWidth, maxWidth: '100%' }]}>
-            <View style={styles.headerRow}>
-              <BackButton onPress={() => backOrReplace(router, '/parent')} style={styles.backBtn} />
-              <View style={styles.headerText}>
-                <Text style={styles.title}>Gestion des enfants</Text>
-                <Text style={styles.subtitle}>
-                  Un ecran dedie et compact pour naviguer plus vite entre les profils
-                </Text>
-              </View>
-            </View>
+            <AppPageHeader
+              title="Gestion des enfants"
+              onBack={() => backOrReplace(router, '/parent')}
+              onHome={() => router.replace('/parent')}
+            />
+            <Text style={styles.subtitle}>
+              Un ecran dedie et compact pour naviguer plus vite entre les profils
+            </Text>
 
             <Button
               title="Ajouter un enfant"

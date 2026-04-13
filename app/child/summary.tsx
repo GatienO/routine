@@ -16,7 +16,7 @@ import { useChildrenStore } from '../../src/stores/childrenStore';
 import { useRoutineStore } from '../../src/stores/routineStore';
 import { AnimatedPressable } from '../../src/components/ui/AnimatedPressable';
 import { Avatar } from '../../src/components/ui/Avatar';
-import { BackButton } from '../../src/components/ui/BackButton';
+import { AppPageHeader } from '../../src/components/ui/AppPageHeader';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
 import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS, CATEGORY_CONFIG } from '../../src/constants/theme';
 import { backOrReplace } from '../../src/utils/navigation';
@@ -178,7 +178,11 @@ export default function RoutineSummaryScreen() {
     >
       <SafeAreaView style={styles.safe}>
         <View style={styles.topBar}>
-          <BackButton onPress={() => backOrReplace(router, '/child')} style={styles.backBtn} />
+          <AppPageHeader
+            title="Resume"
+            onBack={() => backOrReplace(router, '/child')}
+            onHome={() => router.replace('/child')}
+          />
         </View>
 
         <ScrollView

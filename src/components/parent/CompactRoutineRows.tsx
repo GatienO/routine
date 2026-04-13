@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform, useWindowDimensions } from 'react-native';
 import { CopySimple, ShareNetwork, Trash, Printer } from 'phosphor-react-native';
 import { Card } from '../ui/Card';
 import { OpenMoji } from '../ui/OpenMoji';
@@ -41,13 +41,19 @@ export const CompactRoutineRow = memo(function CompactRoutineRow({
   routine: Routine;
   child?: Child;
 } & SharedProps) {
+  const { width } = useWindowDimensions();
+  const isMobile = width < 760;
   const category = CATEGORY_CONFIG[routine.category];
   const totalDuration = routine.steps.reduce((sum, step) => sum + step.durationMinutes, 0);
 
   return (
     <Card style={styles.card}>
-      <View style={styles.row}>
-        <TouchableOpacity activeOpacity={0.78} onPress={onEdit} style={styles.mainPressable}>
+      <View style={[styles.row, isMobile && styles.rowStacked]}>
+        <TouchableOpacity
+          activeOpacity={0.78}
+          onPress={onEdit}
+          style={[styles.mainPressable, isMobile && styles.mainPressableStacked]}
+        >
           <View style={[styles.iconWrap, { backgroundColor: `${routine.color}20` }]}>
             <OpenMoji emoji={routine.icon} size={28} />
           </View>
@@ -67,6 +73,7 @@ export const CompactRoutineRow = memo(function CompactRoutineRow({
           child={child}
           isActive={routine.isActive}
           statusLabel={routine.isActive ? 'Actif' : 'Pas actif'}
+          isMobile={isMobile}
           onToggle={onToggle}
           onDuplicate={onDuplicate}
           onShare={onShare}
@@ -89,6 +96,8 @@ export const CompactRoutineGroupRow = memo(function CompactRoutineGroupRow({
   group: RoutineGroup;
   childrenById: Map<string, Child>;
 } & SharedProps) {
+  const { width } = useWindowDimensions();
+  const isMobile = width < 760;
   const category = CATEGORY_CONFIG[group.sample.category];
   const totalDuration = group.sample.steps.reduce((sum, step) => sum + step.durationMinutes, 0);
   const activeCount = group.routines.filter((routine) => routine.isActive).length;
@@ -101,8 +110,12 @@ export const CompactRoutineGroupRow = memo(function CompactRoutineGroupRow({
 
   return (
     <Card style={styles.card}>
-      <View style={styles.row}>
-        <TouchableOpacity activeOpacity={0.78} onPress={onEdit} style={styles.mainPressable}>
+      <View style={[styles.row, isMobile && styles.rowStacked]}>
+        <TouchableOpacity
+          activeOpacity={0.78}
+          onPress={onEdit}
+          style={[styles.mainPressable, isMobile && styles.mainPressableStacked]}
+        >
           <View style={[styles.iconWrap, { backgroundColor: `${group.sample.color}20` }]}>
             <OpenMoji emoji={group.sample.icon} size={28} />
           </View>
@@ -133,6 +146,7 @@ export const CompactRoutineGroupRow = memo(function CompactRoutineGroupRow({
           child={previewChildren[0]}
           isActive={allActive}
           statusLabel={statusLabel}
+          isMobile={isMobile}
           onToggle={onToggle}
           onDuplicate={onDuplicate}
           onShare={onShare}
@@ -148,6 +162,7 @@ const RoutineActionPanel = memo(function RoutineActionPanel({
   child,
   isActive,
   statusLabel,
+  isMobile,
   onToggle,
   onDuplicate,
   onShare,
@@ -157,11 +172,14 @@ const RoutineActionPanel = memo(function RoutineActionPanel({
   child?: Child;
   isActive: boolean;
   statusLabel: string;
+  isMobile: boolean;
   onToggle: () => void;
   onDuplicate: () => void;
   onShare: () => void;
   onDelete: () => void;
 }) {
+  const iconSize = isMobile ? 20 : 18;
+
   const handlePrint = async () => {
     if (!routine || !child) return;
     try {
@@ -184,27 +202,27 @@ const RoutineActionPanel = memo(function RoutineActionPanel({
 
   return (
     <>
-      <View style={styles.titleControls}>
+      <View style={[styles.titleControls, isMobile && styles.titleControlsMobile]}>
         <View style={styles.iconActionRow}>
           {Platform.OS === 'web' && routine && child && (
             <IconAction
-              icon={<Printer size={48} weight="bold" color={COLORS.secondary} />}
+              icon={<Printer size={iconSize} weight="bold" color={COLORS.secondary} />}
               onPress={handlePrint}
               label="Imprimer / PDF"
             />
           )}
           <IconAction
-            icon={<CopySimple size={48}  color={COLORS.secondaryDark} />}
+            icon={<CopySimple size={iconSize} weight="bold" color={COLORS.secondaryDark} />}
             onPress={onDuplicate}
             label="Dupliquer"
           />
           <IconAction
-            icon={<ShareNetwork size={48}  color={COLORS.secondaryDark} />}
+            icon={<ShareNetwork size={iconSize} weight="bold" color={COLORS.secondaryDark} />}
             onPress={onShare}
             label="Partager"
           />
           <IconAction
-            icon={<Trash size={48}  color={COLORS.error} />}
+            icon={<Trash size={iconSize} weight="bold" color={COLORS.error} />}
             onPress={onDelete}
             label="Supprimer"
           />
@@ -259,12 +277,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: SPACING.xs,
   },
+  rowStacked: {
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    gap: SPACING.sm,
+  },
   mainPressable: {
     flex: 1,
     minWidth: 0,
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.sm,
+  },
+  mainPressableStacked: {
+    width: '100%',
   },
   iconWrap: {
     width: 48,
@@ -283,18 +309,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 6,
-    minWidth: 172,
+    minWidth: 164,
+  },
+  titleControlsMobile: {
+    width: '100%',
+    minWidth: 0,
+    flexShrink: 1,
   },
   iconActionRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    flexShrink: 0,
+    flexShrink: 1,
   },
   iconActionBtn: {
-    width: 64,
-    height: 64,
-    borderRadius: 15,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: COLORS.surfaceSecondary,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -15,7 +15,7 @@ import { useChildrenStore } from '../../src/stores/childrenStore';
 import { useRewardStore } from '../../src/stores/rewardStore';
 import { useRealRewardStore } from '../../src/stores/realRewardStore';
 import { Avatar } from '../../src/components/ui/Avatar';
-import { BackButton } from '../../src/components/ui/BackButton';
+import { AppPageHeader } from '../../src/components/ui/AppPageHeader';
 import { Card } from '../../src/components/ui/Card';
 import { BADGES } from '../../src/constants/badges';
 import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../../src/constants/theme';
@@ -71,7 +71,11 @@ export default function ChildRewardsScreen() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.emptyState}>
-          <BackButton onPress={() => backOrReplace(router, '/child')} />
+          <AppPageHeader
+            title="Badges et recompenses"
+            onBack={() => backOrReplace(router, '/child')}
+            onHome={() => router.replace('/child')}
+          />
           <Text style={styles.emptyTitle}>Aucun enfant disponible</Text>
         </View>
       </SafeAreaView>
@@ -115,10 +119,12 @@ export default function ChildRewardsScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={[styles.content, { width: contentWidth, maxWidth: '100%' }]}>
-          <BackButton onPress={() => backOrReplace(router, '/child')} style={styles.back} />
-
+          <AppPageHeader
+            title="Badges et recompenses"
+            onBack={() => backOrReplace(router, '/child')}
+            onHome={() => router.replace('/child')}
+          />
           <View style={styles.hero}>
-            <Text style={styles.title}>Badges et recompenses</Text>
             <Text style={styles.subtitle}>
               Choisis un enfant pour voir ses progres et ses cadeaux.
             </Text>

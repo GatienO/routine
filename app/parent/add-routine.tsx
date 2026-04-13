@@ -31,6 +31,7 @@ import { formatChildName } from '../../src/utils/children';
 import { formatDuration } from '../../src/utils/date';
 import { generateId } from '../../src/utils/id';
 import { backOrReplace } from '../../src/utils/navigation';
+import { showAppAlert } from '../../src/components/feedback/AppFeedbackProvider';
 
 const CATEGORIES = Object.entries(CATEGORY_CONFIG) as [RoutineCategory, typeof CATEGORY_CONFIG[string]][];
 
@@ -92,6 +93,9 @@ export default function AddRoutineScreen() {
   const [stepMediaUri, setStepMediaUri] = useState('');
   const [showStepCatalog, setShowStepCatalog] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [nameTouched, setNameTouched] = useState(false);
+  const [stepTitleTouched, setStepTitleTouched] = useState(false);
+  const [stepDurationTouched, setStepDurationTouched] = useState(false);
 
   const initialSnapshot = useMemo(
     () =>
@@ -180,6 +184,8 @@ export default function AddRoutineScreen() {
     setStepMediaUri('');
     setEditingStepId(null);
     setShowStepForm(false);
+    setStepTitleTouched(false);
+    setStepDurationTouched(false);
   };
 
   const addStep = () => {
@@ -317,6 +323,20 @@ export default function AddRoutineScreen() {
   };
 
   useEffect(() => {
+    if (children.length > 0) {
+      return;
+    }
+
+    showAppAlert({
+      title: 'Enfant requis',
+      message: 'Créez d abord un enfant avant de créer une routine.',
+      tone: 'warning',
+      icon: '👶',
+    });
+    router.replace('/parent/add-child');
+  }, [children.length, router]);
+
+  useEffect(() => {
     if (Platform.OS !== 'web' || typeof window === 'undefined' || !hasUnsavedChanges) {
       return;
     }
@@ -349,17 +369,24 @@ export default function AddRoutineScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={styles.label}>Nom de la routine</Text>
+        <Text style={styles.label}>
+          Nom de la routine
+          <Text style={styles.requiredAsterisk}> *</Text>
+        </Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, nameTouched && name.trim().length === 0 && styles.inputError]}
           value={name}
           onChangeText={setName}
+          onBlur={() => setNameTouched(true)}
           placeholder="Ex: Routine du matin"
           placeholderTextColor={COLORS.textLight}
           maxLength={40}
         />
 
-        <Text style={styles.label}>Pour quel(s) enfant(s) ?</Text>
+        <Text style={styles.label}>
+          Pour quel(s) enfant(s)
+          <Text style={styles.requiredAsterisk}> *</Text>
+        </Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.row}>
             {children.map((child) => (
@@ -395,7 +422,10 @@ export default function AddRoutineScreen() {
 
         <View style={styles.selectionRow}>
           <View style={styles.selectionItem}>
-            <Text style={styles.label}>Moment</Text>
+            <Text style={styles.label}>
+              Moment
+              <Text style={styles.requiredAsterisk}> *</Text>
+            </Text>
             <CategorySelectionField
               options={CATEGORIES.map(([key, config]) => ({ key, ...config }))}
               selected={category}
@@ -404,7 +434,10 @@ export default function AddRoutineScreen() {
             />
           </View>
           <View style={styles.selectionItem}>
-            <Text style={styles.label}>Icône</Text>
+            <Text style={styles.label}>
+              Icône
+              <Text style={styles.requiredAsterisk}> *</Text>
+            </Text>
             <IconSelectionField
               emojis={ROUTINE_ICONS}
               groups={ICON_PICKER_GROUPS}
@@ -414,7 +447,10 @@ export default function AddRoutineScreen() {
             />
           </View>
           <View style={styles.selectionItem}>
-            <Text style={styles.label}>Couleur</Text>
+            <Text style={styles.label}>
+              Couleur
+              <Text style={styles.requiredAsterisk}> *</Text>
+            </Text>
             <ColorSelectionField
               colors={CHILD_COLORS}
               selected={color}
@@ -425,7 +461,10 @@ export default function AddRoutineScreen() {
         </View>
 
         <View style={styles.stepsHeader}>
-          <Text style={[styles.label, styles.stepsLabel]}>Étapes ({steps.length})</Text>
+          <Text style={[styles.label, styles.stepsLabel]}>
+            Étapes
+            <Text style={styles.requiredAsterisk}> *</Text> ({steps.length})
+          </Text>
           <View style={styles.stepButtonsRow}>
             <Button
               title="+ Ajouter une étape"
@@ -485,10 +524,16 @@ export default function AddRoutineScreen() {
           <Card style={styles.stepFormCard}>
             <Text style={styles.stepFormTitle}>{editingStepId ? "Modifier l'étape" : 'Nouvelle étape'}</Text>
 
+            <Text style={styles.sublabel}>
+              Titre de l'étape
+              <Text style={styles.requiredAsterisk}> *</Text>
+            </Text>
+
             <TextInput
-              style={styles.input}
+              style={[styles.input, stepTitleTouched && stepTitle.trim().length === 0 && styles.inputError]}
               value={stepTitle}
               onChangeText={setStepTitle}
+              onBlur={() => setStepTitleTouched(true)}
               placeholder="Ex: Se brosser les dents"
               placeholderTextColor={COLORS.textLight}
               maxLength={40}
@@ -507,11 +552,15 @@ export default function AddRoutineScreen() {
 
             <View style={styles.durationRow}>
               <View style={styles.durationField}>
-                <Text style={styles.sublabel}>Durée (minutes)</Text>
+                <Text style={styles.sublabel}>
+                  Durée (minutes)
+                  <Text style={styles.requiredAsterisk}> *</Text>
+                </Text>
                 <TextInput
-                  style={[styles.input, styles.inputSmall]}
+                  style={[styles.input, styles.inputSmall, stepDurationTouched && stepDuration.trim().length === 0 && styles.inputError]}
                   value={stepDuration}
                   onChangeText={(value) => setStepDuration(value.replace(/[^0-9.,]/g, ''))}
+                  onBlur={() => setStepDurationTouched(true)}
                   keyboardType="number-pad"
                   maxLength={5}
                 />
@@ -727,6 +776,10 @@ const styles = StyleSheet.create({
     marginTop: SPACING.md,
     marginBottom: SPACING.sm,
   },
+  requiredAsterisk: {
+    color: COLORS.error,
+    fontWeight: '800',
+  },
   stepsLabel: {
     marginTop: 0,
     marginBottom: 0,
@@ -755,6 +808,9 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     borderWidth: 1,
     borderColor: COLORS.surfaceSecondary,
+  },
+  inputError: {
+    borderColor: COLORS.error,
   },
   inputSmall: {
     width: 80,

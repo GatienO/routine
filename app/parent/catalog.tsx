@@ -13,7 +13,7 @@ import { useChildrenStore } from '../../src/stores/childrenStore';
 import { useRoutineStore } from '../../src/stores/routineStore';
 import { Card } from '../../src/components/ui/Card';
 import { Button } from '../../src/components/ui/Button';
-import { BackButton } from '../../src/components/ui/BackButton';
+import { AppPageHeader } from '../../src/components/ui/AppPageHeader';
 import {
   ROUTINE_PACKS,
   RoutineTemplate,
@@ -104,15 +104,11 @@ export default function CatalogScreen() {
     return (
       <SafeAreaView style={styles.safe}>
         <ScrollView contentContainerStyle={styles.scroll}>
-          <TouchableOpacity onPress={() => {
-            setSelectedTemplate(null);
-          }}>
-            <Text style={styles.back}>← Retour au catalogue</Text>
-          </TouchableOpacity>
-
-          <BackButton style={styles.backButton} onPress={() => {
-            setSelectedTemplate(null);
-          }} />
+          <AppPageHeader
+            title="Catalogue de routines"
+            onBack={() => setSelectedTemplate(null)}
+            onHome={() => router.replace('/parent')}
+          />
 
           <View style={styles.detailHeader}>
             <View style={styles.detailIconWrap}>
@@ -190,13 +186,11 @@ export default function CatalogScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <TouchableOpacity onPress={() => backOrReplace(router, '/parent')}>
-          <Text style={styles.back}>← Retour</Text>
-        </TouchableOpacity>
-
-        <BackButton style={styles.backButton} onPress={() => backOrReplace(router, '/parent')} />
-
-        <Text style={styles.title}>Catalogue de routines</Text>
+        <AppPageHeader
+          title="Catalogue de routines"
+          onBack={() => backOrReplace(router, '/parent')}
+          onHome={() => router.replace('/parent')}
+        />
         <Text style={styles.subtitle}>
           Choisissez un modele et importez-le en un tap
         </Text>

@@ -22,6 +22,7 @@ import { useRoutineStore } from '../../src/stores/routineStore';
 import { useWeatherStore } from '../../src/stores/weatherStore';
 import { Avatar } from '../../src/components/ui/Avatar';
 import { AnimatedPressable } from '../../src/components/ui/AnimatedPressable';
+import { AppPageHeader } from '../../src/components/ui/AppPageHeader';
 import { BackButton } from '../../src/components/ui/BackButton';
 import { WeatherCard } from '../../src/components/weather/WeatherCard';
 import { ChildDashboardHeader, CategoryFilterValue } from '../../src/components/child/ChildDashboardHeader';
@@ -323,11 +324,14 @@ export default function ChildLauncherScreen() {
         >
           <View style={[styles.content, { width: contentWidth, maxWidth: '100%' }]}>
             <Animated.View entering={FadeInUp.duration(300)} style={styles.topBar}>
-              <BackButton
-                onPress={handleGoBack}
-                iconColor={secondaryColor}
-                style={[styles.headerBackButton, isNight && { backgroundColor: 'rgba(255,255,255,0.18)' }]}
-              />
+                <AppPageHeader
+                  title="Espace Enfant"
+                  onBack={handleGoBack}
+                  onHome={() => router.replace('/')}
+                />
+              </Animated.View>
+
+              <Animated.View entering={FadeInUp.duration(300)} style={styles.topBarActions}>
               <AnimatedPressable
                 onPress={handleOpenRewards}
                 style={[styles.topRewardsButton, isNight && styles.topRewardsButtonNight]}
@@ -604,9 +608,12 @@ const styles = StyleSheet.create({
     gap: SPACING.xs,
   },
   topBar: {
+    width: '100%',
+    marginBottom: SPACING.xs,
+  },
+  topBarActions: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     marginBottom: SPACING.xs,
   },
   headerBackButton: {},

@@ -420,6 +420,21 @@ export function ParentDashboardScreen() {
     group.routines.forEach((routine) => updateRoutine(routine.id, { isActive: nextState }));
   };
 
+  const handleGoToAddRoutine = () => {
+    if (children.length === 0) {
+      showAppAlert({
+        title: 'Enfant requis',
+        message: 'Créez d abord un enfant avant de créer une routine.',
+        tone: 'warning',
+        icon: '👶',
+      });
+      router.push('/parent/add-child');
+      return;
+    }
+
+    router.push('/parent/add-routine');
+  };
+
   const handleToggleOrganize = () => {
     if (!selectedChild || selectedChildRoutines.length <= 1) return;
     if (!organizeMode) {
@@ -445,9 +460,10 @@ export function ParentDashboardScreen() {
         selectedCategories={selectedCategories}
         onToggleCategory={handleToggleCategory}
         onClearCategories={() => setSelectedCategories([])}
+        onGoBack={() => router.replace('/')}
         onLogout={() => router.replace('/')}
         onGoToCatalog={() => router.push('/parent/catalog')}
-        onGoToAddRoutine={() => router.push('/parent/add-routine')}
+        onGoToAddRoutine={handleGoToAddRoutine}
         onGoToChildren={() => router.push('/parent/children')}
         onGoToRewards={() => router.push('/parent/rewards')}
         onGoToStats={() => router.push('/parent/stats')}

@@ -15,7 +15,7 @@ import { useRoutineStore } from '../../src/stores/routineStore';
 import { CompactRoutineRow } from '../../src/components/routine/CompactRoutineRow';
 import { DraggableList } from '../../src/components/ui/DraggableList';
 import { Button } from '../../src/components/ui/Button';
-import { BackButton } from '../../src/components/ui/BackButton';
+import { AppPageHeader } from '../../src/components/ui/AppPageHeader';
 import { CATEGORY_CONFIG, COLORS, FONT_SIZE, RADIUS, SPACING } from '../../src/constants/theme';
 import {
   showAppAlert,
@@ -144,17 +144,31 @@ export default function ParentRoutinesScreen() {
     setMergeSelection([]);
   };
 
+  const handleGoToAddRoutine = () => {
+    if (children.length === 0) {
+      showAppAlert({
+        title: 'Enfant requis',
+        message: 'Créez d abord un enfant avant de créer une routine.',
+        tone: 'warning',
+        icon: '👶',
+      });
+      router.push('/parent/add-child');
+      return;
+    }
+
+    router.push('/parent/add-routine');
+  };
+
   const header = (
     <View style={styles.headerBlock}>
-      <View style={styles.topRow}>
-        <BackButton onPress={() => backOrReplace(router, '/parent')} style={styles.backBtn} />
-        <View style={styles.headerText}>
-          <Text style={styles.title}>Gestion des routines</Text>
-          <Text style={styles.subtitle}>
-            Focus par enfant, recherche, filtres et vue compacte pour rester fluide
-          </Text>
-        </View>
-      </View>
+      <AppPageHeader
+        title="Gestion des routines"
+        onBack={() => backOrReplace(router, '/parent')}
+        onHome={() => router.replace('/parent')}
+      />
+      <Text style={styles.subtitle}>
+        Focus par enfant, recherche, filtres et vue compacte pour rester fluide
+      </Text>
 
       <FlatList
         data={children}
@@ -246,11 +260,10 @@ export default function ParentRoutinesScreen() {
         />
         <Button
           title="Ajouter"
-          onPress={() => router.push('/parent/add-routine')}
+          onPress={handleGoToAddRoutine}
           variant="primary"
           size="sm"
           color={COLORS.primary}
-          disabled={children.length === 0}
         />
       </View>
 

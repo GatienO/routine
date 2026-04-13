@@ -101,8 +101,8 @@ export const ChildDashboardHeader = memo(function ChildDashboardHeader({
 
   return (
     <View>
-      <View style={styles.filterControlsRow}>
-        <View style={styles.searchControl}>
+      <View style={[styles.filterControlsRow, isCompactViewport && styles.filterControlsRowCompact]}>
+        <View style={[styles.searchControl, isCompactViewport && styles.searchControlCompact]}>
           <View style={styles.searchBox}>
             <MagnifyingGlass size={18} weight="bold" color={COLORS.textLight} />
             <TextInput
@@ -133,7 +133,7 @@ export const ChildDashboardHeader = memo(function ChildDashboardHeader({
           }}
           onToggleValue={(value) => onToggleCategory(value as CategoryFilterValue)}
           onClear={onClearCategories}
-          style={styles.dropdownControl}
+          style={[styles.dropdownControl, isCompactViewport && styles.dropdownControlCompact]}
           buttonRef={categoryButtonRef}
         />
 
@@ -152,7 +152,7 @@ export const ChildDashboardHeader = memo(function ChildDashboardHeader({
           }}
           onToggleValue={(value) => onToggleStatus(value as StatusFilterValue)}
           onClear={onClearStatuses}
-          style={styles.dropdownControl}
+          style={[styles.dropdownControl, isCompactViewport && styles.dropdownControlCompact]}
           buttonRef={statusButtonRef}
         />
 
@@ -178,7 +178,7 @@ export const ChildDashboardHeader = memo(function ChildDashboardHeader({
             onToggleFavorite('all');
             closeDropdown();
           }}
-          style={styles.dropdownControl}
+          style={[styles.dropdownControl, isCompactViewport && styles.dropdownControlCompact]}
           buttonRef={favoriteButtonRef}
         />
       </View>
@@ -390,13 +390,25 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xs,
     marginTop: 0,
   },
+  filterControlsRowCompact: {
+    flexWrap: 'wrap',
+    alignItems: 'flex-start',
+  },
   searchControl: {
     flex: 1.6,
     minWidth: 280,
   },
+  searchControlCompact: {
+    minWidth: 220,
+    flexBasis: '100%',
+  },
   dropdownControl: {
     flex: 1,
     minWidth: 210,
+  },
+  dropdownControlCompact: {
+    minWidth: 160,
+    flexGrow: 1,
   },
   searchBox: {
     flexDirection: 'row',
