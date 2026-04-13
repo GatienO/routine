@@ -20,9 +20,11 @@ import { useRoutineStore } from '../stores/routineStore';
 import { useRewardStore } from '../stores/rewardStore';
 import { useAppStore } from '../stores/appStore';
 import { useWeatherStore } from '../stores/weatherStore';
+import { useLocalProfileStore } from '../stores/localProfileStore';
 import { Card } from '../components/ui/Card';
 import { DraggableList } from '../components/ui/DraggableList';
 import { RoutineShareModal } from '../components/routine/RoutineShareModal';
+import { AppTutorialModal } from '../components/tutorial/AppTutorialModal';
 import { COLORS, SPACING, FONT_SIZE, RADIUS } from '../constants/theme';
 import { Child, Routine } from '../types';
 import {
@@ -72,6 +74,10 @@ export function ParentDashboardScreen() {
   const useGeolocation = useAppStore((state) => state.useGeolocation);
   const setWeatherCity = useAppStore((state) => state.setWeatherCity);
   const setUseGeolocation = useAppStore((state) => state.setUseGeolocation);
+  const profileName = useLocalProfileStore((state) => state.profileName);
+  const profileId = useLocalProfileStore((state) => state.profileId);
+  const tutorialCompletedAt = useLocalProfileStore((state) => state.tutorialCompletedAt);
+  const completeTutorial = useLocalProfileStore((state) => state.completeTutorial);
   const { refresh: refreshWeather } = useWeatherStore();
 
   const [cityInput, setCityInput] = useState(weatherCity);
@@ -81,6 +87,8 @@ export function ParentDashboardScreen() {
   const [selectedCategories, setSelectedCategories] = useState<CategoryFilterValue[]>([]);
   const [organizeMode, setOrganizeMode] = useState(false);
   const [showWeatherSettings, setShowWeatherSettings] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [routinesExpanded, setRoutinesExpanded] = useState(true);
   const [routineToShare, setRoutineToShare] = useState<Routine | null>(null);
@@ -421,6 +429,7 @@ export function ParentDashboardScreen() {
         onGoToStats={() => router.push('/parent/stats')}
         onGoToImport={() => router.push('/parent/import')}
         onGoToTrash={() => router.push('/parent/trash')}
+        onOpenProfile={() => setShowProfileModal(true)}
         onOpenWeatherSettings={() => setShowWeatherSettings(true)}
         routinesExpanded={routinesExpanded}
         onToggleRoutinesExpanded={() => setRoutinesExpanded((previous) => !previous)}
@@ -595,12 +604,76 @@ export function ParentDashboardScreen() {
         onClose={() => setShowWeatherSettings(false)}
         onSaveCity={handleSaveCity}
       />
+      <LocalProfileModal
+        visible={showProfileModal}
+        profileName={profileName}
+        profileId={profileId}
+        tutorialCompletedAt={tutorialCompletedAt}
+        onClose={() => setShowProfileModal(false)}
+        onRestartTutorial={() => {
+          setShowProfileModal(false);
+          setShowTutorial(true);
+        }}
+      />
       <RoutineShareModal
         visible={routineToShare !== null}
         routine={routineToShare}
         onClose={() => setRoutineToShare(null)}
       />
+      <AppTutorialModal
+        visible={showTutorial}
+        onClose={() => setShowTutorial(false)}
+        onComplete={completeTutorial}
+      />
     </SafeAreaView>
+  );
+}
+
+function LocalProfileModal({
+  visible,
+  profileName,
+  profileId,
+  tutorialCompletedAt,
+  onClose,
+  onRestartTutorial,
+}: {
+  visible: boolean;
+  profileName: string;
+  profileId: string | null;
+  tutorialCompletedAt: string | null;
+  onClose: () => void;
+  onRestartTutorial: () => void;
+}) {
+  const shortProfileId = profileId ? profileId.slice(-6) : 'LOCAL';
+  const tutorialStatus = tutorialCompletedAt
+    ? `Guide terminé le ${new Date(tutorialCompletedAt).toLocaleDateString('fr-FR')}`
+    : 'Guide non terminé pour le moment';
+
+  return (
+    <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
+      <Pressable style={styles.weatherModalBackdrop} onPress={onClose}>
+        <Pressable style={styles.profileModalCard} onPress={(event) => event.stopPropagation()}>
+          <View style={styles.profileModalBadge}>
+            <Text style={styles.profileModalBadgeText}>Profil local parent</Text>
+          </View>
+          <Text style={styles.profileModalTitle}>{profileName || 'Profil local'}</Text>
+          <Text style={styles.profileModalId}>ID {shortProfileId}</Text>
+          <Text style={styles.profileModalText}>
+            Ce profil garde les routines, enfants et réglages uniquement sur cet appareil.
+          </Text>
+          <Text style={styles.profileModalHint}>{tutorialStatus}</Text>
+
+          <View style={styles.profileModalActions}>
+            <TouchableOpacity onPress={onClose} style={styles.weatherModalSecondaryBtn} activeOpacity={0.85}>
+              <Text style={styles.weatherModalSecondaryBtnText}>Fermer</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={onRestartTutorial} style={styles.weatherModalPrimaryBtn} activeOpacity={0.85}>
+              <Text style={styles.weatherModalPrimaryBtnText}>Relancer le tutoriel</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Pressable>
+    </Modal>
   );
 }
 
@@ -933,5 +1006,63 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.sm,
     fontWeight: '800',
     color: '#FFF',
+  },
+  profileModalCard: {
+    width: '100%',
+    maxWidth: 520,
+    borderRadius: RADIUS.xl,
+    backgroundColor: COLORS.surface,
+    padding: SPACING.xl,
+    gap: SPACING.md,
+    shadowColor: '#000',
+    shadowOpacity: 0.16,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 16,
+  },
+  profileModalBadge: {
+    alignSelf: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: SPACING.sm,
+    borderRadius: RADIUS.full,
+    backgroundColor: `${COLORS.secondary}18`,
+  },
+  profileModalBadgeText: {
+    fontSize: FONT_SIZE.xs,
+    fontWeight: '800',
+    color: COLORS.secondaryDark,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+  profileModalTitle: {
+    fontSize: FONT_SIZE.xl,
+    fontWeight: '900',
+    color: COLORS.text,
+    textAlign: 'center',
+  },
+  profileModalId: {
+    fontSize: FONT_SIZE.xs,
+    fontWeight: '700',
+    color: COLORS.textLight,
+    textAlign: 'center',
+  },
+  profileModalText: {
+    fontSize: FONT_SIZE.md,
+    lineHeight: 24,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+  },
+  profileModalHint: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '700',
+    color: COLORS.secondaryDark,
+    textAlign: 'center',
+  },
+  profileModalActions: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: SPACING.sm,
+    flexWrap: 'wrap',
+    marginTop: SPACING.sm,
   },
 });

@@ -18,10 +18,14 @@ interface LocalProfileState {
   profileId: string | null;
   profileName: string;
   createdAt: string | null;
+  tutorialPromptPending: boolean;
+  tutorialCompletedAt: string | null;
   hasHydrated: boolean;
   initializeProfile: (name: string) => void;
   renameProfile: (name: string) => void;
   ensureProfileRecord: () => void;
+  dismissTutorialPrompt: () => void;
+  completeTutorial: () => void;
   setHasHydrated: (hydrated: boolean) => void;
 }
 
@@ -31,6 +35,8 @@ export const useLocalProfileStore = create<LocalProfileState>()(
       profileId: null,
       profileName: '',
       createdAt: null,
+      tutorialPromptPending: true,
+      tutorialCompletedAt: null,
       hasHydrated: false,
 
       initializeProfile: (name) =>
@@ -64,6 +70,14 @@ export const useLocalProfileStore = create<LocalProfileState>()(
           };
         }),
 
+      dismissTutorialPrompt: () => set({ tutorialPromptPending: false }),
+
+      completeTutorial: () =>
+        set({
+          tutorialPromptPending: false,
+          tutorialCompletedAt: new Date().toISOString(),
+        }),
+
       setHasHydrated: (hydrated) => set({ hasHydrated: hydrated }),
     }),
     {
@@ -73,6 +87,8 @@ export const useLocalProfileStore = create<LocalProfileState>()(
         profileId: state.profileId,
         profileName: state.profileName,
         createdAt: state.createdAt,
+        tutorialPromptPending: state.tutorialPromptPending,
+        tutorialCompletedAt: state.tutorialCompletedAt,
       }),
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);

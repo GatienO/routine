@@ -70,6 +70,7 @@ export const ParentDashboardHeader = memo(function ParentDashboardHeader({
   onGoToStats,
   onGoToImport,
   onGoToTrash,
+  onOpenProfile,
   onOpenWeatherSettings,
   routinesExpanded,
   onToggleRoutinesExpanded,
@@ -94,6 +95,7 @@ export const ParentDashboardHeader = memo(function ParentDashboardHeader({
   onGoToStats: () => void;
   onGoToImport: () => void;
   onGoToTrash: () => void;
+  onOpenProfile: () => void;
   onOpenWeatherSettings: () => void;
   routinesExpanded: boolean;
   onToggleRoutinesExpanded: () => void;
@@ -186,6 +188,13 @@ export const ParentDashboardHeader = memo(function ParentDashboardHeader({
           icon={<TrashIcon size={18} color="#B23A48" />}
           backgroundColor="#FDECEF"
           color="#B23A48"
+        />
+        <QuickActionTile
+          label="Profil local"
+          onPress={onOpenProfile}
+          icon={<OpenMoji emoji="🪪" size={18} />}
+          backgroundColor="#EEF6FF"
+          color="#2D6A9F"
         />
         <QuickActionTile
           label="Météo"

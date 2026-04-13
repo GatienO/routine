@@ -18,20 +18,33 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { AnimatedPressable } from '../src/components/ui/AnimatedPressable';
+import { Button } from '../src/components/ui/Button';
 import { COLORS, SPACING, FONT_SIZE, SHADOWS, RADIUS } from '../src/constants/theme';
 import { useLocalProfileStore } from '../src/stores/localProfileStore';
+import { AppTutorialModal } from '../src/components/tutorial/AppTutorialModal';
 
 
 export default function WelcomeScreen() {
   const router = useRouter();
   const profileName = useLocalProfileStore((state) => state.profileName);
+  const tutorialPromptPending = useLocalProfileStore((state) => state.tutorialPromptPending);
+  const dismissTutorialPrompt = useLocalProfileStore((state) => state.dismissTutorialPrompt);
+  const completeTutorial = useLocalProfileStore((state) => state.completeTutorial);
   const [showProfileInfo, setShowProfileInfo] = useState(false);
+  const [showTutorialOffer, setShowTutorialOffer] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   const heroScale = useSharedValue(0.8);
 
   useEffect(() => {
     heroScale.value = withSpring(1, { damping: 8, stiffness: 80 });
   }, []);
+
+  useEffect(() => {
+    if (profileName && tutorialPromptPending) {
+      setShowTutorialOffer(true);
+    }
+  }, [profileName, tutorialPromptPending]);
 
   const heroStyle = useAnimatedStyle(() => ({
     transform: [{ scale: heroScale.value }],
@@ -103,6 +116,51 @@ export default function WelcomeScreen() {
             </Pressable>
           </Pressable>
         </Modal>
+
+        <Modal
+          transparent
+          visible={showTutorialOffer}
+          animationType="fade"
+          onRequestClose={() => undefined}
+        >
+          <Pressable style={styles.centeredBackdrop}>
+            <View style={styles.tutorialOfferCard}>
+              <Text style={styles.tutorialOfferEyebrow}>Première visite</Text>
+              <Text style={styles.tutorialOfferTitle}>Découvrir l’app pas à pas ?</Text>
+              <Text style={styles.tutorialOfferText}>
+                On peut te présenter le fonctionnement de Routine dans une courte visite guidée. Tu peux la passer maintenant et la relancer plus tard depuis le profil local parent.
+              </Text>
+              <View style={styles.tutorialOfferActions}>
+                <TouchableOpacity
+                  style={styles.tutorialLaterButton}
+                  onPress={() => {
+                    dismissTutorialPrompt();
+                    setShowTutorialOffer(false);
+                  }}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.tutorialLaterButtonText}>Plus tard</Text>
+                </TouchableOpacity>
+                <Button
+                  title="Commencer le guide"
+                  onPress={() => {
+                    setShowTutorialOffer(false);
+                    setShowTutorial(true);
+                  }}
+                  variant="primary"
+                  size="md"
+                  color={COLORS.secondary}
+                />
+              </View>
+            </View>
+          </Pressable>
+        </Modal>
+
+        <AppTutorialModal
+          visible={showTutorial}
+          onClose={() => setShowTutorial(false)}
+          onComplete={completeTutorial}
+        />
       </SafeAreaView>
     </LinearGradient>
   );
@@ -210,6 +268,64 @@ const styles = StyleSheet.create({
   modalText: {
     fontSize: FONT_SIZE.sm,
     lineHeight: 21,
+    color: COLORS.textSecondary,
+  },
+  centeredBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(33, 39, 48, 0.32)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: SPACING.lg,
+  },
+  tutorialOfferCard: {
+    width: '100%',
+    maxWidth: 520,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.xl,
+    padding: SPACING.xl,
+    gap: SPACING.md,
+    borderWidth: 1,
+    borderColor: COLORS.surfaceSecondary,
+    ...SHADOWS.lg,
+  },
+  tutorialOfferEyebrow: {
+    fontSize: FONT_SIZE.xs,
+    fontWeight: '800',
+    color: COLORS.secondaryDark,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+    textAlign: 'center',
+  },
+  tutorialOfferTitle: {
+    fontSize: FONT_SIZE.xl,
+    fontWeight: '900',
+    color: COLORS.text,
+    textAlign: 'center',
+  },
+  tutorialOfferText: {
+    fontSize: FONT_SIZE.md,
+    lineHeight: 24,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+  },
+  tutorialOfferActions: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    flexWrap: 'wrap',
+  },
+  tutorialLaterButton: {
+    minHeight: 44,
+    paddingHorizontal: SPACING.md,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.surfaceSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tutorialLaterButtonText: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '800',
     color: COLORS.textSecondary,
   },
 });
