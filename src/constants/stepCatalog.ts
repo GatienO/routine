@@ -17,6 +17,7 @@ export interface StepCatalogItem {
   title: string;
   icon: string;
   durationMinutes: number;
+  minimumDurationMinutes?: number;
   instruction: string;
   isRequired: boolean;
   categoryId: StepCatalogCategoryId;

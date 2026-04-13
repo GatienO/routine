@@ -65,6 +65,7 @@ export default function EditRoutineScreen() {
   const [stepTitle, setStepTitle] = useState('');
   const [stepIcon, setStepIcon] = useState('🪥');
   const [stepDuration, setStepDuration] = useState('2');
+  const [stepMinDuration, setStepMinDuration] = useState('0');
   const [stepInstruction, setStepInstruction] = useState('');
   const [stepRequired, setStepRequired] = useState(true);
   const [stepMediaUri, setStepMediaUri] = useState('');
@@ -85,6 +86,7 @@ export default function EditRoutineScreen() {
           title: '',
           icon: '🪥',
           duration: '2',
+          minDuration: '0',
           instruction: '',
           required: true,
           mediaUri: '',
@@ -109,6 +111,7 @@ export default function EditRoutineScreen() {
           title: stepTitle,
           icon: stepIcon,
           duration: stepDuration,
+          minDuration: stepMinDuration,
           instruction: stepInstruction,
           required: stepRequired,
           mediaUri: stepMediaUri,
@@ -126,6 +129,7 @@ export default function EditRoutineScreen() {
       name,
       showNewStepForm,
       stepDuration,
+      stepMinDuration,
       stepIcon,
       stepInstruction,
       stepMediaUri,
@@ -142,6 +146,7 @@ export default function EditRoutineScreen() {
     setStepTitle('');
     setStepIcon('🪥');
     setStepDuration('2');
+    setStepMinDuration('0');
     setStepInstruction('');
     setStepRequired(true);
     setStepMediaUri('');
@@ -165,6 +170,7 @@ export default function EditRoutineScreen() {
     setStepTitle(step.title);
     setStepIcon(step.icon);
     setStepDuration(String(step.durationMinutes));
+    setStepMinDuration(String(step.minimumDurationMinutes ?? 0));
     setStepInstruction(step.instruction);
     setStepRequired(step.isRequired);
     setStepMediaUri(step.mediaUri ?? '');
@@ -180,7 +186,8 @@ export default function EditRoutineScreen() {
       title: stepTitle.trim(),
       icon: stepIcon,
       color,
-      durationMinutes: parseInt(stepDuration, 10) || 2,
+      durationMinutes: Math.max(0, parseInt(stepDuration, 10) || 0),
+      minimumDurationMinutes: Math.max(0, parseInt(stepMinDuration, 10) || 0),
       instruction: stepInstruction.trim(),
       isRequired: stepRequired,
       order: steps.length,
@@ -203,7 +210,8 @@ export default function EditRoutineScreen() {
               ...step,
               title: stepTitle.trim(),
               icon: stepIcon,
-              durationMinutes: parseInt(stepDuration, 10) || 2,
+              durationMinutes: Math.max(0, parseInt(stepDuration, 10) || 0),
+              minimumDurationMinutes: Math.max(0, parseInt(stepMinDuration, 10) || 0),
               instruction: stepInstruction.trim(),
               isRequired: stepRequired,
               mediaUri: stepMediaUri || undefined,
@@ -240,6 +248,7 @@ export default function EditRoutineScreen() {
       icon: template.icon,
       color,
       durationMinutes: template.durationMinutes,
+      minimumDurationMinutes: template.minimumDurationMinutes ?? 0,
       instruction: template.instruction,
       isRequired: template.isRequired,
       order: steps.length,
@@ -354,14 +363,28 @@ export default function EditRoutineScreen() {
         previewSize={60}
       />
 
-      <Text style={styles.sublabel}>Duree (minutes)</Text>
-      <TextInput
-        style={[styles.input, styles.inputSmall]}
-        value={stepDuration}
-        onChangeText={(value) => setStepDuration(value.replace(/[^0-9]/g, ''))}
-        keyboardType="number-pad"
-        maxLength={2}
-      />
+      <View style={styles.durationRow}>
+        <View style={styles.durationField}>
+          <Text style={styles.sublabel}>Duree (minutes)</Text>
+          <TextInput
+            style={[styles.input, styles.inputSmall]}
+            value={stepDuration}
+            onChangeText={(value) => setStepDuration(value.replace(/[^0-9]/g, ''))}
+            keyboardType="number-pad"
+            maxLength={2}
+          />
+        </View>
+        <View style={styles.durationField}>
+          <Text style={styles.sublabel}>Temps minimum</Text>
+          <TextInput
+            style={[styles.input, styles.inputSmall]}
+            value={stepMinDuration}
+            onChangeText={(value) => setStepMinDuration(value.replace(/[^0-9]/g, ''))}
+            keyboardType="number-pad"
+            maxLength={2}
+          />
+        </View>
+      </View>
 
       <Text style={styles.sublabel}>Consigne</Text>
       <TextInput
@@ -530,6 +553,9 @@ export default function EditRoutineScreen() {
                     <Text style={styles.stepMeta}>
                       {step.durationMinutes} min · {step.isRequired ? 'Obligatoire' : 'Facultatif'}
                     </Text>
+                    {step.minimumDurationMinutes ? (
+                      <Text style={styles.stepMeta}>Minimum {step.minimumDurationMinutes} min</Text>
+                    ) : null}
                   </View>
                 </View>
 
@@ -726,6 +752,14 @@ const styles = StyleSheet.create({
   },
   inputSmall: {
     width: 80,
+  },
+  durationRow: {
+    flexDirection: 'row',
+    gap: SPACING.md,
+    flexWrap: 'wrap',
+  },
+  durationField: {
+    alignItems: 'flex-start',
   },
   inputMultiline: {
     minHeight: 60,

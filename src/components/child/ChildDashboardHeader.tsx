@@ -388,7 +388,6 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
     marginBottom: SPACING.xs,
     marginTop: 0,
-    marginHorizontal: SPACING.md,
   },
   searchControl: {
     flex: 1.6,

@@ -88,6 +88,14 @@ function normalizeStep(step: unknown, index: number): RoutineStep | null {
   if (!title || !icon || !color) return null;
   if (typeof step.durationMinutes !== 'number' || !Number.isFinite(step.durationMinutes)) return null;
   if (step.durationMinutes < 0) return null;
+  if (
+    step.minimumDurationMinutes !== undefined &&
+    (typeof step.minimumDurationMinutes !== 'number' ||
+      !Number.isFinite(step.minimumDurationMinutes) ||
+      step.minimumDurationMinutes < 0)
+  ) {
+    return null;
+  }
   if (typeof step.isRequired !== 'boolean') return null;
 
   const providedOrder =
@@ -99,6 +107,10 @@ function normalizeStep(step: unknown, index: number): RoutineStep | null {
     icon,
     color,
     durationMinutes: Math.round(step.durationMinutes),
+    minimumDurationMinutes:
+      typeof step.minimumDurationMinutes === 'number'
+        ? Math.round(step.minimumDurationMinutes)
+        : 0,
     instruction,
     isRequired: step.isRequired,
     order: providedOrder,
@@ -210,6 +222,7 @@ export function createShareableRoutine(routine: Routine): ShareableRoutine {
           id: '',
           order: index,
           instruction: step.instruction?.trim() ?? '',
+          minimumDurationMinutes: step.minimumDurationMinutes ?? 0,
         })),
       isActive: routine.isActive,
       isFavorite: routine.isFavorite,

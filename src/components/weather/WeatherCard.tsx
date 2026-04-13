@@ -106,6 +106,12 @@ export function WeatherCard({ weather }: Props) {
   const secondaryColor = getWeatherSecondaryTextColor(weather.isDay);
   const isNightTheme = !weather.isDay;
   const isNightRoutine = !weather.isDay;
+  const daySurfacePrimary = 'rgba(255, 252, 247, 0.96)';
+  const daySurfaceSecondary = 'rgba(255, 247, 239, 0.94)';
+  const daySurfaceAccent = 'rgba(248, 239, 255, 0.92)';
+  const daySurfaceBlue = 'rgba(239, 247, 255, 0.92)';
+  const dayBorder = 'rgba(212, 223, 238, 0.9)';
+  const dayShadow = 'rgba(164, 182, 209, 0.18)';
   const outfitForecast = isNightRoutine ? weather.nightForecast : weather.dayForecast;
   const outfitTemperature = isNightRoutine ? outfitForecast.minTemperature : weather.temperature;
   const outfitCondition = isNightRoutine ? outfitForecast.dominantCondition : weather.condition;
@@ -117,13 +123,7 @@ export function WeatherCard({ weather }: Props) {
     isNightRoutine ? 'night' : 'day',
   );
   const temperatureLabel = `${weather.temperature}°C`;
-  const duplicatedWeatherExtraMap: Partial<Record<typeof weather.condition, OutfitVisualId>> = {
-    rain: 'pluie',
-    snow: 'neige',
-  };
-  const visibleExtras = outfitPlan.extras.filter(
-    (item) => item.id !== duplicatedWeatherExtraMap[weather.condition],
-  );
+  const visibleExtras = outfitPlan.extras;
   const isWideLayout = width >= 920;
   const clothingIconSize = isWideLayout ? 76 : 60;
 
@@ -132,14 +132,25 @@ export function WeatherCard({ weather }: Props) {
       entering={FadeIn.delay(150).duration(500)}
       style={[
         styles.card,
-        isNightTheme && {
-          backgroundColor: 'rgba(15,15,40,0.75)',
-          borderColor: 'rgba(255,255,255,0.12)',
-        },
+        isNightTheme
+          ? {
+              backgroundColor: 'rgba(15,15,40,0.75)',
+              borderColor: 'rgba(255,255,255,0.12)',
+            }
+          : {
+              backgroundColor: daySurfacePrimary,
+              borderColor: dayBorder,
+              shadowColor: dayShadow,
+            },
       ]}
     >
       <View style={[styles.topGrid, isWideLayout && styles.topGridWide]}>
-        <View style={[styles.weatherSummaryCard, isNightTheme && styles.surfaceNight]}>
+        <View
+          style={[
+            styles.weatherSummaryCard,
+            isNightTheme ? styles.surfaceNight : styles.daySummaryCard,
+          ]}
+        >
           <View style={styles.summaryRow}>
             <BouncingEmoji emoji={theme.emoji} />
             <View style={styles.summaryTextBlock}>
@@ -150,7 +161,12 @@ export function WeatherCard({ weather }: Props) {
           </View>
         </View>
 
-        <View style={[styles.storyCard, isNightTheme && styles.surfaceNight]}>
+        <View
+          style={[
+            styles.storyCard,
+            isNightTheme ? styles.surfaceNight : styles.dayStoryCard,
+          ]}
+        >
           <Text style={[styles.storyEyebrow, { color: secondaryColor }]}>
             {isNightRoutine ? 'Pour cette soiree' : "Aujourd'hui"}
           </Text>
@@ -159,7 +175,12 @@ export function WeatherCard({ weather }: Props) {
         </View>
 
         {visibleExtras.length > 0 ? (
-          <View style={[styles.extrasAside, isNightTheme && styles.surfaceNight]}>
+          <View
+            style={[
+              styles.extrasAside,
+              isNightTheme ? styles.surfaceNight : styles.dayExtrasAside,
+            ]}
+          >
             <Text style={[styles.extrasTitle, { color: secondaryColor }]}>
               En plus avec cette meteo
             </Text>
@@ -179,12 +200,22 @@ export function WeatherCard({ weather }: Props) {
         ) : null}
       </View>
 
-      <View style={[styles.mainPanel, isNightTheme && styles.mainPanelNight]}>
+      <View
+        style={[
+          styles.mainPanel,
+          isNightTheme ? styles.mainPanelNight : styles.dayMainPanel,
+        ]}
+      >
         <View style={styles.panelHeader}>
           <Text style={[styles.panelEyebrow, { color: secondaryColor }]}>Vêtements recommandés</Text>
         </View>
 
-        <View style={[styles.outfitSummaryCard, isNightTheme && styles.outfitSummaryCardNight]}>
+        <View
+          style={[
+            styles.outfitSummaryCard,
+            isNightTheme ? styles.outfitSummaryCardNight : styles.dayOutfitSummaryCard,
+          ]}
+        >
           {outfitPlan.tiles.map((tile, index) => (
             <OutfitTileInline
               key={`${index}-${tile.items.map((entry) => entry.id).join('-')}`}
@@ -205,15 +236,41 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: 'rgba(255,255,255,0.55)',
     borderRadius: RADIUS.xl,
-    padding: SPACING.sm,
+    padding: SPACING.md,
     marginBottom: SPACING.sm,
-    gap: SPACING.sm,
+    gap: SPACING.md,
     ...SHADOWS.sm,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.4)',
   },
   surfaceNight: {
     backgroundColor: 'rgba(255,255,255,0.10)',
+  },
+  daySummaryCard: {
+    backgroundColor: 'rgba(255, 245, 248, 0.95)',
+    borderWidth: 1,
+    borderColor: 'rgba(243, 209, 224, 0.9)',
+    borderRadius: RADIUS.xl,
+  },
+  dayStoryCard: {
+    backgroundColor: 'rgba(255, 250, 242, 0.96)',
+    borderWidth: 1,
+    borderColor: 'rgba(245, 224, 198, 0.9)',
+  },
+  dayExtrasAside: {
+    backgroundColor: 'rgba(245, 247, 255, 0.95)',
+    borderWidth: 1,
+    borderColor: 'rgba(214, 221, 244, 0.92)',
+  },
+  dayMainPanel: {
+    backgroundColor: 'rgba(251, 252, 255, 0.95)',
+    borderWidth: 1,
+    borderColor: 'rgba(225, 232, 246, 0.92)',
+  },
+  dayOutfitSummaryCard: {
+    backgroundColor: 'rgba(255,255,255,0.82)',
+    borderWidth: 1,
+    borderColor: 'rgba(230, 236, 246, 0.96)',
   },
   topGrid: {
     gap: SPACING.sm,
@@ -309,7 +366,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.xs,
-    backgroundColor: 'rgba(255,255,255,0.72)',
+    backgroundColor: 'rgba(255,255,255,0.88)',
     borderRadius: RADIUS.full,
     paddingVertical: SPACING.xs + 2,
     paddingHorizontal: SPACING.sm,
@@ -328,7 +385,7 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: 'rgba(255,255,255,0.6)',
     borderRadius: RADIUS.xl,
-    padding: SPACING.xs,
+    padding: SPACING.sm,
     gap: SPACING.sm,
   },
   mainPanelNight: {

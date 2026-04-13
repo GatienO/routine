@@ -194,6 +194,11 @@ export default function ImportScreen() {
                         <Text style={styles.previewStepText}>
                           {step.title} • {step.durationMinutes} min
                         </Text>
+                        {step.minimumDurationMinutes ? (
+                          <Text style={styles.previewStepText}>
+                            Minimum {step.minimumDurationMinutes} min
+                          </Text>
+                        ) : null}
                       </View>
                     ))}
                   </View>

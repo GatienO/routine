@@ -42,6 +42,7 @@ export interface RoutineStep {
   icon: string;
   color: string;
   durationMinutes: number;
+  minimumDurationMinutes?: number;
   instruction: string;
   isRequired: boolean;
   order: number;

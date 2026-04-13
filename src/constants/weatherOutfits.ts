@@ -214,11 +214,11 @@ function buildWeatherExtras(
   const extras: OutfitVisualId[] = [];
 
   if (forecast.hasRain || condition === 'rain') {
-    extras.push('parapluie', 'pluie');
+    extras.push('parapluie');
   }
 
   if (forecast.hasSnow || condition === 'snow') {
-    extras.push('neige', 'bonnet', 'gants');
+    extras.push('bonnet', 'gants');
   }
 
   if (forecast.hasThunderstorm || condition === 'thunderstorm') {

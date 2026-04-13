@@ -76,6 +76,9 @@ export function StepCatalogPicker({ accentColor, onSelect }: StepCatalogPickerPr
               <Text style={styles.itemMeta}>
                 {item.durationMinutes} min · {item.isRequired ? 'Obligatoire' : 'Facultatif'}
               </Text>
+              {item.minimumDurationMinutes ? (
+                <Text style={styles.itemMeta}>Minimum {item.minimumDurationMinutes} min</Text>
+              ) : null}
             </View>
             <PlusCircle size={20} weight="fill" color={accentColor} />
           </TouchableOpacity>

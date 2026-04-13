@@ -181,16 +181,23 @@ export default function RunRoutineScreen() {
 
   const STEP_START_LOCK_MS = 650;
 
-  const timerDuration = currentStep ? currentStep.durationMinutes * 60 : 0;
+  const minimumStepSeconds = currentStep ? (currentStep.minimumDurationMinutes ?? 0) * 60 : 0;
+  const timerDuration = currentStep
+    ? Math.max(currentStep.durationMinutes, currentStep.minimumDurationMinutes ?? 0) * 60
+    : 0;
   const timer = useTimer(timerDuration);
+  const elapsedStepSeconds = Math.max(0, timerDuration - timer.remaining);
+  const minimumTimeRemaining = Math.max(0, minimumStepSeconds - elapsedStepSeconds);
+  const isMinimumTimeReached = minimumStepSeconds === 0 || elapsedStepSeconds >= minimumStepSeconds;
+  const canConfirmStep = stepConfirmationEnabled && isMinimumTimeReached;
   const HOLD_TO_PAUSE_MS = 4000;
 
   useEffect(() => {
-    if (currentStep && currentStep.durationMinutes > 0) {
+    if (currentStep && timerDuration > 0) {
       timer.start();
     }
     return () => timer.stop();
-  }, [currentStepIndex]);
+  }, [currentStepIndex, timerDuration]);
 
   useEffect(() => {
     return () => {
@@ -234,6 +241,11 @@ export default function RunRoutineScreen() {
 
   const handleComplete = useCallback(async () => {
     if (!currentStep || !routine) {
+      isAdvancingStepRef.current = false;
+      completingStepIdRef.current = null;
+      return;
+    }
+    if (minimumStepSeconds > 0 && !isMinimumTimeReached) {
       isAdvancingStepRef.current = false;
       completingStepIdRef.current = null;
       return;
@@ -288,11 +300,13 @@ export default function RunRoutineScreen() {
     routine,
     router,
     totalSteps,
+    isMinimumTimeReached,
+    minimumStepSeconds,
   ]);
 
   const handleParticipantComplete = useCallback(
     async (childId: string) => {
-      if (!stepConfirmationEnabled || !currentStep) return;
+      if (!canConfirmStep || !currentStep) return;
 
       let acceptedPress = false;
       let shouldAdvance = false;
@@ -325,7 +339,7 @@ export default function RunRoutineScreen() {
         }, 140);
       }
     },
-    [currentStep, handleComplete, participantChildren.length, stepConfirmationEnabled],
+    [canConfirmStep, currentStep, handleComplete, participantChildren.length],
   );
 
   const handleQuit = () => {
@@ -401,7 +415,10 @@ export default function RunRoutineScreen() {
 
   const remainingMinutes = activeSteps
     .slice(currentStepIndex)
-    .reduce((sum, step) => sum + step.durationMinutes, 0);
+    .reduce(
+      (sum, step) => sum + Math.max(step.durationMinutes, step.minimumDurationMinutes ?? 0),
+      0,
+    );
   const endTime = (() => {
     const date = new Date();
     date.setMinutes(date.getMinutes() + remainingMinutes);
@@ -451,6 +468,20 @@ export default function RunRoutineScreen() {
               {confirmedChildIds.length} / {participantChildren.length} validation
               {participantChildren.length > 1 ? 's' : ''}
             </Text>
+            {minimumStepSeconds > 0 ? (
+              <Text
+                style={[
+                  styles.validationHintTop,
+                  styles.minimumTimeHint,
+                  isMinimumTimeReached && styles.minimumTimeHintReady,
+                ]}
+                selectable={false}
+              >
+                {isMinimumTimeReached
+                  ? 'Temps minimum atteint'
+                  : `Validation dans ${formatTime(minimumTimeRemaining)}`}
+              </Text>
+            ) : null}
           </View>
 
           <View style={styles.stageRow}>
@@ -460,7 +491,7 @@ export default function RunRoutineScreen() {
                   key={`${currentStep.id}-${child.id}`}
                   child={child}
                   confirmed={confirmedChildIds.includes(child.id)}
-                  disabled={!stepConfirmationEnabled}
+                  disabled={!canConfirmStep}
                   onPress={() => handleParticipantComplete(child.id)}
                   compact={compactParticipants}
                 />
@@ -489,7 +520,7 @@ export default function RunRoutineScreen() {
                 ) : null}
               </View>
 
-              {currentStep.durationMinutes > 0 ? (
+              {timerDuration > 0 ? (
                 <View style={styles.timerContainer}>
                   <CircularTimer
                     progress={timer.progress}
@@ -549,7 +580,7 @@ export default function RunRoutineScreen() {
                   key={`${currentStep.id}-${child.id}`}
                   child={child}
                   confirmed={confirmedChildIds.includes(child.id)}
-                  disabled={!stepConfirmationEnabled}
+                  disabled={!canConfirmStep}
                   onPress={() => handleParticipantComplete(child.id)}
                   compact={compactParticipants}
                 />
@@ -558,10 +589,23 @@ export default function RunRoutineScreen() {
           </View>
 
           {!currentStep.isRequired ? (
-            <TouchableOpacity onPress={handleComplete} style={styles.skipBtn}>
+            <TouchableOpacity
+              onPress={handleComplete}
+              style={[styles.skipBtn, !canConfirmStep && styles.skipBtnDisabled]}
+              disabled={!canConfirmStep}
+            >
               <View style={styles.skipRow}>
-                <Text style={styles.skipText} selectable={false}>Passer cette etape</Text>
-                <ArrowRight size={18} weight="bold" color={COLORS.textSecondary} />
+                <Text
+                  style={[styles.skipText, !canConfirmStep && styles.skipTextDisabled]}
+                  selectable={false}
+                >
+                  Passer cette etape
+                </Text>
+                <ArrowRight
+                  size={18}
+                  weight="bold"
+                  color={!canConfirmStep ? COLORS.textLight : COLORS.textSecondary}
+                />
               </View>
             </TouchableOpacity>
           ) : null}
@@ -820,9 +864,18 @@ const styles = StyleSheet.create({
     color: COLORS.textLight,
     textAlign: 'center',
   },
+  minimumTimeHint: {
+    color: COLORS.warning,
+  },
+  minimumTimeHintReady: {
+    color: COLORS.success,
+  },
   skipBtn: {
     alignItems: 'center',
     paddingVertical: SPACING.sm,
+  },
+  skipBtnDisabled: {
+    opacity: 0.5,
   },
   skipRow: {
     flexDirection: 'row',
@@ -833,5 +886,8 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.md,
     color: COLORS.textLight,
     fontWeight: '600',
+  },
+  skipTextDisabled: {
+    color: COLORS.textLight,
   },
 });

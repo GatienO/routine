@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useDeferredValue } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useDeferredValue } from 'react';
 import {
   View,
   Text,
@@ -9,11 +9,13 @@ import {
   ScrollView,
   useWindowDimensions,
   Platform,
+  Modal,
+  Pressable,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { BounceIn, FadeInUp } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
-import { CaretDown, CaretUp, ClipboardText, Gift, Rocket, Heart } from 'phosphor-react-native';
+import { CaretDown, CaretUp, Check, ClipboardText, Gift, Rocket, Heart } from 'phosphor-react-native';
 import { useChildrenStore } from '../../src/stores/childrenStore';
 import { useAppStore } from '../../src/stores/appStore';
 import { useRoutineStore } from '../../src/stores/routineStore';
@@ -38,6 +40,12 @@ const ROUTINES_PER_PAGE = 10;
 
 export type StatusFilterValue = 'active' | 'inactive';
 export type FavoriteFilterValue = 'all' | 'favorites' | 'others';
+type RoutineSortValue = 'recent' | 'alphabetical';
+
+const ROUTINE_SORT_OPTIONS: Array<{ key: RoutineSortValue; label: string }> = [
+  { key: 'recent', label: 'Plus recent' },
+  { key: 'alphabetical', label: 'Alphabetique' },
+];
 
 export default function ChildLauncherScreen() {
   const router = useRouter();
@@ -53,6 +61,10 @@ export default function ChildLauncherScreen() {
   const [selectedCategories, setSelectedCategories] = useState<CategoryFilterValue[]>([]);
   const [selectedStatuses, setSelectedStatuses] = useState<StatusFilterValue[]>([]);
   const [selectedFavorite, setSelectedFavorite] = useState<FavoriteFilterValue>('all');
+  const [selectedSort, setSelectedSort] = useState<RoutineSortValue>('recent');
+  const [showSortMenu, setShowSortMenu] = useState(false);
+  const [sortAnchor, setSortAnchor] = useState<{ x: number; y: number; width: number } | null>(null);
+  const sortButtonRef = useRef<any>(null);
 
   const weatherTheme = weather
     ? getWeatherTheme(weather.condition, weather.isDay)
@@ -106,8 +118,16 @@ export default function ChildLauncherScreen() {
           ].join(' ').toLowerCase();
           return haystack.includes(deferredSearch);
         })
-        .sort((a, b) => (b.isFavorite ? 1 : 0) - (a.isFavorite ? 1 : 0)),
-    [routines, selectedChildIds, selectedCategories, selectedStatuses, selectedFavorite, deferredSearch],
+        .sort((left, right) => {
+          if (selectedSort === 'alphabetical') {
+            return left.name.localeCompare(right.name, 'fr', { sensitivity: 'base' });
+          }
+
+          const leftTime = new Date(left.updatedAt).getTime();
+          const rightTime = new Date(right.updatedAt).getTime();
+          return rightTime - leftTime;
+        }),
+    [routines, selectedChildIds, selectedCategories, selectedStatuses, selectedFavorite, deferredSearch, selectedSort],
   );
 
   // Pagination
@@ -219,10 +239,32 @@ export default function ChildLauncherScreen() {
     setCurrentPage(1);
   };
 
+  const openSortMenu = () => {
+    const targetNode = sortButtonRef.current as unknown as {
+      measureInWindow?: (callback: (x: number, y: number, width: number, height: number) => void) => void;
+    } | null;
+
+    if (targetNode?.measureInWindow) {
+      targetNode.measureInWindow((x, y, measuredWidth, measuredHeight) => {
+        setSortAnchor({ x, y: y + measuredHeight + 8, width: measuredWidth });
+        setShowSortMenu(true);
+      });
+      return;
+    }
+
+    setSortAnchor(null);
+    setShowSortMenu(true);
+  };
+
+  const closeSortMenu = () => {
+    setShowSortMenu(false);
+    setSortAnchor(null);
+  };
+
   // Réinitialiser la page quand les filtres changent
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedChildIds, selectedCategories, deferredSearch]);
+  }, [selectedChildIds, selectedCategories, deferredSearch, selectedSort]);
 
   const handleContinue = () => {
     if (selectedRoutineIds.length === 0) return;
@@ -357,10 +399,34 @@ export default function ChildLauncherScreen() {
 
             {/* Titre et routines */}
             <View style={styles.routinesHeader}>
-              <Text style={[styles.routinesTitle, { color: textColor }]}>Routines</Text>
-              <Text style={[styles.routinesCount, { color: secondaryColor }]}>
-                {filteredRoutines.length} routine{filteredRoutines.length !== 1 ? 's' : ''}
-              </Text>
+              <View style={styles.routinesHeaderText}>
+                <Text style={[styles.routinesTitle, { color: textColor }]}>Routines</Text>
+                <Text style={[styles.routinesCount, { color: secondaryColor }]}>
+                  {filteredRoutines.length} routine{filteredRoutines.length !== 1 ? 's' : ''}
+                </Text>
+              </View>
+              <View style={styles.sortControlWrap}>
+                <TouchableOpacity
+                  ref={sortButtonRef}
+                  style={styles.sortButton}
+                  onPress={() => {
+                    if (showSortMenu) {
+                      closeSortMenu();
+                    } else {
+                      openSortMenu();
+                    }
+                  }}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.sortButtonLabel}>Tri</Text>
+                  <View style={styles.sortButtonRow}>
+                    <Text style={styles.sortButtonValue}>
+                      {ROUTINE_SORT_OPTIONS.find((option) => option.key === selectedSort)?.label ?? 'Plus recent'}
+                    </Text>
+                    <CaretDown size={16} weight="bold" color={COLORS.textSecondary} />
+                  </View>
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* Liste des routines paginée */}
@@ -450,6 +516,44 @@ export default function ChildLauncherScreen() {
             ) : null}
           </View>
         </ScrollView>
+
+        <Modal transparent visible={showSortMenu} animationType="none" onRequestClose={closeSortMenu}>
+          <Pressable style={styles.sortMenuBackdrop} onPress={closeSortMenu}>
+            <Pressable
+              style={[
+                styles.sortDropdownMenu,
+                {
+                  width: Math.max(180, sortAnchor?.width ?? 180),
+                  left: sortAnchor?.x ?? 0,
+                  top: sortAnchor?.y ?? 0,
+                },
+              ]}
+              onPress={(event) => event.stopPropagation()}
+            >
+              <Text style={styles.sortMenuTitle}>Tri des routines</Text>
+              {ROUTINE_SORT_OPTIONS.map((option) => {
+                const selected = option.key === selectedSort;
+
+                return (
+                  <TouchableOpacity
+                    key={option.key}
+                    style={[styles.sortOption, selected && styles.sortOptionSelected]}
+                    onPress={() => {
+                      setSelectedSort(option.key);
+                      closeSortMenu();
+                    }}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={[styles.sortOptionText, selected && styles.sortOptionTextSelected]}>
+                      {option.label}
+                    </Text>
+                    {selected ? <Check size={14} weight="bold" color="#FFF" /> : null}
+                  </TouchableOpacity>
+                );
+              })}
+            </Pressable>
+          </Pressable>
+        </Modal>
 
         <View
           style={[
@@ -708,6 +812,14 @@ const styles = StyleSheet.create({
   routinesHeader: {
     marginVertical: SPACING.md,
     marginBottom: SPACING.sm,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    gap: SPACING.md,
+    flexWrap: 'wrap',
+  },
+  routinesHeaderText: {
+    gap: 4,
   },
   routinesTitle: {
     fontSize: FONT_SIZE.lg,
@@ -717,6 +829,83 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.xs,
     fontWeight: '600',
     marginTop: 4,
+  },
+  sortButton: {
+    minWidth: 180,
+    borderRadius: RADIUS.lg,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.surfaceSecondary,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    gap: 3,
+    alignSelf: 'flex-start',
+  },
+  sortControlWrap: {
+    minWidth: 180,
+  },
+  sortButtonLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: COLORS.textLight,
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
+  sortButtonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: SPACING.sm,
+  },
+  sortButtonValue: {
+    flex: 1,
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  sortMenuBackdrop: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
+  sortDropdownMenu: {
+    position: 'absolute',
+    borderRadius: RADIUS.lg,
+    backgroundColor: '#FFFDF9',
+    borderWidth: 1,
+    borderColor: COLORS.surfaceSecondary,
+    paddingVertical: SPACING.xs,
+    ...SHADOWS.md,
+  },
+  sortMenuTitle: {
+    paddingHorizontal: SPACING.md,
+    paddingTop: SPACING.xs,
+    paddingBottom: SPACING.sm,
+    fontSize: 11,
+    fontWeight: '800',
+    color: COLORS.textLight,
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
+  sortOption: {
+    minHeight: 42,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: SPACING.sm,
+  },
+  sortOptionSelected: {
+    backgroundColor: '#1FA8E0',
+  },
+  sortOptionText: {
+    flex: 1,
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+  },
+  sortOptionTextSelected: {
+    color: '#FFF',
   },
   // Routines table
   routinesTable: {

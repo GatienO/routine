@@ -48,6 +48,7 @@ export default function CatalogScreen() {
         icon: step.icon,
         color: template.color,
         durationMinutes: step.durationMinutes,
+        minimumDurationMinutes: step.minimumDurationMinutes ?? 0,
         instruction: step.instruction,
         isRequired: step.isRequired,
         order: index,
@@ -151,6 +152,11 @@ export default function CatalogScreen() {
                   <Text style={styles.stepMeta}>
                     {step.durationMinutes} min · {step.isRequired ? 'Obligatoire' : 'Facultatif'}
                   </Text>
+                  {step.minimumDurationMinutes ? (
+                    <Text style={styles.stepInstruction}>
+                      Minimum {step.minimumDurationMinutes} min
+                    </Text>
+                  ) : null}
                   {step.instruction ? (
                     <Text style={styles.stepInstruction}>{step.instruction}</Text>
                   ) : null}

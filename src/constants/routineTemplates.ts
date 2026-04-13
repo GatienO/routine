@@ -4,6 +4,7 @@ export interface RoutineStepTemplate {
   title: string;
   icon: string;
   durationMinutes: number;
+  minimumDurationMinutes?: number;
   instruction: string;
   isRequired: boolean;
 }
