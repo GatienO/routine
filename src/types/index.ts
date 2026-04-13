@@ -1,4 +1,4 @@
-export type RoutineCategory = 'morning' | 'evening' | 'school' | 'home' | 'weekend' | 'custom';
+export type RoutineCategory = 'morning' | 'evening' | 'school' | 'home' | 'weekend' | 'emotion' | 'custom';
 
 export type ChildMoodType = 'playful' | 'happy' | 'motivated' | 'sad' | 'angry' | 'grumpy';
 

@@ -34,6 +34,7 @@ const WEB_SEARCH_INPUT_RESET = Platform.OS === 'web'
 
 export type StatusFilterValue = 'active' | 'inactive';
 export type CategoryFilterValue = RoutineCategory;
+export type SortMode = 'recent' | 'alphabetical';
 
 const STATUS_FILTERS: Array<{ key: StatusFilterValue; label: string }> = [
   { key: 'active', label: 'Actives' },
@@ -46,6 +47,7 @@ const CATEGORY_FILTERS: Array<{ key: CategoryFilterValue; label: string }> = [
   { key: 'school', label: 'Ecole' },
   { key: 'home', label: 'Maison' },
   { key: 'weekend', label: 'Week-end' },
+  { key: 'emotion', label: 'Emotions' },
   { key: 'custom', label: 'Custom' },
 ];
 
@@ -74,6 +76,8 @@ export const ParentDashboardHeader = memo(function ParentDashboardHeader({
   onOpenWeatherSettings,
   routinesExpanded,
   onToggleRoutinesExpanded,
+  sortMode,
+  onToggleSortMode,
 }: {
   children: Child[];
   selectedChildIds: string[];
@@ -99,6 +103,8 @@ export const ParentDashboardHeader = memo(function ParentDashboardHeader({
   onOpenWeatherSettings: () => void;
   routinesExpanded: boolean;
   onToggleRoutinesExpanded: () => void;
+  sortMode: SortMode;
+  onToggleSortMode: () => void;
 }) {
   const { width } = useWindowDimensions();
   const [openDropdown, setOpenDropdown] = useState<'status' | 'category' | null>(null);
@@ -207,18 +213,30 @@ export const ParentDashboardHeader = memo(function ParentDashboardHeader({
 
       <View style={styles.sectionHeaderCompact}>
         <Text style={styles.sectionTitle}>Routines</Text>
-        <TouchableOpacity
-          onPress={onToggleRoutinesExpanded}
-          style={styles.expandButton}
-          activeOpacity={0.82}
-        >
-          <Text style={styles.expandButtonText}>{routinesExpanded ? 'Masquer' : 'Afficher'}</Text>
-          {routinesExpanded ? (
-            <CaretUp size={16} weight="bold" color={COLORS.textSecondary} />
-          ) : (
-            <CaretDown size={16} weight="bold" color={COLORS.textSecondary} />
-          )}
-        </TouchableOpacity>
+        <View style={styles.sectionHeaderActions}>
+          <TouchableOpacity
+            onPress={onToggleRoutinesExpanded}
+            style={styles.expandButton}
+            activeOpacity={0.82}
+          >
+            <Text style={styles.expandButtonText}>{routinesExpanded ? 'Masquer' : 'Afficher'}</Text>
+            {routinesExpanded ? (
+              <CaretUp size={16} weight="bold" color={COLORS.textSecondary} />
+            ) : (
+              <CaretDown size={16} weight="bold" color={COLORS.textSecondary} />
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={onToggleSortMode}
+            style={styles.sortButton}
+            activeOpacity={0.82}
+          >
+            <Text style={styles.sortButtonLabel}>Tri</Text>
+            <Text style={styles.sortButtonValue}>
+              {sortMode === 'recent' ? 'Recents' : 'Alphabetique'}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {routinesExpanded ? (
@@ -570,6 +588,11 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
     marginBottom: SPACING.sm,
   },
+  sectionHeaderActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+  },
   sectionTitle: {
     fontSize: FONT_SIZE.lg,
     fontWeight: '800',
@@ -587,6 +610,28 @@ const styles = StyleSheet.create({
     borderColor: COLORS.surfaceSecondary,
   },
   expandButtonText: {
+    fontSize: FONT_SIZE.xs,
+    fontWeight: '800',
+    color: COLORS.textSecondary,
+  },
+  sortButton: {
+    minHeight: 34,
+    borderRadius: RADIUS.full,
+    paddingVertical: 4,
+    paddingHorizontal: SPACING.sm,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.surfaceSecondary,
+    justifyContent: 'center',
+  },
+  sortButtonLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: COLORS.textLight,
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
+  sortButtonValue: {
     fontSize: FONT_SIZE.xs,
     fontWeight: '800',
     color: COLORS.textSecondary,

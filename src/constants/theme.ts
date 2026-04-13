@@ -35,6 +35,7 @@ export const CATEGORY_CONFIG: Record<string, { label: string; icon: string; colo
   school: { label: 'École', icon: '🎒', color: '#74B9FF' },
   home: { label: 'Maison', icon: '🏠', color: '#55EFC4' },
   weekend: { label: 'Week-end', icon: '🎉', color: '#FD79A8' },
+  emotion: { label: 'Émotions', icon: '❤️', color: '#FB7185' },
   custom: { label: 'Personnalisé', icon: '✨', color: '#FDCB6E' },
 };
 

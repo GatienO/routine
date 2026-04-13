@@ -27,6 +27,7 @@ const CATEGORY_FILTERS: Array<{ key: CategoryFilterValue; label: string }> = [
   { key: 'school', label: 'Ecole' },
   { key: 'home', label: 'Maison' },
   { key: 'weekend', label: 'Week-end' },
+  { key: 'emotion', label: 'Emotions' },
   { key: 'custom', label: 'Custom' },
 ];
 

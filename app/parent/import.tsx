@@ -24,6 +24,7 @@ import { useChildrenStore } from '../../src/stores/childrenStore';
 import { useRoutineStore } from '../../src/stores/routineStore';
 import { backOrReplace } from '../../src/utils/navigation';
 import { formatChildName } from '../../src/utils/children';
+import { formatDuration } from '../../src/utils/date';
 
 export default function ImportScreen() {
   const router = useRouter();
@@ -192,11 +193,11 @@ export default function ImportScreen() {
                       <View key={`${step.title}-${index}`} style={styles.previewStepRow}>
                         <OpenMoji emoji={step.icon} size={20} />
                         <Text style={styles.previewStepText}>
-                          {step.title} • {step.durationMinutes} min
+                          {step.title} • {formatDuration(step.durationMinutes)}
                         </Text>
                         {step.minimumDurationMinutes ? (
                           <Text style={styles.previewStepText}>
-                            Minimum {step.minimumDurationMinutes} min
+                            Minimum {formatDuration(step.minimumDurationMinutes)}
                           </Text>
                         ) : null}
                       </View>

@@ -28,515 +28,978 @@ export interface RoutinePack {
   templates: RoutineTemplate[];
 }
 
-// ─── Pack 1 : Essentiels ───────────────────────────────────────
+const sec = (value: number) => value / 60;
 
-const reveilEnDouceur: RoutineTemplate = {
-  id: 'tpl-reveil-douceur',
-  name: 'Réveil en douceur',
-  description: 'Un lever calme et rassurant pour les tout-petits avec des gestes simples dès le réveil.',
-  icon: '🌞',
-  category: 'morning',
-  color: '#FDBA74',
-  ageRange: [2, 5],
-  steps: [
-    { title: 'Je me réveille', icon: '🌤️', durationMinutes: 2, instruction: 'On ouvre les yeux et on se lève doucement.', isRequired: true },
-    { title: 'Je vais aux toilettes', icon: '🚽', durationMinutes: 3, instruction: 'On commence par aller aux toilettes.', isRequired: true },
-    { title: 'Je me lave le visage', icon: '💦', durationMinutes: 2, instruction: 'Un petit coup d\'eau pour se réveiller.', isRequired: true },
-    { title: 'Je m\'habille', icon: '👕', durationMinutes: 5, instruction: 'On met ses vêtements du jour.', isRequired: true },
-    { title: 'Je mets mes chaussettes', icon: '🧦', durationMinutes: 2, instruction: 'N\'oublie pas les chaussettes.', isRequired: true },
-    { title: 'Je fais un câlin', icon: '🤗', durationMinutes: 1, instruction: 'Un câlin pour bien commencer la journée.', isRequired: false },
+function step(
+  title: string,
+  icon: string,
+  durationMinutes: number,
+  minimumDurationMinutes: number,
+  isRequired: boolean,
+  instruction = '',
+): RoutineStepTemplate {
+  return {
+    title,
+    icon,
+    durationMinutes,
+    minimumDurationMinutes,
+    instruction,
+    isRequired,
+  };
+}
+
+function template(
+  id: string,
+  name: string,
+  description: string,
+  icon: string,
+  category: RoutineCategory,
+  color: string,
+  ageRange: [number, number],
+  steps: RoutineStepTemplate[],
+): RoutineTemplate {
+  return {
+    id,
+    name,
+    description,
+    icon,
+    category,
+    color,
+    ageRange,
+    steps,
+  };
+}
+
+const reveilEnDouceur = template(
+  'tpl-reveil-douceur',
+  'Réveil en douceur',
+  'Démarrer la journée calmement',
+  '🌤️',
+  'morning',
+  '#FBBF24',
+  [2, 5],
+  [
+    step('Je me réveille doucement', '👀', 1, sec(30), true, 'Je m’étire dans mon lit'),
+    step('Je vais aux toilettes', '🚽', 2, 1, true),
+    step('Je me lave le visage', '💦', 2, 1, true, 'Je mouille, je frotte, j’essuie'),
+    step('Je m’habille', '👕', 5, 3, true),
+    step('Je fais un câlin', '🤗', 1, sec(30), false),
   ],
-};
+);
 
-const superMatin: RoutineTemplate = {
-  id: 'tpl-super-matin',
-  name: 'Super matin',
-  description: 'La routine complète du matin pour être prêt avant l’école ou la crèche.',
-  icon: '🌈',
-  category: 'morning',
-  color: '#FCD34D',
-  ageRange: [3, 7],
-  steps: [
-    { title: 'Je me lève', icon: '🛏️', durationMinutes: 2, instruction: '', isRequired: true },
-    { title: 'Je vais aux toilettes', icon: '🚽', durationMinutes: 3, instruction: '', isRequired: true },
-    { title: 'Je me lave le visage', icon: '💦', durationMinutes: 2, instruction: '', isRequired: true },
-    { title: 'Je m\'habille', icon: '👕', durationMinutes: 5, instruction: '', isRequired: true },
-    { title: 'Je me brosse les dents', icon: '🪥', durationMinutes: 2, instruction: '', isRequired: true },
-    { title: 'Je prends mon petit-déjeuner', icon: '🥣', durationMinutes: 10, instruction: '', isRequired: true },
-    { title: 'Je mets mes chaussures', icon: '👟', durationMinutes: 2, instruction: '', isRequired: true },
-    { title: 'Je prends mon sac', icon: '🎒', durationMinutes: 1, instruction: '', isRequired: true },
+const superMatin = template(
+  'tpl-super-matin',
+  'Super matin',
+  'Routine complète avant de partir',
+  '☀️',
+  'morning',
+  '#F59E0B',
+  [3, 7],
+  [
+    step('Je me lève', '👣', 1, sec(30), true),
+    step('Je vais aux toilettes', '🚽', 2, 1, true),
+    step('Je me lave le visage', '💦', 2, 1, true),
+    step('Je m’habille', '👕', 5, 3, true),
+    step(
+      'Je me brosse les dents',
+      '🪥',
+      2,
+      1,
+      true,
+      'Je brosse devant, derrière, en haut et en bas',
+    ),
+    step('Je prends mon petit-déjeuner', '🥣', 10, 5, true),
+    step('Je mets mes chaussures', '👟', 2, 1, true),
+    step('Je prends mon sac', '🎒', sec(30), sec(10), true),
   ],
-};
+);
 
-const dodoTranquille: RoutineTemplate = {
-  id: 'tpl-dodo-tranquille',
-  name: 'Dodo tranquille',
-  description: 'Un enchaînement doux pour ralentir, se préparer et aller au lit sereinement.',
-  icon: '🌙',
-  category: 'evening',
-  color: '#818CF8',
-  ageRange: [2, 5],
-  steps: [
-    { title: 'Je range mes jouets', icon: '🧸', durationMinutes: 5, instruction: '', isRequired: true },
-    { title: 'Je mets mon pyjama', icon: '🩳', durationMinutes: 3, instruction: '', isRequired: true },
-    { title: 'Je vais aux toilettes', icon: '🚽', durationMinutes: 2, instruction: '', isRequired: true },
-    { title: 'Je me brosse les dents', icon: '🪥', durationMinutes: 2, instruction: '', isRequired: true },
-    { title: 'Je lis une histoire', icon: '📖', durationMinutes: 10, instruction: '', isRequired: true },
-    { title: 'Je fais un câlin', icon: '🤍', durationMinutes: 1, instruction: '', isRequired: false },
-    { title: 'J\'éteins la lumière', icon: '💡', durationMinutes: 1, instruction: '', isRequired: true },
+const pretPourEcole = template(
+  'tpl-pret-pour-ecole',
+  'Prêt pour l’école',
+  'Se préparer pour partir à l’école ou à la crèche',
+  '🎒',
+  'school',
+  '#60A5FA',
+  [3, 7],
+  [
+    step('Je m’habille', '👕', 5, 3, true),
+    step('Je déjeune', '🥣', 10, 5, true),
+    step('Je me brosse les dents', '🪥', 2, 1, true),
+    step('Je mets mes chaussures', '👟', 2, 1, true),
+    step('Je prends mon manteau', '🧥', 1, sec(30), true),
+    step('Je prends mon sac', '🎒', sec(30), sec(10), true),
+    step('Je dis au revoir', '👋', sec(30), sec(10), false),
   ],
-};
+);
 
-const pretPourEcole: RoutineTemplate = {
-  id: 'tpl-pret-ecole',
-  name: 'Prêt pour l\'école',
-  description: 'Toutes les étapes essentielles pour partir de la maison sans rien oublier.',
-  icon: '🎒',
-  category: 'school',
-  color: '#60A5FA',
-  ageRange: [3, 7],
-  steps: [
-    { title: 'Je m\'habille', icon: '👕', durationMinutes: 5, instruction: '', isRequired: true },
-    { title: 'Je déjeune', icon: '🍞', durationMinutes: 10, instruction: '', isRequired: true },
-    { title: 'Je me brosse les dents', icon: '🪥', durationMinutes: 2, instruction: '', isRequired: true },
-    { title: 'Je mets mes chaussures', icon: '👟', durationMinutes: 2, instruction: '', isRequired: true },
-    { title: 'Je prends mon manteau', icon: '🧥', durationMinutes: 1, instruction: '', isRequired: true },
-    { title: 'Je prends mon sac', icon: '🎒', durationMinutes: 1, instruction: '', isRequired: true },
-    { title: 'Je suis prêt à partir', icon: '🚪', durationMinutes: 1, instruction: '', isRequired: true },
+const dodoTranquilleEssentiels = template(
+  'tpl-dodo-tranquille-essentiels',
+  'Dodo tranquille',
+  'Routine du coucher apaisante',
+  '🌙',
+  'evening',
+  '#818CF8',
+  [2, 6],
+  [
+    step('Je range mes jouets', '🧸', 5, 2, true),
+    step('Je mets mon pyjama', '👕', 3, 2, true),
+    step('Je vais aux toilettes', '🚽', 2, 1, true),
+    step('Je me brosse les dents', '🪥', 2, 1, true),
+    step('Je lis une histoire', '📖', 5, 3, false),
+    step('Je fais un câlin', '🤗', 1, sec(30), false),
+    step('J’éteins la lumière', '💡', sec(10), sec(5), true),
   ],
-};
+);
 
-const missionRangement: RoutineTemplate = {
-  id: 'tpl-mission-rangement',
-  name: 'Mission rangement',
-  description: 'Une routine courte et motivante pour remettre la chambre en ordre en plusieurs mini-missions.',
-  icon: '🧺',
-  category: 'home',
-  color: '#F59E0B',
-  ageRange: [2, 6],
-  steps: [
-    { title: 'Je ramasse les peluches', icon: '🧸', durationMinutes: 3, instruction: '', isRequired: true },
-    { title: 'Je range les voitures', icon: '🚗', durationMinutes: 3, instruction: '', isRequired: true },
-    { title: 'Je range les livres', icon: '📚', durationMinutes: 3, instruction: '', isRequired: true },
-    { title: 'Je range les cubes', icon: '🧱', durationMinutes: 3, instruction: '', isRequired: true },
-    { title: 'Ma chambre est rangée', icon: '✨', durationMinutes: 1, instruction: '', isRequired: true },
+const missionRangement = template(
+  'tpl-mission-rangement',
+  'Mission rangement',
+  'Ranger sa chambre simplement',
+  '🧹',
+  'home',
+  '#34D399',
+  [2, 6],
+  [
+    step('Je ramasse les peluches', '🧸', 2, 1, true),
+    step('Je range les voitures', '🚗', 2, 1, true),
+    step('Je range les livres', '📚', 2, 1, true),
+    step('Je range les cubes', '🧱', 2, 1, true),
+    step('Ma chambre est rangée', '✅', sec(10), sec(5), true),
   ],
-};
+);
 
-// ─── Pack 2 : Autonomie ────────────────────────────────────────
-
-const jeMhabilleSeul: RoutineTemplate = {
-  id: 'tpl-habille-seul',
-  name: 'Je m\'habille seul',
-  description: 'Pour apprendre à s’habiller étape par étape et gagner en autonomie.',
-  icon: '👚',
-  category: 'home',
-  color: '#2DD4BF',
-  ageRange: [3, 6],
-  steps: [
-    { title: 'Je mets mon sous-vêtement', icon: '🩲', durationMinutes: 2, instruction: '', isRequired: true },
-    { title: 'Je mets mon pantalon', icon: '👖', durationMinutes: 2, instruction: '', isRequired: true },
-    { title: 'Je mets mon t-shirt', icon: '👕', durationMinutes: 2, instruction: '', isRequired: true },
-    { title: 'Je mets mon pull', icon: '🧥', durationMinutes: 2, instruction: '', isRequired: true },
-    { title: 'Je mets mes chaussettes', icon: '🧦', durationMinutes: 2, instruction: '', isRequired: true },
+const aTable = template(
+  'tpl-a-table',
+  'À table',
+  'Bien commencer le repas',
+  '🍽️',
+  'home',
+  '#FB923C',
+  [2, 5],
+  [
+    step('Je me lave les mains', '🧼', 2, 1, true),
+    step('Je m’assois à table', '🪑', sec(30), sec(10), true),
+    step('Je mets ma serviette', '🧻', sec(30), sec(10), true),
+    step('Je suis prêt à manger', '🍽️', sec(10), sec(5), true),
   ],
-};
+);
 
-const dentsPropres: RoutineTemplate = {
-  id: 'tpl-dents-propres',
-  name: 'Dents propres',
-  description: 'Un petit parcours guidé pour bien se brosser les dents du début à la fin.',
-  icon: '🪥',
-  category: 'home',
-  color: '#22C55E',
-  ageRange: [2, 7],
-  steps: [
-    { title: 'Je prends ma brosse à dents', icon: '🪥', durationMinutes: 1, instruction: '', isRequired: true },
-    { title: 'Je mets le dentifrice', icon: '✨', durationMinutes: 1, instruction: '', isRequired: true },
-    { title: 'Je brosse en haut', icon: '😁', durationMinutes: 1, instruction: '', isRequired: true },
-    { title: 'Je brosse en bas', icon: '😬', durationMinutes: 1, instruction: '', isRequired: true },
-    { title: 'Je rince ma bouche', icon: '💦', durationMinutes: 1, instruction: '', isRequired: true },
-    { title: 'Je range ma brosse', icon: '🫧', durationMinutes: 1, instruction: '', isRequired: true },
+const finDuRepas = template(
+  'tpl-fin-du-repas',
+  'Fin du repas',
+  'Terminer le repas proprement',
+  '🍴',
+  'home',
+  '#F97316',
+  [2, 6],
+  [
+    step('J’apporte mon assiette', '🍽️', 1, sec(30), false),
+    step('J’essuie ma bouche', '🧻', sec(30), sec(10), true),
+    step('Je me lave les mains', '🧼', 2, 1, true),
+    step('Je retourne jouer calmement', '🧸', 1, sec(30), false),
   ],
-};
+);
 
-const mainsPropres: RoutineTemplate = {
-  id: 'tpl-mains-propres',
-  name: 'Mains toutes propres',
-  description: 'Une routine d’hygiène simple pour apprendre le lavage des mains correctement.',
-  icon: '🫧',
-  category: 'home',
-  color: '#38BDF8',
-  ageRange: [2, 5],
-  steps: [
-    { title: 'J\'ouvre l\'eau', icon: '🚰', durationMinutes: 1, instruction: '', isRequired: true },
-    { title: 'Je mets du savon', icon: '🧼', durationMinutes: 1, instruction: '', isRequired: true },
-    { title: 'Je frotte mes mains', icon: '🙌', durationMinutes: 1, instruction: '', isRequired: true },
-    { title: 'Je rince', icon: '💦', durationMinutes: 1, instruction: '', isRequired: true },
-    { title: 'J\'essuie', icon: '🧻', durationMinutes: 1, instruction: '', isRequired: true },
-    { title: 'Je ferme l\'eau', icon: '✅', durationMinutes: 1, instruction: '', isRequired: true },
+const onSort = template(
+  'tpl-on-sort',
+  'On sort',
+  'Se préparer pour sortir',
+  '🚪',
+  'weekend',
+  '#38BDF8',
+  [2, 7],
+  [
+    step('Je vais aux toilettes', '🚽', 2, 1, true),
+    step('Je m’habille', '👕', 5, 3, true),
+    step('Je mets mes chaussures', '👟', 2, 1, true),
+    step('Je prends mon manteau', '🧥', 1, sec(30), true),
+    step('Je prends ma gourde', '🧴', sec(30), sec(10), false),
   ],
-};
+);
 
-const prepareMesAffaires: RoutineTemplate = {
-  id: 'tpl-prepare-affaires',
-  name: 'Je prépare mes affaires',
-  description: 'Idéal pour vérifier sac, manteau et gourde avant une sortie ou l’école.',
-  icon: '🎒',
-  category: 'school',
-  color: '#4ADE80',
-  ageRange: [4, 7],
-  steps: [
-    { title: 'Je prends mon sac', icon: '🎒', durationMinutes: 1, instruction: '', isRequired: true },
-    { title: 'Je mets mon doudou si besoin', icon: '🧸', durationMinutes: 1, instruction: '', isRequired: false },
-    { title: 'Je vérifie ma gourde', icon: '🥤', durationMinutes: 1, instruction: '', isRequired: true },
-    { title: 'Je prends mon manteau', icon: '🧥', durationMinutes: 1, instruction: '', isRequired: true },
-    { title: 'Tout est prêt', icon: '✅', durationMinutes: 1, instruction: '', isRequired: true },
+const retourMaison = template(
+  'tpl-retour-maison',
+  'Retour à la maison',
+  'Se poser en rentrant',
+  '🏠',
+  'home',
+  '#4ADE80',
+  [2, 7],
+  [
+    step('J’enlève mes chaussures', '👟', 1, sec(30), true),
+    step('J’enlève mon manteau', '🧥', 1, sec(30), true),
+    step('Je pose mes affaires', '🎒', 1, sec(30), true),
+    step('Je me lave les mains', '🧼', 2, 1, true),
   ],
-};
+);
 
-// ─── Pack 3 : Bien-être ────────────────────────────────────────
-
-const routineCalme: RoutineTemplate = {
-  id: 'tpl-routine-calme',
-  name: 'Routine calme',
-  description: 'Une routine du soir complète pour ralentir, respirer, se rassurer et glisser doucement vers le sommeil.',
-  icon: '🌙',
-  category: 'evening',
-  color: '#9B8CFF',
-  ageRange: [3, 8],
-  steps: [
-    { title: 'Je respire doucement', icon: '🫁', durationMinutes: 3, instruction: 'On inspire lentement puis on souffle doucement.', isRequired: true },
-    { title: 'Je scanne mon corps', icon: '🧘', durationMinutes: 3, instruction: 'On relâche les pieds, les jambes, le ventre puis les épaules.', isRequired: true },
-    { title: 'J’imagine un endroit calme', icon: '🧠', durationMinutes: 3, instruction: 'Pense à un nuage doux, une plage calme ou un coin rassurant.', isRequired: true },
-    { title: 'Je serre mon doudou', icon: '🧸', durationMinutes: 2, instruction: 'Le doudou aide à se sentir en sécurité.', isRequired: false },
-    { title: 'J’écoute une mini-histoire', icon: '📖', durationMinutes: 5, instruction: 'Une histoire courte avec une voix calme et lente.', isRequired: true },
-    { title: 'Je dis merci pour ma journée', icon: '💛', durationMinutes: 1, instruction: 'On pense à une chose agréable vécue aujourd’hui.', isRequired: false },
+const matinExpress = template(
+  'tpl-matin-express',
+  'Matin express',
+  'Version rapide du matin',
+  '⚡',
+  'morning',
+  '#FACC15',
+  [3, 7],
+  [
+    step('Je m’habille', '👕', 3, 2, true),
+    step('Je me brosse les dents', '🪥', 2, 1, true),
+    step('Je mets mes chaussures', '👟', 1, sec(30), true),
+    step('Je prends mon sac', '🎒', sec(30), sec(10), true),
   ],
-};
+);
 
-const respirationGuidee: RoutineTemplate = {
-  id: 'tpl-respiration-guidee',
-  name: 'Respiration guidée',
-  description: 'Une routine courte pour respirer lentement, apaiser le stress et préparer le coucher.',
-  icon: '🫁',
-  category: 'evening',
-  color: '#7DD3FC',
-  ageRange: [3, 8],
-  steps: [
-    { title: 'Je pose mes mains', icon: '🤲', durationMinutes: 1, instruction: 'Une main sur le ventre, une main sur la poitrine.', isRequired: true },
-    { title: 'J’inspire 5 secondes', icon: '⬆️', durationMinutes: 2, instruction: 'On gonfle doucement le ventre.', isRequired: true },
-    { title: 'J’expire 5 secondes', icon: '⬇️', durationMinutes: 2, instruction: 'On souffle lentement comme sur une bougie.', isRequired: true },
-    { title: 'Je refais 5 cycles', icon: '🔁', durationMinutes: 2, instruction: 'Toujours calmement et sans forcer.', isRequired: true },
+const dodoExpress = template(
+  'tpl-dodo-express',
+  'Dodo express',
+  'Routine rapide du coucher',
+  '😴',
+  'evening',
+  '#A78BFA',
+  [3, 7],
+  [
+    step('Pyjama', '👕', 2, 1, true),
+    step('Toilettes', '🚽', 2, 1, true),
+    step('Brossage de dents', '🪥', 2, 1, true),
+    step('Au lit', '🛏️', sec(30), sec(10), true),
   ],
-};
+);
 
-const scanCorporel: RoutineTemplate = {
-  id: 'tpl-scan-corporel',
-  name: 'Scan corporel',
-  description: 'L’enfant observe son corps des pieds à la tête pour relâcher les tensions.',
-  icon: '🧘',
-  category: 'evening',
-  color: '#A7F3D0',
-  ageRange: [4, 8],
-  steps: [
-    { title: 'Je ferme les yeux', icon: '😌', durationMinutes: 1, instruction: 'On s’installe confortablement.', isRequired: true },
-    { title: 'Je sens mes pieds', icon: '🦶', durationMinutes: 1, instruction: 'Je relâche mes pieds et mes jambes.', isRequired: true },
-    { title: 'Je sens mon ventre', icon: '🌿', durationMinutes: 1, instruction: 'Je laisse mon ventre devenir tout calme.', isRequired: true },
-    { title: 'Je relâche mes épaules', icon: '💆', durationMinutes: 1, instruction: 'Mes épaules deviennent toutes légères.', isRequired: true },
-    { title: 'Je sens ma tête calme', icon: '☁️', durationMinutes: 1, instruction: 'Tout mon corps peut se reposer.', isRequired: true },
+const habilleChaudement = template(
+  'tpl-habille-chaudement',
+  'Je m’habille chaudement',
+  'S’habiller selon la météo',
+  '🧣',
+  'school',
+  '#22C55E',
+  [2, 7],
+  [
+    step('Je mets mon manteau', '🧥', 1, sec(30), true),
+    step('Je mets mon bonnet', '🧢', sec(30), sec(10), false),
+    step('Je mets mon écharpe', '🧣', 1, sec(30), false),
+    step('Je mets mes gants', '🧤', 1, sec(30), false),
   ],
-};
+);
 
-const visualisationCalme: RoutineTemplate = {
-  id: 'tpl-visualisation-calme',
-  name: 'Visualisation calme',
-  description: 'Une petite routine d’imagination pour calmer les pensées et se sentir rassuré.',
-  icon: '🧠',
-  category: 'evening',
-  color: '#C4B5FD',
-  ageRange: [3, 8],
-  steps: [
-    { title: 'Je ferme les yeux', icon: '🌙', durationMinutes: 1, instruction: 'Je prends une position confortable.', isRequired: true },
-    { title: 'J’imagine un nuage doux', icon: '☁️', durationMinutes: 2, instruction: 'Le nuage me porte doucement.', isRequired: true },
-    { title: 'Je pense à un lieu calme', icon: '🏖️', durationMinutes: 2, instruction: 'Une plage, une cabane ou un jardin paisible.', isRequired: true },
-    { title: 'Je garde cette image', icon: '✨', durationMinutes: 1, instruction: 'Je laisse mon corps se détendre.', isRequired: true },
+const preparerSonSac = template(
+  'tpl-preparer-son-sac',
+  'Préparer son sac',
+  'Vérifier ses affaires',
+  '🎒',
+  'school',
+  '#3B82F6',
+  [3, 7],
+  [
+    step('Je prends mon sac', '🎒', sec(30), sec(10), true),
+    step('Je vérifie mon doudou', '🧸', sec(30), sec(10), false),
+    step('Je vérifie ma gourde', '🧴', sec(30), sec(10), true),
+    step('Je vérifie mes affaires', '📦', 1, sec(30), true),
   ],
-};
+);
 
-const miniHistoireSoir: RoutineTemplate = {
-  id: 'tpl-mini-histoire-soir',
-  name: 'Mini histoire du soir',
-  description: 'Une histoire courte et répétitive pour installer un repère apaisant avant le sommeil.',
-  icon: '📖',
-  category: 'evening',
-  color: '#F9A8D4',
-  ageRange: [2, 7],
-  steps: [
-    { title: 'Je m’installe dans le calme', icon: '🛏️', durationMinutes: 1, instruction: 'On s’allonge ou on s’assoit confortablement.', isRequired: true },
-    { title: 'J’écoute une histoire courte', icon: '📚', durationMinutes: 4, instruction: 'Une histoire douce avec un rythme lent.', isRequired: true },
-    { title: 'Je respire à la fin', icon: '🌬️', durationMinutes: 1, instruction: 'On termine avec deux grandes respirations.', isRequired: false },
+const pauseToilette = template(
+  'tpl-pause-toilette',
+  'Pause toilette',
+  'Routine hygiène simple',
+  '🚽',
+  'home',
+  '#06B6D4',
+  [2, 6],
+  [
+    step('Je vais aux toilettes', '🚽', 2, 1, true),
+    step('Je m’essuie', '🧻', 1, sec(30), true),
+    step('Je tire la chasse', '🚿', sec(10), sec(5), true),
+    step('Je me lave les mains', '🧼', 2, 1, true),
   ],
-};
+);
 
-const gratitudeSoir: RoutineTemplate = {
-  id: 'tpl-gratitude-soir',
-  name: 'Merci pour aujourd’hui',
-  description: 'Une mini-routine émotionnelle pour finir la journée sur une pensée positive.',
-  icon: '💛',
-  category: 'evening',
-  color: '#FDE68A',
-  ageRange: [3, 8],
-  steps: [
-    { title: 'Je pense à un bon moment', icon: '😊', durationMinutes: 1, instruction: 'Quel moment j’ai aimé aujourd’hui ?', isRequired: true },
-    { title: 'Je dis merci', icon: '🙏', durationMinutes: 1, instruction: 'Merci pour une personne, un jeu ou un câlin.', isRequired: true },
-    { title: 'Je garde ce souvenir', icon: '⭐', durationMinutes: 1, instruction: 'Je m’endors avec cette pensée douce.', isRequired: false },
+const tempsCalme = template(
+  'tpl-temps-calme',
+  'Temps calme',
+  'Faire une pause',
+  '🧘',
+  'home',
+  '#A78BFA',
+  [2, 7],
+  [
+    step('Je m’assois calmement', '🪑', 1, sec(30), true),
+    step('Je respire doucement', '🌬️', 1, sec(30), false),
+    step('Je regarde un livre', '📖', 5, 2, false),
   ],
-};
+);
 
-const momentDoudou: RoutineTemplate = {
-  id: 'tpl-moment-doudou',
-  name: 'Moment doudou',
-  description: 'Une routine toute simple avec l’objet rassurant pour favoriser l’auto-apaisement.',
-  icon: '🧸',
-  category: 'evening',
-  color: '#FDBA74',
-  ageRange: [2, 6],
-  steps: [
-    { title: 'Je prends mon doudou', icon: '🧸', durationMinutes: 1, instruction: 'Je choisis mon objet rassurant.', isRequired: true },
-    { title: 'Je le serre contre moi', icon: '🤗', durationMinutes: 2, instruction: 'Je respire doucement avec lui.', isRequired: true },
-    { title: 'Je me couche avec lui', icon: '🛌', durationMinutes: 1, instruction: 'Mon doudou reste avec moi pour la nuit.', isRequired: true },
+const jeMhabilleSeul = template(
+  'tpl-je-mhabille-seul',
+  'Je m’habille seul',
+  'Apprendre à s’habiller étape par étape',
+  '👕',
+  'home',
+  '#2DD4BF',
+  [3, 6],
+  [
+    step('Je mets mon sous-vêtement', '🩲', 2, 1, true, 'Je mets dans le bon sens'),
+    step('Je mets mon pantalon', '👖', 3, 2, true, 'Je cherche le devant'),
+    step('Je mets mon t-shirt', '👕', 3, 2, true, 'Je passe la tête puis les bras'),
+    step('Je mets mon pull', '🧥', 3, 2, false),
+    step('Je mets mes chaussettes', '🧦', 2, 1, true),
   ],
-};
+);
 
-const deconnexionDouce: RoutineTemplate = {
-  id: 'tpl-deconnexion-douce',
-  name: 'Déconnexion douce',
-  description: 'Une routine pour baisser la lumière, couper les écrans et annoncer le calme du soir.',
-  icon: '📴',
-  category: 'evening',
-  color: '#94A3B8',
-  ageRange: [3, 8],
-  steps: [
-    { title: 'J’éteins les écrans', icon: '📺', durationMinutes: 1, instruction: 'La télé et la tablette se reposent aussi.', isRequired: true },
-    { title: 'Je baisse la lumière', icon: '🕯️', durationMinutes: 1, instruction: 'On garde une ambiance douce et calme.', isRequired: true },
-    { title: 'Je parle doucement', icon: '🤫', durationMinutes: 1, instruction: 'On passe en mode calme.', isRequired: true },
+const chaussuresSeul = template(
+  'tpl-chaussures-seul',
+  'Je mets mes chaussures seul',
+  'Apprendre à mettre ses chaussures correctement',
+  '👟',
+  'school',
+  '#60A5FA',
+  [3, 6],
+  [
+    step('Je reconnais gauche et droite', '↔️', 1, sec(30), false, 'Je regarde les dessins ou formes'),
+    step('Je mets mes chaussures', '👟', 2, 1, true),
+    step('Je ferme mes chaussures', '🔒', 2, 1, true, 'Scratch ou fermeture'),
   ],
-};
+);
 
-const sonsApaisants: RoutineTemplate = {
-  id: 'tpl-sons-apaisants',
-  name: 'Sons apaisants',
-  description: 'Des sons doux ou un bruit blanc pour stabiliser l’ambiance et faciliter l’endormissement.',
-  icon: '🎵',
-  category: 'evening',
-  color: '#86EFAC',
-  ageRange: [2, 8],
-  steps: [
-    { title: 'Je m’installe', icon: '🛏️', durationMinutes: 1, instruction: 'Je me mets bien dans mon lit.', isRequired: true },
-    { title: 'J’écoute un son doux', icon: '🎶', durationMinutes: 3, instruction: 'Une musique lente ou un bruit blanc.', isRequired: true },
-    { title: 'Je respire tranquillement', icon: '🌬️', durationMinutes: 2, instruction: 'Le son m’aide à rester calme.', isRequired: false },
+const dentsPropres = template(
+  'tpl-dents-propres',
+  'Dents propres',
+  'Se brosser les dents correctement',
+  '🪥',
+  'home',
+  '#22C55E',
+  [2, 7],
+  [
+    step('Je prends ma brosse à dents', '🪥', sec(30), sec(10), true),
+    step('Je mets le dentifrice', '🧴', sec(30), sec(10), true, 'Petite quantité'),
+    step('Je brosse en haut', '⬆️', 1, sec(30), true),
+    step('Je brosse en bas', '⬇️', 1, sec(30), true),
+    step('Je rince ma bouche', '💧', sec(30), sec(10), true),
+    step('Je range ma brosse', '🧼', sec(30), sec(10), true),
   ],
-};
+);
 
-const matinTranquille: RoutineTemplate = {
-  id: 'tpl-matin-tranquille',
-  name: 'Matin tranquille',
-  description: 'Une version plus souple du matin, parfaite pour les week-ends ou les jours sans pression.',
-  icon: '🐥',
-  category: 'weekend',
-  color: '#FDE68A',
-  ageRange: [2, 7],
-  steps: [
-    { title: 'Je me lève doucement', icon: '🌞', durationMinutes: 2, instruction: '', isRequired: true },
-    { title: 'Je vais aux toilettes', icon: '🚽', durationMinutes: 3, instruction: '', isRequired: true },
-    { title: 'Je m\'habille', icon: '👕', durationMinutes: 5, instruction: '', isRequired: true },
-    { title: 'Je déjeune', icon: '🥣', durationMinutes: 10, instruction: '', isRequired: true },
-    { title: 'Je choisis une activité', icon: '🎨', durationMinutes: 2, instruction: '', isRequired: false },
+const mainsPropres = template(
+  'tpl-mains-propres',
+  'Mains toutes propres',
+  'Se laver les mains correctement',
+  '🧼',
+  'home',
+  '#06B6D4',
+  [2, 6],
+  [
+    step('J’ouvre l’eau', '🚿', sec(10), sec(5), true),
+    step('Je mets du savon', '🧴', sec(10), sec(5), true),
+    step('Je frotte mes mains', '👐', sec(20), sec(10), true, 'Entre les doigts aussi'),
+    step('Je rince', '💧', sec(10), sec(5), true),
+    step('J’essuie mes mains', '🧻', sec(20), sec(10), true),
+    step('Je ferme l’eau', '🚰', sec(5), sec(2), true),
   ],
-};
+);
 
-// ─── Bonus templates (hors packs) ──────────────────────────────
-
-const bonneNuitZen: RoutineTemplate = {
-  id: 'tpl-bonne-nuit-zen',
-  name: 'Bonne nuit zen',
-  description: 'Une routine du soir plus complète avec bain, respiration et histoire avant de dormir.',
-  icon: '😴',
-  category: 'evening',
-  color: '#A78BFA',
-  ageRange: [3, 7],
-  steps: [
-    { title: 'Je range ma chambre', icon: '🧺', durationMinutes: 5, instruction: '', isRequired: true },
-    { title: 'Je prends mon bain', icon: '🛁', durationMinutes: 10, instruction: '', isRequired: true },
-    { title: 'Je mets mon pyjama', icon: '👘', durationMinutes: 3, instruction: '', isRequired: true },
-    { title: 'Je me brosse les dents', icon: '🪥', durationMinutes: 2, instruction: '', isRequired: true },
-    { title: 'Je bois un peu d\'eau', icon: '💧', durationMinutes: 1, instruction: '', isRequired: false },
-    { title: 'Je respire calmement', icon: '🌬️', durationMinutes: 2, instruction: '', isRequired: true },
-    { title: 'J\'écoute une histoire', icon: '📚', durationMinutes: 10, instruction: '', isRequired: true },
-    { title: 'Je vais au lit', icon: '🛏️', durationMinutes: 1, instruction: '', isRequired: true },
+const prepareMesAffaires = template(
+  'tpl-je-prepare-mes-affaires',
+  'Je prépare mes affaires',
+  'Être responsable de ses objets',
+  '🎒',
+  'school',
+  '#34D399',
+  [4, 7],
+  [
+    step('Je prends mon sac', '🎒', sec(30), sec(10), true),
+    step('Je mets mon doudou si besoin', '🧸', sec(30), sec(10), false),
+    step('Je vérifie ma gourde', '🧴', sec(30), sec(10), true),
+    step('Je prends mon manteau', '🧥', sec(30), sec(10), true),
+    step('Tout est prêt', '✅', sec(10), sec(5), true),
   ],
-};
+);
 
-const directionCreche: RoutineTemplate = {
-  id: 'tpl-direction-creche',
-  name: 'Direction la crèche',
-  description: 'Pensée pour les plus petits afin de préparer le départ du matin avec des repères clairs.',
-  icon: '🐣',
-  category: 'school',
-  color: '#34D399',
-  ageRange: [2, 3],
-  steps: [
-    { title: 'Je m\'habille', icon: '👕', durationMinutes: 5, instruction: '', isRequired: true },
-    { title: 'Je mets ma couche / mes sous-vêtements', icon: '👶', durationMinutes: 2, instruction: '', isRequired: true },
-    { title: 'Je prends mon doudou', icon: '🧸', durationMinutes: 1, instruction: '', isRequired: true },
-    { title: 'Je mets mes chaussures', icon: '👟', durationMinutes: 2, instruction: '', isRequired: true },
-    { title: 'Je prends mon sac', icon: '🎒', durationMinutes: 1, instruction: '', isRequired: true },
-    { title: 'Je dis au revoir', icon: '👋', durationMinutes: 1, instruction: '', isRequired: true },
+const jeMangeSeul = template(
+  'tpl-je-mange-seul',
+  'Je mange seul',
+  'Développer l’autonomie à table',
+  '🍽️',
+  'home',
+  '#F59E0B',
+  [2, 5],
+  [
+    step('Je tiens ma cuillère', '🥄', 2, 1, true),
+    step('Je mange doucement', '🍽️', 10, 5, true, 'Je prends mon temps'),
+    step('Je bois tout seul', '🥤', 2, 1, true),
+    step('J’essaie de ne pas renverser', '⚖️', 5, 2, false),
   ],
-};
+);
 
-const aTable: RoutineTemplate = {
-  id: 'tpl-a-table',
-  name: 'À table',
-  description: 'Une mini-routine pour s’installer calmement et être prêt au moment du repas.',
-  icon: '🍽️',
-  category: 'home',
-  color: '#F97316',
-  ageRange: [2, 5],
-  steps: [
-    { title: 'Je me lave les mains', icon: '🫧', durationMinutes: 2, instruction: '', isRequired: true },
-    { title: 'Je m\'assois à table', icon: '🪑', durationMinutes: 1, instruction: '', isRequired: true },
-    { title: 'Je mets ma serviette', icon: '🧻', durationMinutes: 1, instruction: '', isRequired: true },
-    { title: 'Je suis prêt à manger', icon: '🍽️', durationMinutes: 1, instruction: '', isRequired: true },
+const jeRangeApresMoi = template(
+  'tpl-je-range-apres-moi',
+  'Je range après moi',
+  'Prendre l’habitude de ranger seul',
+  '🧹',
+  'home',
+  '#10B981',
+  [3, 7],
+  [
+    step('Je regarde ce qui est à ranger', '👀', sec(30), sec(10), true),
+    step('Je ramasse les objets', '🧸', 2, 1, true),
+    step('Je remets à leur place', '📦', 3, 2, true),
+    step('J’ai fini', '✅', sec(10), sec(5), true),
   ],
-};
+);
 
-const finDuRepas: RoutineTemplate = {
-  id: 'tpl-fin-repas',
-  name: 'Fin du repas',
-  description: 'Pour terminer le repas proprement et enchaîner vers la suite sans agitation.',
-  icon: '🍎',
-  category: 'home',
-  color: '#FB7185',
-  ageRange: [3, 7],
-  steps: [
-    { title: 'J\'apporte mon assiette', icon: '🍽️', durationMinutes: 1, instruction: '', isRequired: true },
-    { title: 'J\'essuie ma bouche', icon: '😋', durationMinutes: 1, instruction: '', isRequired: true },
-    { title: 'Je me lave les mains', icon: '🫧', durationMinutes: 2, instruction: '', isRequired: true },
-    { title: 'Je retourne jouer calmement', icon: '🎨', durationMinutes: 1, instruction: '', isRequired: true },
+const dodoTranquilleSommeil = template(
+  'tpl-dodo-tranquille-sommeil',
+  'Dodo tranquille',
+  'Routine du coucher apaisante et complète',
+  '🌙',
+  'evening',
+  '#818CF8',
+  [2, 6],
+  [
+    step('Je range mes jouets', '🧸', 5, 2, true, 'Chaque chose à sa place'),
+    step('Je mets mon pyjama', '👕', 3, 2, true),
+    step('Je vais aux toilettes', '🚽', 2, 1, true),
+    step('Je me brosse les dents', '🪥', 2, 1, true),
+    step('Je lis une histoire', '📖', 5, 3, false),
+    step('Je fais un câlin', '🤗', 1, sec(30), false),
+    step('J’éteins la lumière', '💡', sec(10), sec(5), true),
   ],
-};
+);
 
-const chambreEnOrdre: RoutineTemplate = {
-  id: 'tpl-chambre-ordre',
-  name: 'Chambre en ordre',
-  description: 'Une routine plus complète pour apprendre à entretenir sa chambre au quotidien.',
-  icon: '🛏️',
-  category: 'home',
-  color: '#C084FC',
-  ageRange: [4, 7],
-  steps: [
-    { title: 'Je fais mon lit', icon: '🛏️', durationMinutes: 3, instruction: '', isRequired: true },
-    { title: 'Je mets le linge sale au panier', icon: '🧺', durationMinutes: 2, instruction: '', isRequired: true },
-    { title: 'Je range mes jouets', icon: '🧸', durationMinutes: 5, instruction: '', isRequired: true },
-    { title: 'Je replace mes livres', icon: '📚', durationMinutes: 3, instruction: '', isRequired: true },
-    { title: 'Je vérifie que tout est propre', icon: '👀', durationMinutes: 1, instruction: '', isRequired: true },
+const bonneNuitZen = template(
+  'tpl-bonne-nuit-zen',
+  'Bonne nuit zen',
+  'Routine complète avec détente',
+  '💤',
+  'evening',
+  '#A78BFA',
+  [3, 7],
+  [
+    step('Je range ma chambre', '🧹', 5, 2, true),
+    step('Je prends mon bain', '🛁', 10, 5, false),
+    step('Je mets mon pyjama', '👕', 3, 2, true),
+    step('Je me brosse les dents', '🪥', 2, 1, true),
+    step('Je bois un peu d’eau', '🥤', sec(30), sec(10), false),
+    step('Je respire calmement', '🌬️', 1, sec(30), false),
+    step('J’écoute une histoire', '📖', 5, 3, false),
+    step('Je vais au lit', '🛏️', sec(30), sec(10), true),
   ],
-};
+);
 
-const sortieFamille: RoutineTemplate = {
-  id: 'tpl-sortie-famille',
-  name: 'On sort',
-  description: 'La checklist rapide avant une sortie en famille pour partir sans oubli.',
-  icon: '🚗',
-  category: 'weekend',
-  color: '#67E8F9',
-  ageRange: [2, 7],
-  steps: [
-    { title: 'Je m\'habille', icon: '👕', durationMinutes: 5, instruction: '', isRequired: true },
-    { title: 'Je vais aux toilettes', icon: '🚽', durationMinutes: 3, instruction: '', isRequired: true },
-    { title: 'Je mets mes chaussures', icon: '👟', durationMinutes: 2, instruction: '', isRequired: true },
-    { title: 'Je prends mon manteau', icon: '🧥', durationMinutes: 1, instruction: '', isRequired: true },
-    { title: 'Je prends ma gourde', icon: '🥤', durationMinutes: 1, instruction: '', isRequired: true },
-    { title: 'Je suis prêt pour sortir', icon: '🚪', durationMinutes: 1, instruction: '', isRequired: true },
+const deconnexionDouce = template(
+  'tpl-deconnexion-douce',
+  'Déconnexion douce',
+  'Se préparer au sommeil sans écrans',
+  '🌆',
+  'evening',
+  '#94A3B8',
+  [3, 8],
+  [
+    step('J’éteins les écrans', '📵', sec(10), sec(5), true),
+    step('Je baisse la lumière', '💡', sec(10), sec(5), true),
+    step('Je parle doucement', '🤫', 2, 1, false),
   ],
-};
+);
 
-const matinExpress: RoutineTemplate = {
-  id: 'tpl-matin-express',
-  name: 'Matin express',
-  description: 'Une routine condensée pour les matins pressés avec seulement l’essentiel.',
-  icon: '⚡',
-  category: 'morning',
-  color: '#FACC15',
-  ageRange: [3, 7],
-  steps: [
-    { title: 'Je m\'habille', icon: '👕', durationMinutes: 5, instruction: '', isRequired: true },
-    { title: 'Je me brosse les dents', icon: '🪥', durationMinutes: 2, instruction: '', isRequired: true },
-    { title: 'Je mets mes chaussures', icon: '👟', durationMinutes: 2, instruction: '', isRequired: true },
-    { title: 'Je prends mon sac', icon: '🎒', durationMinutes: 1, instruction: '', isRequired: true },
+const momentDoudou = template(
+  'tpl-moment-doudou',
+  'Moment doudou',
+  'Se rassurer avant de dormir',
+  '🧸',
+  'evening',
+  '#FDBA74',
+  [2, 6],
+  [
+    step('Je prends mon doudou', '🧸', sec(30), sec(10), true),
+    step('Je le serre contre moi', '🤗', 1, sec(30), false),
+    step('Je me couche avec lui', '🛏️', sec(30), sec(10), true),
   ],
-};
+);
 
-const dodoExpress: RoutineTemplate = {
-  id: 'tpl-dodo-express',
-  name: 'Dodo express',
-  description: 'La version courte du coucher pour les soirs où il faut aller vite mais rester cadré.',
-  icon: '🌜',
-  category: 'evening',
-  color: '#7C3AED',
-  ageRange: [3, 7],
-  steps: [
-    { title: 'Pyjama', icon: '👘', durationMinutes: 3, instruction: '', isRequired: true },
-    { title: 'Toilettes', icon: '🚽', durationMinutes: 2, instruction: '', isRequired: true },
-    { title: 'Brossage de dents', icon: '🪥', durationMinutes: 2, instruction: '', isRequired: true },
-    { title: 'Au lit', icon: '🛏️', durationMinutes: 1, instruction: '', isRequired: true },
+const respirationGuidee = template(
+  'tpl-respiration-guidee',
+  'Respiration guidée',
+  'Apaiser le corps avec la respiration',
+  '🌬️',
+  'evening',
+  '#7DD3FC',
+  [3, 8],
+  [
+    step('Je pose mes mains sur mon ventre', '🤲', sec(30), sec(10), false),
+    step('J’inspire lentement', '⬆️', sec(5), sec(5), false),
+    step('J’expire lentement', '⬇️', sec(5), sec(5), false),
+    step('Je recommence plusieurs fois', '🔁', 1, sec(30), false),
   ],
-};
+);
 
-// ─── Packs ─────────────────────────────────────────────────────
+const scanCorporel = template(
+  'tpl-scan-corporel',
+  'Scan corporel',
+  'Détendre chaque partie du corps',
+  '🧘',
+  'evening',
+  '#A7F3D0',
+  [4, 8],
+  [
+    step('Je ferme les yeux', '😴', sec(30), sec(10), false),
+    step('Je sens mes pieds', '🦶', sec(30), sec(10), false),
+    step('Je sens mon ventre', '🤲', sec(30), sec(10), false),
+    step('Je relâche mes épaules', '🧍', sec(30), sec(10), false),
+    step('Je sens ma tête calme', '🧠', sec(30), sec(10), false),
+  ],
+);
+
+const visualisationCalme = template(
+  'tpl-visualisation-calme',
+  'Visualisation calme',
+  'Imaginer un endroit rassurant',
+  '🌈',
+  'evening',
+  '#C4B5FD',
+  [3, 8],
+  [
+    step('Je ferme les yeux', '😴', sec(30), sec(10), false),
+    step('J’imagine un nuage doux', '☁️', 1, sec(30), false),
+    step('Je pense à un endroit calme', '🌳', 1, sec(30), false),
+    step('Je garde cette image', '💭', 1, sec(30), false),
+  ],
+);
+
+const miniHistoireSoir = template(
+  'tpl-mini-histoire-soir',
+  'Mini histoire du soir',
+  'Se détendre avec une histoire courte',
+  '📖',
+  'evening',
+  '#F9A8D4',
+  [2, 7],
+  [
+    step('Je m’installe calmement', '🛏️', 1, sec(30), false),
+    step('J’écoute une histoire', '📖', 5, 3, false),
+    step('Je respire à la fin', '🌬️', sec(30), sec(10), false),
+  ],
+);
+
+const gratitudeSoir = template(
+  'tpl-merci-pour-aujourdhui',
+  'Merci pour aujourd’hui',
+  'Terminer la journée positivement',
+  '💛',
+  'evening',
+  '#FDE68A',
+  [3, 8],
+  [
+    step('Je pense à un bon moment', '💭', 1, sec(30), false),
+    step('Je dis merci', '🙏', sec(30), sec(10), false),
+    step('Je garde ce souvenir', '💛', sec(30), sec(10), false),
+  ],
+);
+
+const reveilNuit = template(
+  'tpl-si-je-me-reveille-la-nuit',
+  'Si je me réveille la nuit',
+  'Se rendormir calmement',
+  '🌌',
+  'evening',
+  '#2563EB',
+  [3, 8],
+  [
+    step('Je reste dans mon lit', '🛏️', 1, sec(30), false),
+    step('Je prends mon doudou', '🧸', sec(30), sec(10), false),
+    step('Je respire doucement', '🌬️', 1, sec(30), false),
+    step('J’appelle doucement si besoin', '🗣️', sec(30), sec(10), false),
+  ],
+);
+
+const jeSuisTriste = template(
+  'tpl-je-suis-triste',
+  'Je suis triste',
+  'Accueillir la tristesse et se réconforter',
+  '🌧️',
+  'emotion',
+  '#60A5FA',
+  [3, 8],
+  [
+    step('Je dis “je suis triste”', '🗣️', 1, sec(30), false),
+    step('Je peux pleurer', '😢', 2, sec(30), false, 'C’est normal de pleurer'),
+    step('Je fais un câlin', '🤗', 2, 1, false),
+    step('Je respire doucement', '🌬️', 1, sec(30), false),
+  ],
+);
+
+const jeSuisEnColere = template(
+  'tpl-je-suis-en-colere',
+  'Je suis en colère',
+  'Exprimer la colère sans faire mal',
+  '🔥',
+  'emotion',
+  '#F97316',
+  [3, 8],
+  [
+    step('Je dis “je suis en colère”', '🗣️', sec(30), sec(10), false),
+    step('Je m’éloigne un peu', '🚶', 1, sec(30), false, 'Je prends de la place'),
+    step('Je tape dans un coussin', '🛏️', 1, sec(30), false, 'Pas sur les personnes'),
+    step('Je respire fort', '🌬️', 1, sec(30), false),
+  ],
+);
+
+const jaiPeur = template(
+  'tpl-jai-peur',
+  'J’ai peur',
+  'Se rassurer face à une peur',
+  '😰',
+  'emotion',
+  '#8B5CF6',
+  [3, 8],
+  [
+    step('Je dis ce qui me fait peur', '🗣️', 1, sec(30), false),
+    step('Je prends mon doudou', '🧸', 1, sec(30), false),
+    step('Je me rapproche d’un adulte', '🤝', 2, 1, false),
+    step('Je respire doucement', '🌬️', 1, sec(30), false),
+  ],
+);
+
+const jeSuisFrustre = template(
+  'tpl-je-suis-frustre',
+  'Je suis frustré',
+  'Gérer une situation difficile',
+  '😤',
+  'emotion',
+  '#EF4444',
+  [3, 8],
+  [
+    step('Je dis “c’est difficile”', '🗣️', sec(30), sec(10), false),
+    step('Je fais une pause', '✋', 1, sec(30), false),
+    step('Je respire', '🌬️', 1, sec(30), false),
+    step('Je réessaie doucement', '🔁', 2, 1, false),
+  ],
+);
+
+const jeMeCalmeToutSeul = template(
+  'tpl-je-me-calme-tout-seul',
+  'Je me calme tout seul',
+  'Apprendre à se réguler',
+  '🌈',
+  'emotion',
+  '#38BDF8',
+  [3, 8],
+  [
+    step('Je m’arrête', '✋', sec(10), sec(5), false),
+    step('Je respire 5 fois', '🌬️', 1, sec(30), false, 'Inspire et expire lentement'),
+    step('Je pose mes mains sur mon ventre', '🤲', sec(30), sec(10), false),
+    step('Je me sens plus calme', '🙂', sec(30), sec(10), false),
+  ],
+);
+
+const jeSuisContent = template(
+  'tpl-je-suis-content',
+  'Je suis content',
+  'Accueillir la joie',
+  '😄',
+  'emotion',
+  '#FACC15',
+  [2, 8],
+  [
+    step('Je dis “je suis content”', '🗣️', sec(30), sec(10), false),
+    step('Je souris', '😄', sec(30), sec(10), false),
+    step('Je partage avec quelqu’un', '🤝', 1, sec(30), false),
+  ],
+);
+
+const jeSuisFier = template(
+  'tpl-je-suis-fier-de-moi',
+  'Je suis fier de moi',
+  'Valoriser ses réussites',
+  '🌟',
+  'emotion',
+  '#F59E0B',
+  [3, 8],
+  [
+    step('Je dis ce que j’ai réussi', '🗣️', 1, sec(30), false),
+    step('Je me félicite', '👏', sec(30), sec(10), false),
+    step('Je souris', '😊', sec(30), sec(10), false),
+  ],
+);
+
+const jeDemandeAide = template(
+  'tpl-je-demande-de-laide',
+  'Je demande de l’aide',
+  'Apprendre à ne pas rester seul',
+  '🙋',
+  'emotion',
+  '#14B8A6',
+  [3, 8],
+  [
+    step('Je dis “aide-moi”', '🗣️', sec(30), sec(10), false),
+    step('J’explique mon problème', '💬', 1, sec(30), false),
+    step('J’écoute la réponse', '👂', 1, sec(30), false),
+  ],
+);
+
+const jeMeReconcilie = template(
+  'tpl-je-me-reconcilie',
+  'Je me réconcilie',
+  'Réparer après un conflit',
+  '💛',
+  'emotion',
+  '#FB7185',
+  [3, 8],
+  [
+    step('Je me calme', '🌬️', 1, sec(30), false),
+    step('Je dis pardon', '🙏', sec(30), sec(10), false),
+    step('Je fais un geste gentil', '🤝', 1, sec(30), false),
+  ],
+);
+
+const directionCreche = template(
+  'tpl-direction-creche',
+  'Direction la crèche',
+  'Se préparer sereinement au départ',
+  '🏫',
+  'school',
+  '#34D399',
+  [2, 3],
+  [
+    step('Je m’habille', '👕', 5, 3, true),
+    step('Je mets ma couche / mes sous-vêtements', '🩲', 2, 1, true),
+    step('Je prends mon doudou', '🧸', sec(30), sec(10), false),
+    step('Je mets mes chaussures', '👟', 2, 1, true),
+    step('Je prends mon sac', '🎒', sec(30), sec(10), true),
+    step('Je dis au revoir', '👋', sec(30), sec(10), false),
+  ],
+);
+
+const chambreEnOrdre = template(
+  'tpl-chambre-en-ordre',
+  'Chambre en ordre',
+  'Garder un espace propre',
+  '🛏️',
+  'home',
+  '#C084FC',
+  [4, 7],
+  [
+    step('Je fais mon lit', '🛏️', 3, 1, false),
+    step('Je mets le linge sale au panier', '🧺', 1, sec(30), true),
+    step('Je range mes jouets', '🧸', 5, 2, true),
+    step('Je replace mes livres', '📚', 2, 1, true),
+    step('Je vérifie que tout est propre', '✅', sec(30), sec(10), false),
+  ],
+);
+
+const preparationSortieLongue = template(
+  'tpl-preparation-sortie-longue',
+  'Préparation sortie longue',
+  'Se préparer pour une longue sortie',
+  '🎒',
+  'weekend',
+  '#0EA5E9',
+  [2, 7],
+  [
+    step('Je prends mon sac', '🎒', sec(30), sec(10), true),
+    step('Je prends ma gourde', '🧴', sec(30), sec(10), true),
+    step('Je prends un goûter', '🍎', 1, sec(30), false),
+    step('Je prends mon doudou', '🧸', sec(30), sec(10), false),
+    step('Je suis prêt', '✅', sec(10), sec(5), true),
+  ],
+);
+
+const retourDuParc = template(
+  'tpl-retour-du-parc',
+  'Retour du parc',
+  'Se réorganiser après une sortie',
+  '🌳',
+  'weekend',
+  '#22C55E',
+  [2, 7],
+  [
+    step('J’enlève mes chaussures', '👟', 1, sec(30), true),
+    step('Je me lave les mains', '🧼', 2, 1, true),
+    step('Je bois de l’eau', '🥤', 1, sec(30), false),
+    step('Je me repose un peu', '🪑', 3, 1, false),
+  ],
+);
+
+const avantActiviteCalme = template(
+  'tpl-avant-activite-calme',
+  'Avant activité calme',
+  'Se préparer à se concentrer',
+  '🎨',
+  'home',
+  '#A78BFA',
+  [3, 7],
+  [
+    step('Je m’installe', '🪑', 1, sec(30), true),
+    step('Je prépare mon matériel', '✏️', 2, 1, true),
+    step('Je respire doucement', '🌬️', sec(30), sec(10), false),
+  ],
+);
+
+const apresActivite = template(
+  'tpl-apres-activite',
+  'Après activité',
+  'Ranger après une activité',
+  '🧩',
+  'home',
+  '#10B981',
+  [3, 7],
+  [
+    step('Je regarde ce que j’ai utilisé', '👀', sec(30), sec(10), true),
+    step('Je range le matériel', '📦', 3, 2, true),
+    step('Je nettoie si besoin', '🧽', 2, 1, false),
+  ],
+);
+
+const sePreparerPourRecevoir = template(
+  'tpl-se-preparer-pour-recevoir',
+  'Se préparer pour recevoir',
+  'Préparer l’arrivée d’invités',
+  '🏠',
+  'home',
+  '#F97316',
+  [3, 7],
+  [
+    step('Je range mes jouets', '🧸', 5, 2, true),
+    step('Je prépare un jeu', '🎲', 2, 1, false),
+    step('Je me lave les mains', '🧼', 2, 1, true),
+  ],
+);
+
+const direBonjourAuRevoir = template(
+  'tpl-dire-bonjour-au-revoir',
+  'Dire bonjour / au revoir',
+  'Apprendre la politesse',
+  '👋',
+  'custom',
+  '#38BDF8',
+  [2, 7],
+  [
+    step('Je dis bonjour', '👋', sec(10), sec(5), false),
+    step('Je regarde la personne', '👀', sec(10), sec(5), false),
+    step('Je dis au revoir', '👋', sec(10), sec(5), false),
+  ],
+);
+
+const petitBobo = template(
+  'tpl-petit-bobo',
+  'Petit bobo',
+  'Réagir calmement à une petite blessure',
+  '🩹',
+  'custom',
+  '#FB7185',
+  [2, 7],
+  [
+    step('Je montre mon bobo', '🗣️', sec(30), sec(10), false),
+    step('Je me calme', '🌬️', 1, sec(30), false),
+    step('Je me fais soigner', '🩹', 2, 1, true),
+  ],
+);
+
+const attendreSonTour = template(
+  'tpl-attendre-son-tour',
+  'Attendre son tour',
+  'Apprendre la patience',
+  '⏳',
+  'custom',
+  '#FBBF24',
+  [3, 8],
+  [
+    step('J’attends', '⏳', 1, sec(30), false),
+    step('Je regarde', '👀', 1, sec(30), false),
+    step('C’est mon tour', '🎯', sec(10), sec(5), false),
+  ],
+);
 
 export const ROUTINE_PACKS: RoutinePack[] = [
   {
     id: 'pack-essentiels',
     name: 'Essentiels',
-    icon: '⭐',
-    description: 'Les routines indispensables du quotidien',
-    templates: [reveilEnDouceur, superMatin, dodoTranquille, pretPourEcole, missionRangement],
+    icon: '🧩',
+    description: 'Les routines du quotidien les plus utiles pour bien démarrer.',
+    templates: [
+      reveilEnDouceur,
+      superMatin,
+      pretPourEcole,
+      dodoTranquilleEssentiels,
+      missionRangement,
+      aTable,
+      finDuRepas,
+      onSort,
+      retourMaison,
+      matinExpress,
+      dodoExpress,
+      habilleChaudement,
+      preparerSonSac,
+      pauseToilette,
+      tempsCalme,
+    ],
   },
   {
     id: 'pack-autonomie',
     name: 'Autonomie',
-    icon: '💪',
-    description: 'Apprendre à faire tout seul',
-    templates: [jeMhabilleSeul, dentsPropres, mainsPropres, prepareMesAffaires],
+    icon: '🧠',
+    description: 'Des routines pour faire seul, progresser et prendre confiance.',
+    templates: [
+      jeMhabilleSeul,
+      chaussuresSeul,
+      dentsPropres,
+      mainsPropres,
+      prepareMesAffaires,
+      jeMangeSeul,
+      jeRangeApresMoi,
+    ],
   },
   {
-    id: 'pack-bien-etre',
-    name: 'Calme & sommeil',
+    id: 'pack-sommeil',
+    name: 'Sommeil',
     icon: '🌙',
-    description: 'Des routines apaisantes pour ralentir, se rassurer et mieux s’endormir',
+    description: 'Des routines apaisantes pour le coucher, la détente et le rendormissement.',
     templates: [
-      routineCalme,
+      dodoTranquilleSommeil,
+      bonneNuitZen,
+      deconnexionDouce,
+      momentDoudou,
       respirationGuidee,
       scanCorporel,
       visualisationCalme,
       miniHistoireSoir,
       gratitudeSoir,
-      momentDoudou,
-      deconnexionDouce,
-      sonsApaisants,
-      matinTranquille,
+      reveilNuit,
     ],
   },
   {
-    id: 'pack-plus',
-    name: 'Encore plus',
-    icon: '🎁',
-    description: 'Repas, crèche, sorties et express',
-    templates: [bonneNuitZen, directionCreche, aTable, finDuRepas, chambreEnOrdre, sortieFamille, matinExpress, dodoExpress],
+    id: 'pack-emotions',
+    name: 'Émotions',
+    icon: '❤️',
+    description: 'Des routines pour nommer, accueillir et réguler les émotions.',
+    templates: [
+      jeSuisTriste,
+      jeSuisEnColere,
+      jaiPeur,
+      jeSuisFrustre,
+      jeMeCalmeToutSeul,
+      jeSuisContent,
+      jeSuisFier,
+      jeDemandeAide,
+      jeMeReconcilie,
+    ],
+  },
+  {
+    id: 'pack-idees-plus',
+    name: 'Idées en plus',
+    icon: '✨',
+    description: 'Des routines complémentaires pour les sorties, la politesse et les petits imprévus.',
+    templates: [
+      directionCreche,
+      chambreEnOrdre,
+      preparationSortieLongue,
+      retourDuParc,
+      avantActiviteCalme,
+      apresActivite,
+      sePreparerPourRecevoir,
+      direBonjourAuRevoir,
+      petitBobo,
+      attendreSonTour,
+    ],
   },
 ];
 
-export const ALL_TEMPLATES: RoutineTemplate[] = ROUTINE_PACKS.flatMap((p) => p.templates);
+export const ALL_TEMPLATES: RoutineTemplate[] = ROUTINE_PACKS.flatMap((pack) => pack.templates);

@@ -6,6 +6,7 @@ import { EditIcon, DuplicateIcon, DeleteIcon } from '../ui/ModernIcons';
 import { COLORS, SPACING, FONT_SIZE, RADIUS } from '../../constants/theme';
 import { CATEGORY_CONFIG } from '../../constants/theme';
 import { Routine } from '../../types';
+import { formatDuration } from '../../utils/date';
 
 interface RoutineCardProps {
   routine: Routine;
@@ -59,7 +60,7 @@ export function RoutineCard({
                 <Text style={styles.dot}>·</Text>
                 <Text style={styles.steps}>{routine.steps.length} étapes</Text>
                 <Text style={styles.dot}>·</Text>
-                <Text style={styles.duration}>~{totalDuration} min</Text>
+                <Text style={styles.duration}>~{formatDuration(totalDuration)}</Text>
               </View>
             </View>
           </View>

@@ -9,8 +9,13 @@ const ROUTINE_CATEGORIES: RoutineCategory[] = [
   'school',
   'home',
   'weekend',
+  'emotion',
   'custom',
 ];
+
+function roundToNearestSecond(minutes: number): number {
+  return Math.round(minutes * 60) / 60;
+}
 
 export const MAX_PRACTICAL_SHARE_LINK_LENGTH = 1800;
 
@@ -106,10 +111,10 @@ function normalizeStep(step: unknown, index: number): RoutineStep | null {
     title,
     icon,
     color,
-    durationMinutes: Math.round(step.durationMinutes),
+    durationMinutes: roundToNearestSecond(step.durationMinutes),
     minimumDurationMinutes:
       typeof step.minimumDurationMinutes === 'number'
-        ? Math.round(step.minimumDurationMinutes)
+        ? roundToNearestSecond(step.minimumDurationMinutes)
         : 0,
     instruction,
     isRequired: step.isRequired,

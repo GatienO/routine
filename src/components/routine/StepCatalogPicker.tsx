@@ -7,6 +7,7 @@ import {
   StepCatalogItem,
 } from '../../constants/stepCatalog';
 import { COLORS, FONT_SIZE, RADIUS, SHADOWS, SPACING } from '../../constants/theme';
+import { formatDuration } from '../../utils/date';
 import { OpenMoji } from '../ui/OpenMoji';
 
 interface StepCatalogPickerProps {
@@ -74,10 +75,10 @@ export function StepCatalogPicker({ accentColor, onSelect }: StepCatalogPickerPr
                 {item.title}
               </Text>
               <Text style={styles.itemMeta}>
-                {item.durationMinutes} min · {item.isRequired ? 'Obligatoire' : 'Facultatif'}
+                {formatDuration(item.durationMinutes)} · {item.isRequired ? 'Obligatoire' : 'Facultatif'}
               </Text>
               {item.minimumDurationMinutes ? (
-                <Text style={styles.itemMeta}>Minimum {item.minimumDurationMinutes} min</Text>
+                <Text style={styles.itemMeta}>Minimum {formatDuration(item.minimumDurationMinutes)}</Text>
               ) : null}
             </View>
             <PlusCircle size={20} weight="fill" color={accentColor} />

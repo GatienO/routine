@@ -26,6 +26,7 @@ import { OpenMoji } from '../../src/components/ui/OpenMoji';
 import { Avatar } from '../../src/components/ui/Avatar';
 import { backOrReplace } from '../../src/utils/navigation';
 import { formatChildName } from '../../src/utils/children';
+import { formatDuration } from '../../src/utils/date';
 
 export default function CatalogScreen() {
   const router = useRouter();
@@ -132,7 +133,7 @@ export default function CatalogScreen() {
               </View>
               <View style={[styles.badge, { backgroundColor: COLORS.surfaceSecondary }]}>
                 <Text style={styles.badgeText}>
-                  ~{totalDuration(selectedTemplate)} min
+                  ~{formatDuration(totalDuration(selectedTemplate))}
                 </Text>
               </View>
             </View>
@@ -150,11 +151,11 @@ export default function CatalogScreen() {
                 <View style={styles.stepInfo}>
                   <Text style={styles.stepTitle}>{step.title}</Text>
                   <Text style={styles.stepMeta}>
-                    {step.durationMinutes} min · {step.isRequired ? 'Obligatoire' : 'Facultatif'}
+                    {formatDuration(step.durationMinutes)} · {step.isRequired ? 'Obligatoire' : 'Facultatif'}
                   </Text>
                   {step.minimumDurationMinutes ? (
                     <Text style={styles.stepInstruction}>
-                      Minimum {step.minimumDurationMinutes} min
+                      Minimum {formatDuration(step.minimumDurationMinutes)}
                     </Text>
                   ) : null}
                   {step.instruction ? (
@@ -239,7 +240,7 @@ export default function CatalogScreen() {
                               {template.description}
                             </Text>
                             <Text style={styles.templateMeta}>
-                              {template.steps.length} etapes · ~{totalDuration(template)} min · {template.ageRange[0]}-{template.ageRange[1]} ans
+                              {template.steps.length} etapes · ~{formatDuration(totalDuration(template))} · {template.ageRange[0]}-{template.ageRange[1]} ans
                             </Text>
                           </View>
                         </View>

@@ -4,6 +4,7 @@ import { OpenMoji } from '../ui/OpenMoji';
 import { Routine } from '../../types';
 import { CATEGORY_CONFIG, COLORS, FONT_SIZE, RADIUS, SPACING } from '../../constants/theme';
 import { EditIcon, DuplicateIcon, DeleteIcon } from '../ui/ModernIcons';
+import { formatDuration } from '../../utils/date';
 
 interface CompactRoutineRowProps {
   routine: Routine;
@@ -66,7 +67,7 @@ export function CompactRoutineRow({
             <Text style={styles.description} numberOfLines={1}>{routine.description}</Text>
           ) : null}
           <Text style={styles.meta}>
-            {category?.label ?? routine.category} · {routine.steps.length} etapes · ~{totalDuration} min
+            {category?.label ?? routine.category} · {routine.steps.length} etapes · ~{formatDuration(totalDuration)}
           </Text>
         </View>
       </TouchableOpacity>

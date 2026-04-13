@@ -28,6 +28,7 @@ import { StepCatalogItem } from '../../src/constants/stepCatalog';
 import { CATEGORY_CONFIG, CHILD_COLORS, COLORS, FONT_SIZE, RADIUS, SHADOWS, SPACING } from '../../src/constants/theme';
 import { RoutineCategory, RoutineStep } from '../../src/types';
 import { formatChildName } from '../../src/utils/children';
+import { formatDuration } from '../../src/utils/date';
 import { generateId } from '../../src/utils/id';
 import { backOrReplace } from '../../src/utils/navigation';
 
@@ -186,8 +187,8 @@ export default function EditRoutineScreen() {
       title: stepTitle.trim(),
       icon: stepIcon,
       color,
-      durationMinutes: Math.max(0, parseInt(stepDuration, 10) || 0),
-      minimumDurationMinutes: Math.max(0, parseInt(stepMinDuration, 10) || 0),
+      durationMinutes: Math.max(0, parseFloat(stepDuration.replace(',', '.')) || 0),
+      minimumDurationMinutes: Math.max(0, parseFloat(stepMinDuration.replace(',', '.')) || 0),
       instruction: stepInstruction.trim(),
       isRequired: stepRequired,
       order: steps.length,
@@ -210,8 +211,8 @@ export default function EditRoutineScreen() {
               ...step,
               title: stepTitle.trim(),
               icon: stepIcon,
-              durationMinutes: Math.max(0, parseInt(stepDuration, 10) || 0),
-              minimumDurationMinutes: Math.max(0, parseInt(stepMinDuration, 10) || 0),
+              durationMinutes: Math.max(0, parseFloat(stepDuration.replace(',', '.')) || 0),
+              minimumDurationMinutes: Math.max(0, parseFloat(stepMinDuration.replace(',', '.')) || 0),
               instruction: stepInstruction.trim(),
               isRequired: stepRequired,
               mediaUri: stepMediaUri || undefined,
@@ -369,9 +370,9 @@ export default function EditRoutineScreen() {
           <TextInput
             style={[styles.input, styles.inputSmall]}
             value={stepDuration}
-            onChangeText={(value) => setStepDuration(value.replace(/[^0-9]/g, ''))}
+            onChangeText={(value) => setStepDuration(value.replace(/[^0-9.,]/g, ''))}
             keyboardType="number-pad"
-            maxLength={2}
+            maxLength={5}
           />
         </View>
         <View style={styles.durationField}>
@@ -379,9 +380,9 @@ export default function EditRoutineScreen() {
           <TextInput
             style={[styles.input, styles.inputSmall]}
             value={stepMinDuration}
-            onChangeText={(value) => setStepMinDuration(value.replace(/[^0-9]/g, ''))}
+            onChangeText={(value) => setStepMinDuration(value.replace(/[^0-9.,]/g, ''))}
             keyboardType="number-pad"
-            maxLength={2}
+            maxLength={5}
           />
         </View>
       </View>
@@ -551,10 +552,10 @@ export default function EditRoutineScreen() {
                   <View style={styles.stepInfo}>
                     <Text style={styles.stepTitle}>{step.title}</Text>
                     <Text style={styles.stepMeta}>
-                      {step.durationMinutes} min · {step.isRequired ? 'Obligatoire' : 'Facultatif'}
+                      {formatDuration(step.durationMinutes)} · {step.isRequired ? 'Obligatoire' : 'Facultatif'}
                     </Text>
                     {step.minimumDurationMinutes ? (
-                      <Text style={styles.stepMeta}>Minimum {step.minimumDurationMinutes} min</Text>
+                      <Text style={styles.stepMeta}>Minimum {formatDuration(step.minimumDurationMinutes)}</Text>
                     ) : null}
                   </View>
                 </View>

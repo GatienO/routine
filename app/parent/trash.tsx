@@ -7,6 +7,7 @@ import { Card } from '../../src/components/ui/Card';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
 import { COLORS, FONT_SIZE, RADIUS, SPACING } from '../../src/constants/theme';
 import { useRoutineStore } from '../../src/stores/routineStore';
+import { formatDuration } from '../../src/utils/date';
 
 function getDaysLeft(expiresAt: string) {
   const diff = new Date(expiresAt).getTime() - Date.now();
@@ -69,7 +70,7 @@ export default function ParentTrashScreen() {
                   <View style={styles.info}>
                     <Text style={styles.name}>{routine.name}</Text>
                     <Text style={styles.meta}>
-                      {routine.steps.length} etapes · ~{totalDuration} min
+                      {routine.steps.length} etapes · ~{formatDuration(totalDuration)}
                     </Text>
                     <Text style={styles.trashMeta}>
                       Supprimee le {new Date(routine.deletedAt).toLocaleDateString('fr-FR')} ·

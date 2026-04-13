@@ -7,6 +7,7 @@ import { Avatar } from '../ui/Avatar';
 import { COLORS, SPACING, FONT_SIZE, RADIUS, CATEGORY_CONFIG } from '../../constants/theme';
 import { Child, Routine } from '../../types';
 import { formatChildName } from '../../utils/children';
+import { formatDuration } from '../../utils/date';
 import { printRoutine } from '../../services/exportRoutine';
 import {
   showAppAlert,
@@ -55,7 +56,7 @@ export const CompactRoutineRow = memo(function CompactRoutineRow({
               {routine.name}
             </Text>
             <Text style={styles.meta}>
-              {category?.label ?? routine.category} · {routine.steps.length} etapes · ~{totalDuration} min
+              {category?.label ?? routine.category} · {routine.steps.length} etapes · ~{formatDuration(totalDuration)}
             </Text>
             {child ? <Text style={styles.subMeta}>Pour {formatChildName(child.name)}</Text> : null}
           </View>
@@ -65,7 +66,7 @@ export const CompactRoutineRow = memo(function CompactRoutineRow({
           routine={routine}
           child={child}
           isActive={routine.isActive}
-          statusLabel={routine.isActive ? 'Actif' : 'Off'}
+          statusLabel={routine.isActive ? 'Actif' : 'Pas actif'}
           onToggle={onToggle}
           onDuplicate={onDuplicate}
           onShare={onShare}
@@ -92,7 +93,7 @@ export const CompactRoutineGroupRow = memo(function CompactRoutineGroupRow({
   const totalDuration = group.sample.steps.reduce((sum, step) => sum + step.durationMinutes, 0);
   const activeCount = group.routines.filter((routine) => routine.isActive).length;
   const allActive = activeCount === group.routines.length;
-  const statusLabel = activeCount === 0 ? 'Off' : allActive ? 'Actif' : 'Mixte';
+  const statusLabel = activeCount === 0 ? 'Pas actif' : allActive ? 'Actif' : 'Mixte';
   const previewChildren = group.childIds
     .slice(0, 3)
     .map((childId) => childrenById.get(childId))
@@ -110,7 +111,7 @@ export const CompactRoutineGroupRow = memo(function CompactRoutineGroupRow({
               {group.sample.name}
             </Text>
             <Text style={styles.meta}>
-              {category?.label ?? group.sample.category} · {group.sample.steps.length} etapes · ~{totalDuration} min
+              {category?.label ?? group.sample.category} · {group.sample.steps.length} etapes · ~{formatDuration(totalDuration)}
             </Text>
             <View style={styles.groupChildrenRow}>
               {previewChildren.map((child) => (
@@ -187,23 +188,23 @@ const RoutineActionPanel = memo(function RoutineActionPanel({
         <View style={styles.iconActionRow}>
           {Platform.OS === 'web' && routine && child && (
             <IconAction
-              icon={<Printer size={15} weight="bold" color={COLORS.secondary} />}
+              icon={<Printer size={48} weight="bold" color={COLORS.secondary} />}
               onPress={handlePrint}
               label="Imprimer / PDF"
             />
           )}
           <IconAction
-            icon={<CopySimple size={15} weight="bold" color={COLORS.secondaryDark} />}
+            icon={<CopySimple size={48}  color={COLORS.secondaryDark} />}
             onPress={onDuplicate}
             label="Dupliquer"
           />
           <IconAction
-            icon={<ShareNetwork size={15} weight="bold" color={COLORS.secondaryDark} />}
+            icon={<ShareNetwork size={48}  color={COLORS.secondaryDark} />}
             onPress={onShare}
             label="Partager"
           />
           <IconAction
-            icon={<Trash size={15} weight="bold" color={COLORS.error} />}
+            icon={<Trash size={48}  color={COLORS.error} />}
             onPress={onDelete}
             label="Supprimer"
           />
@@ -256,7 +257,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.sm,
+    gap: SPACING.xs,
   },
   mainPressable: {
     flex: 1,
@@ -278,29 +279,31 @@ const styles = StyleSheet.create({
   },
   titleControls: {
     flexShrink: 0,
-    alignItems: 'flex-end',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     gap: 6,
-    width: 118,
+    minWidth: 172,
   },
   iconActionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
+    gap: 4,
+    flexShrink: 0,
   },
   iconActionBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: COLORS.surfaceSecondary,
+    width: 64,
+    height: 64,
+    borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
   },
   switchStatusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    gap: 3,
+    minWidth: 72,
   },
   name: {
     fontSize: FONT_SIZE.md,
@@ -320,7 +323,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   statusPill: {
-    minWidth: 52,
+    minWidth: 74,
     borderRadius: RADIUS.full,
     paddingVertical: 3,
     paddingHorizontal: SPACING.sm,

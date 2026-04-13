@@ -22,6 +22,7 @@ import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS, CATEGORY_CONFIG } from '..
 import { backOrReplace } from '../../src/utils/navigation';
 import { getGridItemWidth, getResponsiveColumns } from '../../src/utils/responsive';
 import { formatChildName } from '../../src/utils/children';
+import { formatDuration } from '../../src/utils/date';
 
 function formatEndTime(totalMinutes: number): string {
   const now = new Date();
@@ -221,8 +222,8 @@ export default function RoutineSummaryScreen() {
             </View>
             <View style={[styles.infoCard, { borderColor: leadRoutine.color + '40' }]}>
               <Clock size={22} weight="duotone" color={leadRoutine.color} />
-              <Text style={styles.infoValue} selectable={false}>{totalDuration}</Text>
-              <Text style={styles.infoLabel} selectable={false}>minutes</Text>
+              <Text style={styles.infoValue} selectable={false}>{formatDuration(totalDuration)}</Text>
+              <Text style={styles.infoLabel} selectable={false}>durée</Text>
             </View>
             <View
               style={[
@@ -305,7 +306,7 @@ export default function RoutineSummaryScreen() {
                       {routineIndex + 1}. {routine.name}
                     </Text>
                     <Text style={styles.routineHeaderMeta} selectable={false}>
-                      {routine.steps.length} etapes · {routine.steps.reduce((sum, step) => sum + step.durationMinutes, 0)} min
+                      {routine.steps.length} etapes · {formatDuration(routine.steps.reduce((sum, step) => sum + step.durationMinutes, 0))}
                     </Text>
                   </View>
                 </View>
@@ -355,7 +356,7 @@ export default function RoutineSummaryScreen() {
                       {step.title}
                     </Text>
                     {step.durationMinutes > 0 ? (
-                      <Text style={styles.stepDuration} selectable={false}>{step.durationMinutes} min</Text>
+                      <Text style={styles.stepDuration} selectable={false}>{formatDuration(step.durationMinutes)}</Text>
                     ) : (
                       <CheckCircle size={16} weight="duotone" color={COLORS.textLight} />
                     )}

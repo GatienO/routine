@@ -35,6 +35,7 @@ import {
 } from '../../src/constants/weatherThemes';
 import { WEATHER_LIVE_REFRESH_MS } from '../../src/services/weather';
 import { formatChildName } from '../../src/utils/children';
+import { formatDuration } from '../../src/utils/date';
 
 const ROUTINES_PER_PAGE = 10;
 
@@ -208,6 +209,7 @@ export default function ChildLauncherScreen() {
         'school',
         'home',
         'weekend',
+        'emotion',
         'custom',
       ];
 
@@ -463,7 +465,7 @@ export default function ChildLauncherScreen() {
                             {routine.name}
                           </Text>
                           <Text style={[styles.routineRowMeta, { color: secondaryColor }]}>
-                            {routine.steps.length} étapes · {duration} min
+                            {routine.steps.length} étapes · {formatDuration(duration)}
                             {owner ? ` · ${formatChildName(owner.name)}` : ''}
                           </Text>
                         </View>
@@ -576,7 +578,7 @@ export default function ChildLauncherScreen() {
               <Rocket size={18} weight="fill" color="#FFF" />
               <Text style={styles.footerButtonText}>
                 {selectedRoutineIds.length > 0
-                  ? `${selectedRoutineIds.length} routine${selectedRoutineIds.length > 1 ? 's' : ''} · ${selectedDuration} min`
+                  ? `${selectedRoutineIds.length} routine${selectedRoutineIds.length > 1 ? 's' : ''} · ${formatDuration(selectedDuration)}`
                   : 'Choisis au moins une routine'}
               </Text>
             </View>

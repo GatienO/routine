@@ -35,6 +35,7 @@ import {
 import {
   CategoryFilterValue,
   ParentDashboardHeader,
+  SortMode,
   StatusFilterValue,
 } from '../components/parent/ParentDashboardHeader';
 import {
@@ -56,6 +57,7 @@ const CATEGORY_FILTER_OPTIONS: CategoryFilterValue[] = [
   'school',
   'home',
   'weekend',
+  'emotion',
   'custom',
 ];
 
@@ -91,6 +93,7 @@ export function ParentDashboardScreen() {
   const [showTutorial, setShowTutorial] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [routinesExpanded, setRoutinesExpanded] = useState(true);
+  const [sortMode, setSortMode] = useState<SortMode>('recent');
   const [routineToShare, setRoutineToShare] = useState<Routine | null>(null);
 
   const deferredSearch = useDeferredValue(searchQuery.trim().toLowerCase());
@@ -166,9 +169,7 @@ export function ParentDashboardScreen() {
       }
     });
 
-    return Array.from(groups.values()).sort((left, right) =>
-      left.sample.name.localeCompare(right.sample.name, 'fr', { sensitivity: 'base' }),
-    );
+    return Array.from(groups.values());
   }, [routines]);
 
   const selectedChild = selectedChildIds.length === 1 ? childrenById.get(selectedChildIds[0]) : undefined;
@@ -190,7 +191,7 @@ export function ParentDashboardScreen() {
   };
 
   const filteredGroups = useMemo(() => {
-    return groupedRoutines.reduce<RoutineGroup[]>((accumulator, group) => {
+    const scopedGroups = groupedRoutines.reduce<RoutineGroup[]>((accumulator, group) => {
       const scopedRoutines = selectedChildIds.length === 0
         ? group.routines
         : group.routines.filter((routine) => selectedChildIdSet.has(routine.childId));
@@ -231,6 +232,18 @@ export function ParentDashboardScreen() {
       accumulator.push(scopedGroup);
       return accumulator;
     }, []);
+
+    return scopedGroups.sort((left, right) => {
+      if (sortMode === 'alphabetical') {
+        return left.sample.name.localeCompare(right.sample.name, 'fr', { sensitivity: 'base' });
+      }
+
+      const leftNewest = Math.max(...left.routines.map((routine) => Date.parse(routine.updatedAt || routine.createdAt || '')));
+      const rightNewest = Math.max(...right.routines.map((routine) => Date.parse(routine.updatedAt || routine.createdAt || '')));
+      const leftTime = Number.isFinite(leftNewest) ? leftNewest : 0;
+      const rightTime = Number.isFinite(rightNewest) ? rightNewest : 0;
+      return rightTime - leftTime;
+    });
   }, [
     childrenById,
     deferredSearch,
@@ -239,10 +252,11 @@ export function ParentDashboardScreen() {
     selectedChildIds.length,
     selectedCategories,
     selectedStatuses,
+    sortMode,
   ]);
 
   const filteredChildRoutines = useMemo(() => {
-    return selectedChildRoutines.filter((routine) => {
+    const scopedRoutines = selectedChildRoutines.filter((routine) => {
       if (!matchesCategoryFilter(routine.category)) return false;
       if (!matchesStatusFilter(routine.isActive)) return false;
       if (!deferredSearch) return true;
@@ -255,7 +269,17 @@ export function ParentDashboardScreen() {
 
       return haystack.includes(deferredSearch);
     });
-  }, [deferredSearch, selectedCategories, selectedChildRoutines, selectedStatuses]);
+
+    return scopedRoutines.sort((left, right) => {
+      if (sortMode === 'alphabetical') {
+        return left.name.localeCompare(right.name, 'fr', { sensitivity: 'base' });
+      }
+
+      const leftTime = Date.parse(left.updatedAt || left.createdAt || '');
+      const rightTime = Date.parse(right.updatedAt || right.createdAt || '');
+      return (Number.isFinite(rightTime) ? rightTime : 0) - (Number.isFinite(leftTime) ? leftTime : 0);
+    });
+  }, [deferredSearch, selectedCategories, selectedChildRoutines, selectedStatuses, sortMode]);
 
   const listData: RoutineListItem[] = useMemo(() => {
     if (showSingleChildView) {
@@ -433,6 +457,10 @@ export function ParentDashboardScreen() {
         onOpenWeatherSettings={() => setShowWeatherSettings(true)}
         routinesExpanded={routinesExpanded}
         onToggleRoutinesExpanded={() => setRoutinesExpanded((previous) => !previous)}
+        sortMode={sortMode}
+        onToggleSortMode={() =>
+          setSortMode((previous) => (previous === 'recent' ? 'alphabetical' : 'recent'))
+        }
       />
     </View>
   );

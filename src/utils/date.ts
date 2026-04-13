@@ -13,7 +13,17 @@ export function isToday(dateStr: string): boolean {
 }
 
 export function formatDuration(minutes: number): string {
-  if (minutes < 1) return '< 1 min';
-  if (minutes === 1) return '1 min';
-  return `${minutes} min`;
+  const totalSeconds = Math.round(Math.max(0, minutes) * 60);
+
+  if (totalSeconds === 0) return '0 sec';
+  if (totalSeconds < 60) return `${totalSeconds} sec`;
+
+  const wholeMinutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  if (seconds === 0) {
+    return wholeMinutes === 1 ? '1 min' : `${wholeMinutes} min`;
+  }
+
+  return `${wholeMinutes} min ${seconds.toString().padStart(2, '0')}`;
 }
