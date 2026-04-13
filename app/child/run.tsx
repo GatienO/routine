@@ -102,6 +102,7 @@ function ParticipantValidationButton({
 export default function RunRoutineScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
+  const isMobile = width < 760;
   const {
     currentExecution,
     completeStep,
@@ -157,7 +158,7 @@ export default function RunRoutineScreen() {
   const leftParticipants = participantChildren.slice(0, splitIndex);
   const rightParticipants = participantChildren.slice(splitIndex);
   const centerColumnWidth = compactParticipants
-    ? Math.min(width - SPACING.lg * 2, 360)
+    ? Math.min(width - (isMobile ? SPACING.md * 2 : SPACING.lg * 2), isMobile ? 340 : 360)
     : width >= 1440
       ? 320
       : width >= 1180
@@ -167,10 +168,12 @@ export default function RunRoutineScreen() {
     (width - SPACING.lg * 2 - SPACING.md * 2 - centerColumnWidth) / 2,
   );
   const sideColumnWidth = compactParticipants
-    ? 132
+    ? isMobile
+      ? centerColumnWidth
+      : 132
     : Math.max(260, Math.min(360, availableSideWidth));
-  const timerSize = width >= 1280 ? 220 : width >= 1024 ? 204 : width >= 768 ? 186 : 164;
-  const stepIconSize = width >= 1024 ? 82 : 70;
+  const timerSize = width >= 1280 ? 220 : width >= 1024 ? 204 : width >= 768 ? 186 : 156;
+  const stepIconSize = width >= 1024 ? 82 : isMobile ? 62 : 70;
 
   const completedCount = currentExecution?.stepsCompleted.length ?? 0;
   const totalSteps = activeSteps.length;
@@ -413,6 +416,8 @@ export default function RunRoutineScreen() {
 
   if (!currentExecution || !routine || !currentStep || isAllDone) return null;
 
+  const orderedParticipants = isMobile ? participantChildren : [...leftParticipants, ...rightParticipants];
+
   const remainingMinutes = activeSteps
     .slice(currentStepIndex)
     .reduce(
@@ -429,24 +434,27 @@ export default function RunRoutineScreen() {
     <LinearGradient colors={gradientColors} style={styles.gradient}>
       <SafeAreaView style={styles.safe}>
         <View style={styles.container}>
-          <Reanimated.View entering={FadeIn.duration(300)} style={styles.topBar}>
+          <Reanimated.View
+            entering={FadeIn.duration(300)}
+            style={[styles.topBar, isMobile && styles.topBarMobile]}
+          >
             <TouchableOpacity onPress={handleQuit} style={styles.quitBtn}>
               <X size={22} weight="bold" color={COLORS.textLight} />
             </TouchableOpacity>
-            {chainQueue.length > 0 ? (
-              <View style={styles.chainIndicator}>
-                <Text style={styles.chainIndicatorText} selectable={false}>+{chainQueue.length} a suivre</Text>
+            <View style={[styles.topBarBadges, isMobile && styles.topBarBadgesMobile]}>
+              {chainQueue.length > 0 ? (
+                <View style={styles.chainIndicator}>
+                  <Text style={styles.chainIndicatorText} selectable={false}>+{chainQueue.length} a suivre</Text>
+                </View>
+              ) : null}
+              <View style={styles.counterBadge}>
+                <Text style={styles.counter} selectable={false}>
+                  {completedCount + 1} / {totalSteps}
+                </Text>
               </View>
-            ) : (
-              <View style={styles.topSpacer} />
-            )}
-            <View style={styles.counterBadge}>
-              <Text style={styles.counter} selectable={false}>
-                {completedCount + 1} / {totalSteps}
-              </Text>
-            </View>
-            <View style={styles.endTimeBadge}>
-              <Text style={styles.endTimeText} selectable={false}>Fin {endTime}</Text>
+              <View style={styles.endTimeBadge}>
+                <Text style={styles.endTimeText} selectable={false}>Fin {endTime}</Text>
+              </View>
             </View>
           </Reanimated.View>
 
@@ -484,25 +492,31 @@ export default function RunRoutineScreen() {
             ) : null}
           </View>
 
-          <View style={styles.stageRow}>
-            <View style={[styles.participantColumn, { width: sideColumnWidth }]}>
-              {leftParticipants.map((child) => (
-                <ParticipantValidationButton
-                  key={`${currentStep.id}-${child.id}`}
-                  child={child}
-                  confirmed={confirmedChildIds.includes(child.id)}
-                  disabled={!canConfirmStep}
-                  onPress={() => handleParticipantComplete(child.id)}
-                  compact={compactParticipants}
-                />
-              ))}
-            </View>
+          <View style={[styles.stageRow, isMobile && styles.stageColumn]}> 
+            {!isMobile ? (
+              <View style={[styles.participantColumn, { width: sideColumnWidth }]}> 
+                {leftParticipants.map((child) => (
+                  <ParticipantValidationButton
+                    key={`${currentStep.id}-${child.id}`}
+                    child={child}
+                    confirmed={confirmedChildIds.includes(child.id)}
+                    disabled={!canConfirmStep}
+                    onPress={() => handleParticipantComplete(child.id)}
+                    compact={compactParticipants}
+                  />
+                ))}
+              </View>
+            ) : null}
 
             <Reanimated.View
               key={currentStepIndex}
               entering={FadeInRight.duration(animSpeed).springify()}
               exiting={FadeOutLeft.duration(animSpeed / 2)}
-              style={[styles.stepContainer, { width: centerColumnWidth }]}
+              style={[
+                styles.stepContainer,
+                isMobile && styles.stepContainerMobile,
+                { width: centerColumnWidth },
+              ]}
             >
               <View style={styles.stepHeaderBlock}>
                 <Reanimated.View
@@ -511,12 +525,19 @@ export default function RunRoutineScreen() {
                 >
                   <OpenMoji emoji={currentStep.icon} size={stepIconSize} />
                 </Reanimated.View>
-                <Text style={styles.stepTitle} selectable={false}>{currentStep.title}</Text>
+                <Text style={[styles.stepTitle, isMobile && styles.stepTitleMobile]} selectable={false}>
+                  {currentStep.title}
+                </Text>
                 {currentStep.mediaUri ? (
-                  <Image source={{ uri: currentStep.mediaUri }} style={styles.stepMedia} />
+                  <Image source={{ uri: currentStep.mediaUri }} style={[styles.stepMedia, isMobile && styles.stepMediaMobile]} />
                 ) : null}
                 {currentStep.instruction ? (
-                  <Text style={styles.stepInstruction} selectable={false}>{currentStep.instruction}</Text>
+                  <Text
+                    style={[styles.stepInstruction, isMobile && styles.stepInstructionMobile]}
+                    selectable={false}
+                  >
+                    {currentStep.instruction}
+                  </Text>
                 ) : null}
               </View>
 
@@ -542,6 +563,7 @@ export default function RunRoutineScreen() {
                     disabled={timer.isFinished}
                     style={[
                       styles.pauseHoldButton,
+                      isMobile && styles.pauseHoldButtonMobile,
                       timer.isPaused && styles.pauseHoldButtonPaused,
                     ]}
                   >
@@ -574,15 +596,21 @@ export default function RunRoutineScreen() {
               ) : null}
             </Reanimated.View>
 
-            <View style={[styles.participantColumn, { width: sideColumnWidth }]}>
-              {rightParticipants.map((child) => (
+            <View
+              style={[
+                styles.participantColumn,
+                { width: sideColumnWidth },
+                isMobile && styles.participantColumnMobile,
+              ]}
+            >
+              {(isMobile ? orderedParticipants : rightParticipants).map((child) => (
                 <ParticipantValidationButton
                   key={`${currentStep.id}-${child.id}`}
                   child={child}
                   confirmed={confirmedChildIds.includes(child.id)}
                   disabled={!canConfirmStep}
                   onPress={() => handleParticipantComplete(child.id)}
-                  compact={compactParticipants}
+                  compact={compactParticipants || isMobile}
                 />
               ))}
             </View>
@@ -624,9 +652,23 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: SPACING.md,
+    gap: SPACING.sm,
   },
-  topSpacer: {
-    width: 64,
+  topBarMobile: {
+    alignItems: 'flex-start',
+  },
+  topBarBadges: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: SPACING.xs,
+    flexWrap: 'wrap',
+    flexShrink: 1,
+    minWidth: 0,
+  },
+  topBarBadgesMobile: {
+    flex: 1,
+    justifyContent: 'flex-start',
   },
   quitBtn: {
     width: 44,
@@ -677,6 +719,13 @@ const styles = StyleSheet.create({
     gap: SPACING.md,
     paddingTop: SPACING.md,
   },
+  stageColumn: {
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    overflow: 'hidden',
+  },
   topCenterStatus: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -689,6 +738,11 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     gap: SPACING.sm,
     justifyContent: 'center',
+  },
+  participantColumnMobile: {
+    width: '100%',
+    maxWidth: 340,
+    alignSelf: 'center',
   },
   participantButtonContainer: {
     width: '100%',
@@ -757,6 +811,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.xs,
     paddingBottom: 72,
   },
+  stepContainerMobile: {
+    width: '100%',
+    paddingBottom: SPACING.sm,
+  },
   stepHeaderBlock: {
     width: '100%',
     maxWidth: 320,
@@ -773,11 +831,19 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 42,
   },
+  stepTitleMobile: {
+    fontSize: FONT_SIZE.xxl,
+    lineHeight: 34,
+  },
   stepMedia: {
     width: 180,
     height: 180,
     borderRadius: RADIUS.xl,
     marginTop: SPACING.md,
+  },
+  stepMediaMobile: {
+    width: 156,
+    height: 156,
   },
   stepInstruction: {
     fontSize: FONT_SIZE.lg,
@@ -786,6 +852,10 @@ const styles = StyleSheet.create({
     marginTop: SPACING.sm,
     lineHeight: 24,
     maxWidth: 320,
+  },
+  stepInstructionMobile: {
+    fontSize: FONT_SIZE.md,
+    lineHeight: 21,
   },
   timerContainer: {
     alignItems: 'center',
@@ -800,6 +870,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.92)',
     borderWidth: 1.5,
     borderColor: COLORS.surfaceSecondary,
+  },
+  pauseHoldButtonMobile: {
+    minWidth: 0,
+    width: '100%',
+    maxWidth: 320,
   },
   pauseHoldButtonPaused: {
     borderColor: COLORS.warning,
