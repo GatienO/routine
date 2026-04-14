@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.md,
     color: COLORS.text,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
   },
   codeInput: {
     minHeight: 140,
@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.surfaceSecondary,
+    backgroundColor: `${COLORS.secondary}10`,
   },
   previewTextBlock: {
     flex: 1,
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     borderRadius: RADIUS.full,
     borderWidth: 2,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
     backgroundColor: COLORS.surface,
     flexDirection: 'row',
     alignItems: 'center',

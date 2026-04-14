@@ -12,7 +12,7 @@ import {
   Pressable,
 } from 'react-native';
 import { CaretDown, CaretUp, Check, MagnifyingGlass } from 'phosphor-react-native';
-import { COLORS, SPACING, FONT_SIZE, RADIUS } from '../../constants/theme';
+import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../../constants/theme';
 import { RoutineCategory } from '../../types';
 
 const WEB_SEARCH_INPUT_RESET = Platform.OS === 'web'
@@ -417,7 +417,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     borderRadius: RADIUS.lg,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
     minHeight: 44,
@@ -439,7 +439,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.lg,
     backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
     justifyContent: 'center',
@@ -476,13 +476,9 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.lg,
     backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
     paddingVertical: SPACING.xs,
-    shadowColor: '#000',
-    shadowOpacity: 0.12,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 10,
+    ...SHADOWS.md,
     overflow: 'hidden',
   },
   dropdownMenuTitle: {

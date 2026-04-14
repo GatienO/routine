@@ -468,7 +468,7 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.md,
     borderWidth: 1.5,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
     ...SHADOWS.sm,
   },
   childPickerName: {
@@ -528,7 +528,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
   },
   toggleChipActive: {
     backgroundColor: `${COLORS.secondary}20`,
@@ -562,7 +562,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
   },
   badgeTabActive: {
     backgroundColor: `${COLORS.secondary}20`,
@@ -581,7 +581,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.full,
     paddingVertical: 2,
     paddingHorizontal: 6,
-    backgroundColor: COLORS.surfaceSecondary,
+    backgroundColor: `${COLORS.textLight}14`,
     alignItems: 'center',
   },
   badgeTabCountActive: {
@@ -671,7 +671,7 @@ const styles = StyleSheet.create({
   progressTrack: {
     height: 9,
     borderRadius: RADIUS.full,
-    backgroundColor: COLORS.surfaceSecondary,
+    backgroundColor: COLORS.border,
     overflow: 'hidden',
   },
   progressFill: {

@@ -19,7 +19,7 @@ import { useRoutineStore } from '../../src/stores/routineStore';
 import { AnimatedPressable } from '../../src/components/ui/AnimatedPressable';
 import { MOOD_CONFIG, POSITIVE_MOODS, NEGATIVE_MOODS } from '../../src/constants/moods';
 import { ChildMoodType } from '../../src/types';
-import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../../src/constants/theme';
+import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS, GRADIENTS, TOUCH } from '../../src/constants/theme';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
 import { backOrReplace } from '../../src/utils/navigation';
 
@@ -53,7 +53,7 @@ export default function MoodScreen() {
   };
 
   return (
-    <LinearGradient colors={['#FFF8F0', '#FFE8D6', '#FFDCC8']} style={styles.gradient}>
+    <LinearGradient colors={GRADIENTS.warmBackground} style={styles.gradient}>
       <SafeAreaView style={styles.safe}>
         <View style={styles.container}>
           <Animated.Text entering={FadeIn.duration(400)} style={styles.title}>
@@ -134,39 +134,44 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: SPACING.xl,
+    padding: SPACING.lg,
+    paddingHorizontal: SPACING.md,
   },
   title: {
     fontSize: FONT_SIZE.xxl + 4,
     fontWeight: '900',
     color: COLORS.text,
     marginBottom: SPACING.sm,
+    textAlign: 'center',
   },
   subtitle: {
-    fontSize: FONT_SIZE.lg,
+    fontSize: FONT_SIZE.md,
     color: COLORS.textSecondary,
-    marginBottom: SPACING.xxl,
+    marginBottom: SPACING.xl,
+    textAlign: 'center',
   },
   moodSection: {
     width: '100%',
+    maxWidth: 520,
     marginBottom: SPACING.lg,
   },
   sectionLabel: {
     fontSize: FONT_SIZE.md,
     fontWeight: '700',
     color: COLORS.textSecondary,
-    marginBottom: SPACING.sm,
+    marginBottom: SPACING.md,
     textAlign: 'center',
   },
   moodRow: {
     flexDirection: 'row',
     justifyContent: 'center',
+    flexWrap: 'wrap',
     gap: SPACING.md,
   },
   moodCard: {
-    width: 110,
-    height: 110,
-    borderRadius: RADIUS.xl,
+    width: 120,
+    height: 120,
+    borderRadius: RADIUS.xl + 4,
     alignItems: 'center',
     justifyContent: 'center',
     gap: SPACING.sm,
@@ -174,10 +179,11 @@ const styles = StyleSheet.create({
     ...SHADOWS.sm,
   },
   moodEmoji: { fontSize: 50 },
-  moodLabel: { fontSize: FONT_SIZE.lg, fontWeight: '800' },
+  moodLabel: { fontSize: FONT_SIZE.md, fontWeight: '800' },
   skipBtn: {
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.xl,
+    marginTop: SPACING.sm,
   },
   skipText: {
     fontSize: FONT_SIZE.md,

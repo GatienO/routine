@@ -1,4 +1,4 @@
-import { Platform } from 'react-native';
+import { Platform, Dimensions } from 'react-native';
 
 export const COLORS = {
   primary: '#FF6B6B',
@@ -21,6 +21,17 @@ export const COLORS = {
   error: '#FF7675',
   star: '#FDCB6E',
   shadow: '#00000015',
+  // Extended palette for richer UI
+  primarySoft: '#FFE0E0',
+  secondarySoft: '#D4F5F2',
+  accentSoft: '#FFF5D0',
+  successSoft: '#D0F5EB',
+  warningSoft: '#FFF3D0',
+  errorSoft: '#FFE0E0',
+  border: '#EDE8E3',
+  divider: '#F0EBE6',
+  overlay: 'rgba(33, 39, 48, 0.4)',
+  cardHighlight: '#FFFDFB',
 } as const;
 
 export const CHILD_COLORS = [
@@ -122,4 +133,43 @@ export const SHADOWS = {
     shadowOpacity: 0.15,
     shadowRadius: 12,
   }),
+  glow: (color: string) => createShadow({
+    boxShadow: `0px 4px 16px ${color}40`,
+    elevation: 6,
+    shadowColor: color,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+  }),
+} as const;
+
+// Child-friendly touch target sizes
+export const TOUCH = {
+  minHeight: 48,
+  childMinHeight: 56,
+  childMinWidth: 56,
+} as const;
+
+// Shared gradient presets
+export const GRADIENTS = {
+  warmBackground: ['#FFF8F0', '#FFE8D6', '#FFDCC8'] as const,
+  coolBackground: ['#F0F8FF', '#E8F0FE', '#D6E8FF'] as const,
+  childHeader: ['#FFF8F0', '#FFE8D6'] as const,
+  celebration: ['#FFF8F0', '#FFE8D6', '#FFDCC8'] as const,
+  wellness: ['#E8E0F0', '#D0C4E8', '#B8A9D9'] as const,
+} as const;
+
+// Section divider style helper
+export const SECTION_DIVIDER = {
+  height: 1,
+  backgroundColor: COLORS.divider,
+  marginVertical: SPACING.lg,
+} as const;
+
+// Consistent content container widths
+export const CONTENT_MAX_WIDTH = {
+  sm: 480,
+  md: 720,
+  lg: 1100,
+  xl: 1320,
 } as const;

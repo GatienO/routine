@@ -7,7 +7,7 @@ import {
   TextStyle,
   ActivityIndicator,
 } from 'react-native';
-import { COLORS, RADIUS, SPACING, FONT_SIZE, SHADOWS } from '../../constants/theme';
+import { COLORS, RADIUS, SPACING, FONT_SIZE, SHADOWS, TOUCH } from '../../constants/theme';
 
 interface ButtonProps {
   title: string;
@@ -19,6 +19,7 @@ interface ButtonProps {
   loading?: boolean;
   color?: string;
   style?: ViewStyle;
+  fullWidth?: boolean;
 }
 
 export function Button({
@@ -31,6 +32,7 @@ export function Button({
   loading = false,
   color,
   style,
+  fullWidth = false,
 }: ButtonProps) {
   const bgColor = color || COLORS.primary;
 
@@ -38,10 +40,19 @@ export function Button({
     styles.base,
     sizes[size],
     variant === 'primary' && { backgroundColor: bgColor, ...SHADOWS.md },
-    variant === 'secondary' && { backgroundColor: COLORS.surfaceSecondary },
-    variant === 'outline' && { borderWidth: 2, borderColor: bgColor, backgroundColor: 'transparent' },
+    variant === 'secondary' && {
+      backgroundColor: `${COLORS.textLight}10`,
+      borderWidth: 1,
+      borderColor: COLORS.border,
+    },
+    variant === 'outline' && {
+      borderWidth: 2,
+      borderColor: bgColor,
+      backgroundColor: `${bgColor}08`,
+    },
     variant === 'ghost' && { backgroundColor: 'transparent' },
     disabled && styles.disabled,
+    fullWidth && { width: '100%', alignSelf: 'stretch' } as ViewStyle,
     style as ViewStyle,
   ].filter(Boolean) as ViewStyle[];
 
@@ -74,20 +85,32 @@ export function Button({
 }
 
 const sizes: Record<string, ViewStyle> = {
-  sm: { paddingVertical: SPACING.sm, paddingHorizontal: SPACING.md, minHeight: 42 },
-  md: { paddingVertical: SPACING.md, paddingHorizontal: SPACING.lg, minHeight: 50 },
-  lg: { paddingVertical: SPACING.md + 2, paddingHorizontal: SPACING.xl, minHeight: 58 },
+  sm: {
+    paddingVertical: SPACING.sm + 2,
+    paddingHorizontal: SPACING.md + 4,
+    minHeight: TOUCH.minHeight,
+  },
+  md: {
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg + 4,
+    minHeight: TOUCH.childMinHeight,
+  },
+  lg: {
+    paddingVertical: SPACING.md + 4,
+    paddingHorizontal: SPACING.xl + 4,
+    minHeight: 64,
+  },
 };
 
 const textSizes: Record<string, TextStyle> = {
-  sm: { fontSize: FONT_SIZE.sm },
-  md: { fontSize: FONT_SIZE.md },
-  lg: { fontSize: FONT_SIZE.lg },
+  sm: { fontSize: FONT_SIZE.sm, letterSpacing: 0.1 },
+  md: { fontSize: FONT_SIZE.md, letterSpacing: 0.1 },
+  lg: { fontSize: FONT_SIZE.lg, letterSpacing: 0.2 },
 };
 
 const styles = StyleSheet.create({
   base: {
-    borderRadius: RADIUS.lg,
+    borderRadius: RADIUS.xl,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -103,6 +126,6 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.lg,
   },
   disabled: {
-    opacity: 0.5,
+    opacity: 0.45,
   },
 });

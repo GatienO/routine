@@ -26,7 +26,7 @@ import { ProgressBar } from '../../src/components/ui/ProgressBar';
 import { X, ArrowRight, CheckCircle } from 'phosphor-react-native';
 import { CircularTimer } from '../../src/components/ui/CircularTimer';
 import { AnimatedPressable } from '../../src/components/ui/AnimatedPressable';
-import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../../src/constants/theme';
+import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS, TOUCH } from '../../src/constants/theme';
 import { useTimer } from '../../src/hooks/useTimer';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
 import { Avatar } from '../../src/components/ui/Avatar';
@@ -671,28 +671,35 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   quitBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.7)',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
     alignItems: 'center',
     justifyContent: 'center',
+    ...SHADOWS.sm,
   },
   counterBadge: {
-    backgroundColor: 'rgba(255,255,255,0.8)',
-    paddingVertical: SPACING.xs,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    paddingVertical: SPACING.xs + 2,
     paddingHorizontal: SPACING.md,
     borderRadius: RADIUS.full,
   },
   counter: {
     fontSize: FONT_SIZE.md,
     fontWeight: '800',
-    color: COLORS.textSecondary,
+    color: COLORS.text,
   },
   chainIndicator: {
-    backgroundColor: 'rgba(255,255,255,0.8)',
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
     paddingVertical: SPACING.xs,
-    paddingHorizontal: SPACING.sm,
+    paddingHorizontal: SPACING.sm + 2,
     borderRadius: RADIUS.full,
   },
   chainIndicatorText: {
@@ -701,9 +708,11 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
   },
   endTimeBadge: {
-    backgroundColor: 'rgba(255,255,255,0.8)',
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
     paddingVertical: SPACING.xs,
-    paddingHorizontal: SPACING.sm,
+    paddingHorizontal: SPACING.sm + 2,
     borderRadius: RADIUS.full,
   },
   endTimeText: {
@@ -749,15 +758,15 @@ const styles = StyleSheet.create({
   },
   participantButton: {
     minHeight: 76,
-    borderRadius: RADIUS.xl,
+    borderRadius: RADIUS.xl + 4,
     borderWidth: 2,
     paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    ...SHADOWS.md,
+    paddingVertical: SPACING.sm + 2,
+    ...SHADOWS.sm,
   },
   participantButtonPending: {
-    backgroundColor: 'rgba(255,255,255,0.92)',
-    borderColor: 'rgba(255,255,255,0.92)',
+    backgroundColor: COLORS.surface,
+    borderColor: COLORS.border,
   },
   participantButtonDisabled: {
     opacity: 0.72,
@@ -794,13 +803,13 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
   },
   participantButtonBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
     backgroundColor: COLORS.surface,
   },
   stepContainer: {
@@ -830,10 +839,11 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     textAlign: 'center',
     lineHeight: 42,
+    letterSpacing: -0.3,
   },
   stepTitleMobile: {
-    fontSize: FONT_SIZE.xxl,
-    lineHeight: 34,
+    fontSize: FONT_SIZE.xxl - 2,
+    lineHeight: 36,
   },
   stepMedia: {
     width: 180,
@@ -867,9 +877,9 @@ const styles = StyleSheet.create({
     minWidth: 200,
     maxWidth: 240,
     borderRadius: RADIUS.xl,
-    backgroundColor: 'rgba(255,255,255,0.92)',
+    backgroundColor: COLORS.surface,
     borderWidth: 1.5,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
   },
   pauseHoldButtonMobile: {
     minWidth: 0,

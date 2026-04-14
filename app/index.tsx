@@ -19,7 +19,7 @@ import Animated, {
 import { useRouter } from 'expo-router';
 import { AnimatedPressable } from '../src/components/ui/AnimatedPressable';
 import { Button } from '../src/components/ui/Button';
-import { COLORS, SPACING, FONT_SIZE, SHADOWS, RADIUS } from '../src/constants/theme';
+import { COLORS, SPACING, FONT_SIZE, SHADOWS, RADIUS, GRADIENTS, TOUCH } from '../src/constants/theme';
 import { useLocalProfileStore } from '../src/stores/localProfileStore';
 import { AppTutorialModal } from '../src/components/tutorial/AppTutorialModal';
 
@@ -52,7 +52,7 @@ export default function WelcomeScreen() {
 
   return (
     <LinearGradient
-      colors={['#FFF8F0', '#FFE8D6', '#FFDCC8']}
+      colors={GRADIENTS.warmBackground}
       style={styles.gradient}
     >
       <SafeAreaView style={styles.safe}>
@@ -85,16 +85,20 @@ export default function WelcomeScreen() {
             style={styles.buttons}
           >
             <AnimatedPressable
-              onPress={() => router.push('/pin')}
-              style={[styles.bigButton, { backgroundColor: COLORS.secondary }]}
+              onPress={() => router.push('/child')}
+              style={[styles.bigButton, styles.childButton]}
+              scaleDown={0.95}
             >
-              <Text style={styles.bigButtonText}>👨‍👩‍👧 Espace Parent</Text>
+              <Text style={styles.bigButtonEmoji}>🧒</Text>
+              <Text style={styles.bigButtonText}>C'est parti !</Text>
             </AnimatedPressable>
             <AnimatedPressable
-              onPress={() => router.push('/child')}
-              style={[styles.bigButton, { backgroundColor: COLORS.primary }]}
+              onPress={() => router.push('/pin')}
+              style={[styles.bigButton, styles.parentButton]}
+              scaleDown={0.97}
             >
-              <Text style={styles.bigButtonText}>🧒 C'est parti !</Text>
+              <Text style={styles.bigButtonEmoji}>👨‍👩‍👧</Text>
+              <Text style={styles.parentButtonText}>Espace Parent</Text>
             </AnimatedPressable>
           </Animated.View>
         </View>
@@ -179,19 +183,19 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: SPACING.lg,
     left: SPACING.lg,
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: 'rgba(45, 52, 54, 0.08)',
-    ...SHADOWS.md,
+    borderColor: COLORS.border,
+    ...SHADOWS.sm,
   },
   infoButtonText: {
-    fontSize: 24,
-    lineHeight: 28,
+    fontSize: 22,
+    lineHeight: 26,
     fontWeight: '900',
     color: COLORS.text,
   },
@@ -200,7 +204,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xxl,
   },
   emoji: {
-    fontSize: 90,
+    fontSize: 96,
     marginBottom: SPACING.md,
   },
   title: {
@@ -214,28 +218,52 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     textAlign: 'center',
     marginTop: SPACING.sm,
-    lineHeight: 28,
+    lineHeight: 30,
   },
   buttons: {
     width: '100%',
-    gap: SPACING.md,
+    maxWidth: 400,
+    gap: SPACING.md + 4,
     marginBottom: SPACING.xl,
   },
   bigButton: {
     paddingVertical: SPACING.lg,
     paddingHorizontal: SPACING.xl,
-    borderRadius: RADIUS.xl,
+    borderRadius: RADIUS.xl + 4,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.sm,
+  },
+  childButton: {
+    backgroundColor: COLORS.primary,
     ...SHADOWS.md,
+    minHeight: 72,
+  },
+  parentButton: {
+    backgroundColor: COLORS.surface,
+    borderWidth: 2,
+    borderColor: COLORS.border,
+    ...SHADOWS.sm,
+    minHeight: 64,
+  },
+  bigButtonEmoji: {
+    fontSize: 26,
   },
   bigButtonText: {
-    fontSize: FONT_SIZE.lg,
-    fontWeight: '800',
+    fontSize: FONT_SIZE.lg + 2,
+    fontWeight: '900',
     color: '#FFF',
+    letterSpacing: 0.3,
+  },
+  parentButtonText: {
+    fontSize: FONT_SIZE.md,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
   },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(33, 39, 48, 0.32)',
+    backgroundColor: COLORS.overlay,
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
     paddingTop: SPACING.xxl + 20,
@@ -247,10 +275,10 @@ const styles = StyleSheet.create({
     maxWidth: 360,
     backgroundColor: COLORS.surface,
     borderRadius: RADIUS.xl,
-    padding: SPACING.lg,
+    padding: SPACING.lg + 4,
     gap: SPACING.sm,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
     ...SHADOWS.lg,
   },
   modalEyebrow: {
@@ -258,7 +286,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: COLORS.secondaryDark,
     textTransform: 'uppercase',
-    letterSpacing: 0.4,
+    letterSpacing: 0.6,
   },
   modalTitle: {
     fontSize: FONT_SIZE.lg,
@@ -272,7 +300,7 @@ const styles = StyleSheet.create({
   },
   centeredBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(33, 39, 48, 0.32)',
+    backgroundColor: COLORS.overlay,
     justifyContent: 'center',
     alignItems: 'center',
     padding: SPACING.lg,
@@ -285,7 +313,7 @@ const styles = StyleSheet.create({
     padding: SPACING.xl,
     gap: SPACING.md,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
     ...SHADOWS.lg,
   },
   tutorialOfferEyebrow: {
@@ -319,7 +347,7 @@ const styles = StyleSheet.create({
     minHeight: 44,
     paddingHorizontal: SPACING.md,
     borderRadius: RADIUS.full,
-    backgroundColor: COLORS.surfaceSecondary,
+    backgroundColor: `${COLORS.textLight}14`,
     alignItems: 'center',
     justifyContent: 'center',
   },

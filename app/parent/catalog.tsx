@@ -122,12 +122,12 @@ export default function CatalogScreen() {
                   {categoryIcon(selectedTemplate.category)} {categoryLabel(selectedTemplate.category)}
                 </Text>
               </View>
-              <View style={[styles.badge, { backgroundColor: COLORS.surfaceSecondary }]}>
+              <View style={[styles.badge, { backgroundColor: `${COLORS.textLight}14` }]}>
                 <Text style={styles.badgeText}>
                   {selectedTemplate.ageRange[0]}-{selectedTemplate.ageRange[1]} ans
                 </Text>
               </View>
-              <View style={[styles.badge, { backgroundColor: COLORS.surfaceSecondary }]}>
+              <View style={[styles.badge, { backgroundColor: `${COLORS.textLight}14` }]}>
                 <Text style={styles.badgeText}>
                   ~{formatDuration(totalDuration(selectedTemplate))}
                 </Text>
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.sm,
     fontWeight: '800',
     color: COLORS.textLight,
-    backgroundColor: COLORS.surfaceSecondary,
+    backgroundColor: `${COLORS.textLight}14`,
     width: 28,
     height: 28,
     borderRadius: 14,
@@ -460,7 +460,7 @@ const styles = StyleSheet.create({
   importArea: { marginTop: SPACING.xl },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(15,23,42,0.35)',
+    backgroundColor: COLORS.overlay,
     alignItems: 'center',
     justifyContent: 'center',
     padding: SPACING.lg,
@@ -496,7 +496,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.lg,
     backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
   },
   childChoiceSelected: {
     backgroundColor: COLORS.secondary + '18',

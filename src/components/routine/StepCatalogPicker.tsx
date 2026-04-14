@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: SPACING.xs,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
     backgroundColor: COLORS.surface,
     borderRadius: RADIUS.full,
     paddingVertical: SPACING.sm,
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.lg,
     padding: SPACING.md,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
     ...SHADOWS.sm,
   },
   itemIconWrap: {

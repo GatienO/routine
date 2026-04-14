@@ -25,7 +25,7 @@ import { Card } from '../components/ui/Card';
 import { DraggableList } from '../components/ui/DraggableList';
 import { RoutineShareModal } from '../components/routine/RoutineShareModal';
 import { AppTutorialModal } from '../components/tutorial/AppTutorialModal';
-import { COLORS, SPACING, FONT_SIZE, RADIUS } from '../constants/theme';
+import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../constants/theme';
 import { Child, Routine } from '../types';
 import {
   CompactRoutineGroupRow,
@@ -758,7 +758,7 @@ function ParentWeatherSettingsModal({
               <Switch
                 value={useGeolocation}
                 onValueChange={onToggleGeo}
-                trackColor={{ false: COLORS.surfaceSecondary, true: COLORS.secondaryLight }}
+                trackColor={{ false: COLORS.border, true: COLORS.secondaryLight }}
                 thumbColor={useGeolocation ? COLORS.secondary : COLORS.textLight}
               />
             </View>
@@ -820,19 +820,20 @@ const styles = StyleSheet.create({
   },
   empty: {
     alignItems: 'center',
-    gap: SPACING.sm,
-    paddingVertical: SPACING.lg,
+    gap: SPACING.md,
+    paddingVertical: SPACING.xl,
   },
   emptyIcon: {
-    fontSize: 34,
+    fontSize: 40,
   },
   emptyText: {
     fontSize: FONT_SIZE.md,
     color: COLORS.textSecondary,
     textAlign: 'center',
+    lineHeight: 22,
   },
   paginationSection: {
-    marginTop: SPACING.sm,
+    marginTop: SPACING.md,
     marginBottom: SPACING.lg,
     gap: SPACING.sm,
   },
@@ -853,18 +854,18 @@ const styles = StyleSheet.create({
     minWidth: 112,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: SPACING.sm,
+    paddingVertical: SPACING.sm + 2,
     paddingHorizontal: SPACING.md,
     borderRadius: RADIUS.full,
     backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
   },
   paginationButtonDisabled: {
-    opacity: 0.45,
+    opacity: 0.4,
   },
   paginationButtonText: {
-    fontSize: FONT_SIZE.xs,
+    fontSize: FONT_SIZE.sm,
     fontWeight: '800',
     color: COLORS.text,
   },
@@ -880,22 +881,22 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   pageChip: {
-    minWidth: 36,
-    height: 36,
-    borderRadius: 18,
+    minWidth: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: SPACING.sm,
     backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
   },
   pageChipActive: {
     backgroundColor: `${COLORS.secondary}18`,
     borderColor: COLORS.secondary,
   },
   pageChipText: {
-    fontSize: FONT_SIZE.xs,
+    fontSize: FONT_SIZE.sm,
     fontWeight: '800',
     color: COLORS.textSecondary,
   },
@@ -907,8 +908,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: SPACING.sm,
     backgroundColor: `${COLORS.secondary}14`,
-    borderRadius: RADIUS.lg,
-    paddingVertical: SPACING.sm,
+    borderRadius: RADIUS.xl,
+    paddingVertical: SPACING.sm + 2,
     paddingHorizontal: SPACING.md,
     marginBottom: SPACING.md,
   },
@@ -917,10 +918,11 @@ const styles = StyleSheet.create({
     color: COLORS.secondaryDark,
     fontSize: FONT_SIZE.sm,
     fontWeight: '700',
+    lineHeight: 20,
   },
   weatherModalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(27, 32, 46, 0.34)',
+    backgroundColor: COLORS.overlay,
     alignItems: 'center',
     justifyContent: 'center',
     padding: SPACING.lg,
@@ -928,15 +930,11 @@ const styles = StyleSheet.create({
   weatherModalCard: {
     width: '100%',
     maxWidth: 560,
-    borderRadius: RADIUS.xl,
+    borderRadius: RADIUS.xl + 4,
     backgroundColor: COLORS.surface,
     padding: SPACING.xl,
     gap: SPACING.md,
-    shadowColor: '#000',
-    shadowOpacity: 0.16,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: 12 },
-    elevation: 16,
+    ...SHADOWS.lg,
   },
   weatherModalIconWrap: {
     width: 72,
@@ -963,7 +961,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   weatherSettings: {
-    gap: SPACING.sm,
+    gap: SPACING.md,
   },
   weatherRow: {
     flexDirection: 'row',
@@ -990,9 +988,9 @@ const styles = StyleSheet.create({
   weatherInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
-    borderRadius: RADIUS.md,
-    paddingVertical: SPACING.sm,
+    borderColor: COLORS.border,
+    borderRadius: RADIUS.lg,
+    paddingVertical: SPACING.sm + 2,
     paddingHorizontal: SPACING.md,
     fontSize: FONT_SIZE.md,
     color: COLORS.text,
@@ -1016,21 +1014,24 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.xs,
     color: COLORS.textSecondary,
     fontStyle: 'italic',
+    lineHeight: 18,
   },
   weatherModalActions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
     gap: SPACING.sm,
-    marginTop: SPACING.sm,
+    marginTop: SPACING.md,
   },
   weatherModalSecondaryBtn: {
     minWidth: 110,
-    height: 44,
+    height: 48,
     borderRadius: RADIUS.full,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: SPACING.lg,
-    backgroundColor: COLORS.surfaceSecondary,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   weatherModalSecondaryBtnText: {
     fontSize: FONT_SIZE.sm,
@@ -1039,7 +1040,7 @@ const styles = StyleSheet.create({
   },
   weatherModalPrimaryBtn: {
     minWidth: 132,
-    height: 44,
+    height: 48,
     borderRadius: RADIUS.full,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1054,15 +1055,11 @@ const styles = StyleSheet.create({
   profileModalCard: {
     width: '100%',
     maxWidth: 520,
-    borderRadius: RADIUS.xl,
+    borderRadius: RADIUS.xl + 4,
     backgroundColor: COLORS.surface,
     padding: SPACING.xl,
     gap: SPACING.md,
-    shadowColor: '#000',
-    shadowOpacity: 0.16,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: 12 },
-    elevation: 16,
+    ...SHADOWS.lg,
   },
   profileModalBadge: {
     alignSelf: 'center',
@@ -1076,13 +1073,14 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: COLORS.secondaryDark,
     textTransform: 'uppercase',
-    letterSpacing: 0.4,
+    letterSpacing: 0.6,
   },
   profileModalTitle: {
     fontSize: FONT_SIZE.xl,
     fontWeight: '900',
     color: COLORS.text,
     textAlign: 'center',
+    letterSpacing: -0.3,
   },
   profileModalId: {
     fontSize: FONT_SIZE.xs,
@@ -1107,6 +1105,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: SPACING.sm,
     flexWrap: 'wrap',
-    marginTop: SPACING.sm,
+    marginTop: SPACING.md,
   },
 });

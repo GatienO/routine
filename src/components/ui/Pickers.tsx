@@ -204,7 +204,7 @@ export function CategorySelectionField({
                       styles.categoryOption,
                       {
                         backgroundColor: selected === option.key ? `${option.color}26` : COLORS.surface,
-                        borderColor: selected === option.key ? option.color : COLORS.surfaceSecondary,
+                        borderColor: selected === option.key ? option.color : COLORS.border,
                       },
                     ]}
                     onPress={() => {
@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.full,
     backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
   },
   tabChipActive: {
     backgroundColor: COLORS.accent,
@@ -352,7 +352,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: RADIUS.lg,
-    backgroundColor: COLORS.surfaceSecondary,
+    backgroundColor: `${COLORS.textLight}14`,
   },
   selected: {
     backgroundColor: COLORS.accent,
@@ -378,9 +378,9 @@ const styles = StyleSheet.create({
   iconFieldPreview: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.surfaceSecondary,
+    backgroundColor: `${COLORS.textLight}14`,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
   },
   iconFieldText: {
     fontSize: FONT_SIZE.sm,
@@ -419,11 +419,11 @@ const styles = StyleSheet.create({
     height: 68,
     borderRadius: 34,
     borderWidth: 2,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(20, 24, 38, 0.42)',
+    backgroundColor: COLORS.overlay,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.lg,
   },
@@ -459,6 +459,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
   },
 });

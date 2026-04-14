@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     borderRadius: RADIUS.lg,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
     paddingVertical: SPACING.sm + 2,
     paddingHorizontal: SPACING.sm,
   },
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.successLight,
   },
   statusOff: {
-    backgroundColor: COLORS.surfaceSecondary,
+    backgroundColor: `${COLORS.textLight}14`,
   },
   statusText: {
     color: COLORS.success,
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.successLight,
   },
   toggleBtnOff: {
-    backgroundColor: COLORS.surfaceSecondary,
+    backgroundColor: `${COLORS.textLight}14`,
   },
   toggleText: {
     fontSize: 11,
@@ -224,6 +224,8 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.surfaceSecondary,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
 });

@@ -10,7 +10,7 @@ import { useRoutineStore } from '../../src/stores/routineStore';
 import { Avatar } from '../../src/components/ui/Avatar';
 import { AnimatedPressable } from '../../src/components/ui/AnimatedPressable';
 import { AppPageHeader } from '../../src/components/ui/AppPageHeader';
-import { COLORS, SPACING, FONT_SIZE, SHADOWS, RADIUS } from '../../src/constants/theme';
+import { COLORS, SPACING, FONT_SIZE, SHADOWS, RADIUS, TOUCH, GRADIENTS } from '../../src/constants/theme';
 import { backOrReplace } from '../../src/utils/navigation';
 import { getGridItemWidth, getResponsiveColumns } from '../../src/utils/responsive';
 import { formatChildName } from '../../src/utils/children';
@@ -94,7 +94,7 @@ export default function ChildPresenceScreen() {
   };
 
   return (
-    <LinearGradient colors={['#FFF8F0', '#FFE8D6', '#FFDCC8']} style={styles.gradient}>
+    <LinearGradient colors={GRADIENTS.warmBackground} style={styles.gradient}>
       <SafeAreaView style={styles.safe}>
         <View style={styles.container}>
           <AppPageHeader
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   container: {
     flex: 1,
-    padding: SPACING.xl,
+    padding: SPACING.lg,
     alignItems: 'center',
   },
   backBtn: { alignSelf: 'flex-start' },
@@ -195,14 +195,16 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: COLORS.text,
     textAlign: 'center',
-    marginTop: SPACING.lg,
+    marginTop: SPACING.md,
   },
   subtitle: {
     fontSize: FONT_SIZE.md,
     color: COLORS.textSecondary,
     textAlign: 'center',
     marginTop: SPACING.sm,
-    marginBottom: SPACING.xl,
+    marginBottom: SPACING.lg,
+    maxWidth: 360,
+    lineHeight: 22,
   },
   grid: {
     flex: 1,
@@ -214,13 +216,13 @@ const styles = StyleSheet.create({
   },
   childCard: {
     alignItems: 'center',
-    gap: SPACING.sm,
-    backgroundColor: 'rgba(255,255,255,0.84)',
-    paddingVertical: SPACING.lg,
-    paddingHorizontal: SPACING.md,
-    borderRadius: RADIUS.xl,
+    gap: SPACING.md,
+    backgroundColor: COLORS.surface,
+    paddingVertical: SPACING.lg + 4,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: RADIUS.xl + 4,
     borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.84)',
+    borderColor: COLORS.border,
     ...SHADOWS.sm,
   },
   avatarWrap: {
@@ -230,12 +232,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: -2,
     bottom: -2,
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
+    borderWidth: 3,
     borderColor: '#FFF',
   },
   childName: {
@@ -244,7 +246,7 @@ const styles = StyleSheet.create({
     color: COLORS.text,
   },
   tapBubble: {
-    backgroundColor: 'rgba(255,255,255,0.9)',
+    backgroundColor: `${COLORS.textLight}14`,
     paddingVertical: SPACING.xs + 2,
     paddingHorizontal: SPACING.md,
     borderRadius: RADIUS.full,
@@ -262,24 +264,25 @@ const styles = StyleSheet.create({
   startBtn: {
     width: '100%',
     maxWidth: 440,
-    minHeight: 68,
+    minHeight: 72,
     borderRadius: RADIUS.full,
     paddingVertical: SPACING.lg,
     paddingHorizontal: SPACING.xl,
     marginTop: SPACING.lg,
+    marginBottom: SPACING.md,
     ...SHADOWS.md,
   },
   startRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: SPACING.xs,
+    gap: SPACING.sm,
     width: '100%',
   },
   startText: {
     flexShrink: 1,
     color: '#FFF',
-    fontSize: FONT_SIZE.md,
+    fontSize: FONT_SIZE.lg,
     fontWeight: '900',
     textAlign: 'center',
   },

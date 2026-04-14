@@ -214,7 +214,7 @@ function ShareValueCard({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(27, 32, 46, 0.34)',
+    backgroundColor: COLORS.overlay,
     alignItems: 'center',
     justifyContent: 'center',
     padding: SPACING.lg,
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.surfaceSecondary,
+    backgroundColor: `${COLORS.secondary}10`,
   },
   headerText: {
     flex: 1,
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.xs,
     paddingHorizontal: SPACING.sm,
     borderRadius: RADIUS.full,
-    backgroundColor: COLORS.surfaceSecondary,
+    backgroundColor: `${COLORS.textLight}14`,
   },
   copyButtonText: {
     fontSize: FONT_SIZE.xs,

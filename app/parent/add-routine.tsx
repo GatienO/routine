@@ -760,9 +760,11 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: COLORS.surfaceSecondary,
+    backgroundColor: COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
     ...SHADOWS.sm,
   },
   scroll: {
@@ -807,7 +809,7 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.md,
     color: COLORS.text,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
   },
   inputError: {
     borderColor: COLORS.error,
@@ -839,7 +841,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     borderRadius: RADIUS.full,
     borderWidth: 2,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
     backgroundColor: COLORS.surface,
   },
   childChipText: {
@@ -862,7 +864,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     borderRadius: RADIUS.full,
     borderWidth: 2,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
     backgroundColor: COLORS.surface,
   },
   categoryChipContent: {
@@ -942,7 +944,7 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.xs,
     paddingHorizontal: SPACING.md,
     borderRadius: RADIUS.full,
-    backgroundColor: COLORS.surfaceSecondary,
+    backgroundColor: `${COLORS.textLight}14`,
   },
   toggleActive: {
     backgroundColor: COLORS.successLight,
@@ -952,7 +954,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: SPACING.md,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
     borderRadius: RADIUS.lg,
     borderStyle: 'dashed',
   },
@@ -995,7 +997,7 @@ const styles = StyleSheet.create({
   },
   catalogOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(20, 24, 38, 0.42)',
+    backgroundColor: COLORS.overlay,
     padding: SPACING.lg,
   },
   catalogSafe: {
@@ -1037,7 +1039,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
   },
   catalogScroll: {
     paddingBottom: SPACING.xl,

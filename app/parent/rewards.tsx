@@ -821,7 +821,7 @@ const styles = StyleSheet.create({
   progressTrack: {
     flex: 1,
     height: 7,
-    backgroundColor: COLORS.surfaceSecondary,
+    backgroundColor: COLORS.border,
     borderRadius: RADIUS.full,
     overflow: 'hidden',
   },
@@ -856,7 +856,7 @@ const styles = StyleSheet.create({
     color: COLORS.success,
   },
   lockedBadge: {
-    backgroundColor: COLORS.surfaceSecondary,
+    backgroundColor: `${COLORS.textLight}14`,
     borderRadius: RADIUS.full,
     paddingVertical: SPACING.xs + 2,
     paddingHorizontal: SPACING.sm,
@@ -904,7 +904,7 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.md,
     color: COLORS.text,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
   },
   inputSmall: { width: 100 },
   cooldownRow: {
@@ -921,7 +921,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.sm,
     backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
   },
   cooldownChipActive: {
     backgroundColor: `${COLORS.secondary}18`,

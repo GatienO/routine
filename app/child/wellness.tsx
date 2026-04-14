@@ -23,7 +23,7 @@ import { ProgressBar } from '../../src/components/ui/ProgressBar';
 import { AnimatedPressable } from '../../src/components/ui/AnimatedPressable';
 import { useAppStore } from '../../src/stores/appStore';
 import { useRewardStore } from '../../src/stores/rewardStore';
-import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../../src/constants/theme';
+import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS, GRADIENTS } from '../../src/constants/theme';
 
 type Phase = 'intro' | 'breathing' | 'stretching' | 'done';
 
@@ -109,7 +109,7 @@ export default function WellnessScreen() {
   };
 
   return (
-    <LinearGradient colors={['#E8E0F0', '#D0C4E8', '#B8A9D9']} style={styles.gradient}>
+    <LinearGradient colors={[...GRADIENTS.wellness]} style={styles.gradient}>
       <SafeAreaView style={styles.safe}>
         <View style={styles.container}>
           {/* Top bar */}
@@ -233,13 +233,13 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.5)',
+    backgroundColor: COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
   quitText: { fontSize: 22, color: COLORS.textLight },
   phaseBadge: {
-    backgroundColor: 'rgba(255,255,255,0.6)',
+    backgroundColor: COLORS.surface,
     paddingVertical: SPACING.xs,
     paddingHorizontal: SPACING.md,
     borderRadius: RADIUS.full,
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.md,
-    backgroundColor: 'rgba(255,255,255,0.6)',
+    backgroundColor: COLORS.surface,
     padding: SPACING.md,
     borderRadius: RADIUS.xl,
   },
@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
     lineHeight: 28,
   },
   starsEarned: {
-    backgroundColor: 'rgba(255,255,255,0.7)',
+    backgroundColor: COLORS.surface,
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.xl,
     borderRadius: RADIUS.full,

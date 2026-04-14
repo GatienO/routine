@@ -621,7 +621,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.xs,
-    backgroundColor: 'rgba(255,255,255,0.78)',
+    backgroundColor: COLORS.surface,
     borderRadius: RADIUS.full,
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.md,
@@ -635,7 +635,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   sectionCard: {
-    backgroundColor: 'rgba(255,255,255,0.72)',
+    backgroundColor: COLORS.surface,
     borderRadius: RADIUS.xl,
     padding: SPACING.md,
     ...SHADOWS.sm,
@@ -665,7 +665,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'rgba(255,255,255,0.72)',
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
   },
   childName: {
     fontSize: FONT_SIZE.lg,
@@ -734,7 +734,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'rgba(255,255,255,0.88)',
     borderWidth: 1.5,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
   },
   orderBadgeActive: {
     backgroundColor: COLORS.secondary,
@@ -809,7 +809,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     borderRadius: RADIUS.full,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
     backgroundColor: COLORS.surface,
   },
   childChipText: {
@@ -844,7 +844,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.lg,
     backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
     gap: 3,
@@ -881,7 +881,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.lg,
     backgroundColor: '#FFFDF9',
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
     paddingVertical: SPACING.xs,
     ...SHADOWS.md,
   },
@@ -905,7 +905,7 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
   },
   sortOptionSelected: {
-    backgroundColor: '#1FA8E0',
+    backgroundColor: COLORS.secondary,
   },
   sortOptionText: {
     flex: 1,
@@ -970,7 +970,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.full,
     backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
   },
   paginationButtonDisabled: {
     opacity: 0.5,

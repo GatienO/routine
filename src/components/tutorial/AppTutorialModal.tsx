@@ -129,7 +129,7 @@ export function AppTutorialModal({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(33, 39, 48, 0.34)',
+    backgroundColor: COLORS.overlay,
     alignItems: 'center',
     justifyContent: 'center',
     padding: SPACING.lg,
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     padding: SPACING.xl,
     gap: SPACING.md,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
     ...SHADOWS.lg,
   },
   hero: {
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: COLORS.surfaceSecondary,
+    backgroundColor: COLORS.border,
   },
   dotActive: {
     width: 24,
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
     minHeight: 44,
     paddingHorizontal: SPACING.md,
     borderRadius: RADIUS.full,
-    backgroundColor: COLORS.surfaceSecondary,
+    backgroundColor: `${COLORS.textLight}14`,
     alignItems: 'center',
     justifyContent: 'center',
   },

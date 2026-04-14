@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     padding: SPACING.xl,
     gap: SPACING.sm,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
     ...SHADOWS.md,
   },
   loadingTitle: {
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(33, 39, 48, 0.42)',
+    backgroundColor: COLORS.overlay,
     padding: SPACING.lg,
   },
   modalScroll: {
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     padding: SPACING.xl,
     gap: SPACING.md,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
     ...SHADOWS.lg,
   },
   badgeRow: {
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
     gap: SPACING.xs,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
   },
   infoCardTitle: {
     fontSize: FONT_SIZE.sm,
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
     borderRadius: RADIUS.lg,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.md,

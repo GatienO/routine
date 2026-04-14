@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.successLight ?? '#E8F5E9',
   },
   activeBtnOff: {
-    backgroundColor: COLORS.surfaceSecondary,
+    backgroundColor: `${COLORS.textLight}14`,
   },
   activeBtnIcon: {
     fontSize: 20,

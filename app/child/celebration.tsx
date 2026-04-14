@@ -25,7 +25,7 @@ import Animated, {
 import { AnimatedPressable } from '../../src/components/ui/AnimatedPressable';
 import { Star, House } from 'phosphor-react-native';
 import { BADGES } from '../../src/constants/badges';
-import { COLORS, SPACING, FONT_SIZE, SHADOWS, RADIUS } from '../../src/constants/theme';
+import { COLORS, SPACING, FONT_SIZE, SHADOWS, RADIUS, GRADIENTS } from '../../src/constants/theme';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
 import { Avatar } from '../../src/components/ui/Avatar';
 import { useChildrenStore } from '../../src/stores/childrenStore';
@@ -149,7 +149,7 @@ export default function CelebrationScreen() {
 
   return (
     <LinearGradient
-      colors={['#FFF8F0', '#FFE8D6', '#FFDCC8']}
+      colors={GRADIENTS.celebration}
       style={styles.gradient}
     >
       <SafeAreaView style={styles.safe}>
@@ -270,37 +270,42 @@ const styles = StyleSheet.create({
   gradient: { flex: 1 },
   safe: { flex: 1, userSelect: 'none' } as any,
   container: {
-    padding: SPACING.xl,
+    padding: SPACING.lg,
     alignItems: 'center',
     paddingBottom: SPACING.xxl,
     userSelect: 'none',
   } as any,
   celebration: {
     alignItems: 'center',
-    marginTop: SPACING.lg,
+    marginTop: SPACING.xl,
     marginBottom: SPACING.lg,
   },
-  mainEmoji: { marginBottom: SPACING.xs },
+  mainEmoji: { marginBottom: SPACING.sm },
   title: {
-    fontSize: FONT_SIZE.xxl + 6,
+    fontSize: FONT_SIZE.xxl + 8,
     fontWeight: '900',
     color: COLORS.text,
+    letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: FONT_SIZE.md,
+    fontSize: FONT_SIZE.md + 1,
     color: COLORS.textSecondary,
     textAlign: 'center',
-    marginTop: SPACING.xs,
+    marginTop: SPACING.sm,
+    lineHeight: 24,
   },
   starsSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.xs,
+    gap: SPACING.sm,
     marginBottom: SPACING.md,
-    backgroundColor: 'rgba(255,255,255,0.6)',
-    paddingVertical: SPACING.sm,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    paddingVertical: SPACING.sm + 2,
     paddingHorizontal: SPACING.lg,
     borderRadius: RADIUS.full,
+    ...SHADOWS.sm,
   },
   starsCount: {
     fontSize: FONT_SIZE.xxl,
@@ -315,12 +320,14 @@ const styles = StyleSheet.create({
   durationBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.xs,
-    backgroundColor: 'rgba(255,255,255,0.6)',
+    gap: SPACING.sm,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
     paddingVertical: SPACING.xs + 2,
-    paddingHorizontal: SPACING.md,
+    paddingHorizontal: SPACING.md + 4,
     borderRadius: RADIUS.full,
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.lg,
   },
   durationIcon: { fontSize: 16 },
   durationText: {
@@ -330,10 +337,13 @@ const styles = StyleSheet.create({
   },
   summarySection: {
     width: '100%',
-    backgroundColor: 'rgba(255,255,255,0.7)',
-    borderRadius: 20,
-    padding: SPACING.lg,
+    maxWidth: 520,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.xl + 4,
+    padding: SPACING.lg + 4,
     marginBottom: SPACING.xl,
+    borderWidth: 1,
+    borderColor: COLORS.border,
     ...SHADOWS.sm,
   },
   summaryTitle: {
@@ -344,9 +354,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   childRewardCard: {
-    backgroundColor: 'rgba(255,255,255,0.72)',
+    backgroundColor: `${COLORS.secondary}10`,
     borderRadius: RADIUS.xl,
-    padding: SPACING.md,
+    padding: SPACING.md + 4,
     marginBottom: SPACING.md,
   },
   childHeader: {
@@ -361,11 +371,11 @@ const styles = StyleSheet.create({
     borderRadius: 29,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.9)',
+    backgroundColor: COLORS.surface,
   },
   childHeaderText: {
     flex: 1,
-    gap: 2,
+    gap: 4,
   },
   childName: {
     fontSize: FONT_SIZE.md,
@@ -408,14 +418,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: SPACING.sm,
     backgroundColor: COLORS.success,
-    paddingVertical: SPACING.lg + 2,
-    paddingHorizontal: SPACING.xxl + 8,
+    paddingVertical: SPACING.lg + 4,
+    paddingHorizontal: SPACING.xxl + 12,
     borderRadius: RADIUS.full,
+    minHeight: 72,
     ...SHADOWS.md,
   },
   continueText: {
-    fontSize: FONT_SIZE.xl,
+    fontSize: FONT_SIZE.xl + 2,
     fontWeight: '900',
     color: '#FFF',
+    letterSpacing: 0.3,
   },
 });

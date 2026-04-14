@@ -14,7 +14,7 @@ import {
 import { CaretDown, CaretLeft, CaretUp, Check, CloudSun, MagnifyingGlass } from 'phosphor-react-native';
 import { Avatar } from '../ui/Avatar';
 import { OpenMoji } from '../ui/OpenMoji';
-import { COLORS, SPACING, FONT_SIZE, RADIUS } from '../../constants/theme';
+import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../../constants/theme';
 import { Child, RoutineCategory } from '../../types';
 import {
   HomeIcon,
@@ -561,10 +561,16 @@ const styles = StyleSheet.create({
     color: COLORS.text,
   },
   homeButton: {
-    backgroundColor: COLORS.surfaceSecondary,
+    backgroundColor: COLORS.surface,
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.md,
     borderRadius: RADIUS.full,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    minWidth: 44,
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   quickActions: {
     flexDirection: 'row',
@@ -582,7 +588,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     borderRadius: RADIUS.full,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.05)',
+    borderColor: COLORS.border,
   },
   actionTileLabel: {
     fontSize: FONT_SIZE.xs,
@@ -614,7 +620,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.full,
     backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
   },
   expandButtonText: {
     fontSize: FONT_SIZE.xs,
@@ -622,13 +628,13 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
   },
   sortButton: {
-    minHeight: 34,
+    minHeight: 40,
     borderRadius: RADIUS.full,
     paddingVertical: 4,
     paddingHorizontal: SPACING.sm,
     backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
     justifyContent: 'center',
   },
   sortButtonLabel: {
@@ -650,7 +656,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.lg,
     backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
   },
   collapsedHintText: {
     fontSize: FONT_SIZE.sm,
@@ -671,7 +677,7 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.md,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
   },
   focusChipText: {
     fontSize: FONT_SIZE.sm,
@@ -713,7 +719,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     borderRadius: RADIUS.lg,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
     minHeight: 56,
@@ -735,7 +741,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.lg,
     backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
     justifyContent: 'center',
@@ -772,13 +778,9 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.lg,
     backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
     paddingVertical: SPACING.xs,
-    shadowColor: '#000',
-    shadowOpacity: 0.12,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 10,
+    ...SHADOWS.md,
     overflow: 'hidden',
   },
   dropdownMenuTitle: {
@@ -801,7 +803,7 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
   },
   dropdownOptionSelected: {
-    backgroundColor: '#1FA8E0',
+    backgroundColor: COLORS.secondary,
   },
   dropdownOptionText: {
     flex: 1,

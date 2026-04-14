@@ -543,9 +543,9 @@ const styles = StyleSheet.create({
   },
   childCard: {
     borderRadius: RADIUS.xl,
-    backgroundColor: 'rgba(255,255,255,0.82)',
+    backgroundColor: COLORS.surface,
     borderWidth: 1.5,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
     paddingVertical: SPACING.lg,
     paddingHorizontal: SPACING.md,
     alignItems: 'center',
@@ -613,7 +613,7 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.sm,
     marginLeft: -SPACING.md,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.surfaceSecondary,
+    borderBottomColor: COLORS.border,
   },
   stepNumber: {
     width: 28,
@@ -645,7 +645,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
   },
   stepActionBtnDisabled: {
     opacity: 0.45,
@@ -664,7 +664,7 @@ const styles = StyleSheet.create({
     paddingBottom: SPACING.xl,
     backgroundColor: 'rgba(255,248,240,0.95)',
     borderTopWidth: 1,
-    borderTopColor: COLORS.surfaceSecondary,
+    borderTopColor: COLORS.border,
   },
   startBtn: {
     flexDirection: 'row',

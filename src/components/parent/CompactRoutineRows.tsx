@@ -323,10 +323,12 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   iconActionBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: COLORS.surfaceSecondary,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -365,7 +367,7 @@ const styles = StyleSheet.create({
     backgroundColor: `${COLORS.success}18`,
   },
   statusPillInactive: {
-    backgroundColor: COLORS.surfaceSecondary,
+    backgroundColor: `${COLORS.textLight}14`,
   },
   statusText: {
     fontSize: 11,

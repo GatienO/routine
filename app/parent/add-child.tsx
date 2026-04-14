@@ -9,7 +9,6 @@ import {
   TouchableOpacity,
   Image,
   useWindowDimensions,
-  Platform,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useChildrenStore } from '../../src/stores/childrenStore';
@@ -19,7 +18,7 @@ import { AppPageHeader } from '../../src/components/ui/AppPageHeader';
 import { EmojiPicker, ColorPicker } from '../../src/components/ui/Pickers';
 import { Avatar } from '../../src/components/ui/Avatar';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
-import { CHILD_COLORS, COLORS, SPACING, FONT_SIZE, RADIUS } from '../../src/constants/theme';
+import { CHILD_COLORS, COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../../src/constants/theme';
 import {
   PROFILE_TABS,
   COMPANION_GROUPS,
@@ -34,49 +33,13 @@ import {
 import { backOrReplace } from '../../src/utils/navigation';
 import { formatChildName } from '../../src/utils/children';
 
-const AVATAR_RING_SHADOW =
-  Platform.OS === 'web'
-    ? { boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.12)', elevation: 4 }
-    : {
-        shadowColor: COLORS.shadow,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.12,
-        shadowRadius: 8,
-        elevation: 4,
-      };
+const AVATAR_RING_SHADOW = SHADOWS.md;
 
-const AVATAR_MAIN_SHADOW =
-  Platform.OS === 'web'
-    ? { boxShadow: '0px 2px 10px rgba(0, 0, 0, 0.18)', elevation: 6 }
-    : {
-        shadowColor: COLORS.shadow,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.18,
-        shadowRadius: 10,
-        elevation: 6,
-      };
+const AVATAR_MAIN_SHADOW = SHADOWS.lg;
 
-const COMPANION_RING_SHADOW =
-  Platform.OS === 'web'
-    ? { boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.12)', elevation: 4 }
-    : {
-        shadowColor: COLORS.shadow,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.12,
-        shadowRadius: 8,
-        elevation: 4,
-      };
+const COMPANION_RING_SHADOW = SHADOWS.md;
 
-const COMPANION_INNER_SHADOW =
-  Platform.OS === 'web'
-    ? { boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.18)', elevation: 6 }
-    : {
-        shadowColor: COLORS.shadow,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.18,
-        shadowRadius: 8,
-        elevation: 6,
-      };
+const COMPANION_INNER_SHADOW = SHADOWS.lg;
 
 export default function AddChildScreen() {
   const router = useRouter();
@@ -522,7 +485,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     borderRadius: RADIUS.xl,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
     overflow: 'hidden',
   },
   avatarCustomColStacked: {
@@ -531,7 +494,7 @@ const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.surfaceSecondary,
+    borderBottomColor: COLORS.border,
   },
   tabBtn: {
     flex: 1,
@@ -579,7 +542,7 @@ const styles = StyleSheet.create({
     height: 72,
     borderRadius: 36,
     borderWidth: 2,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
     backgroundColor: '#FFF',
     alignItems: 'center',
     justifyContent: 'center',
@@ -626,7 +589,7 @@ const styles = StyleSheet.create({
   },
   passionItemSelected: {
     borderColor: COLORS.secondary,
-    backgroundColor: COLORS.surfaceSecondary,
+    backgroundColor: `${COLORS.secondary}10`,
   },
   label: {
     fontSize: FONT_SIZE.sm,
@@ -642,7 +605,7 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.md,
     color: COLORS.text,
     borderWidth: 1,
-    borderColor: COLORS.surfaceSecondary,
+    borderColor: COLORS.border,
   },
   inputError: {
     borderColor: COLORS.error,

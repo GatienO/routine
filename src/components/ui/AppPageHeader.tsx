@@ -2,7 +2,7 @@ import React from 'react';
 import { Text, TouchableOpacity, View, StyleSheet } from 'react-native';
 import { House } from 'phosphor-react-native';
 import { BackButton } from './BackButton';
-import { COLORS, FONT_SIZE, RADIUS, SHADOWS } from '../../constants/theme';
+import { COLORS, FONT_SIZE, RADIUS, SHADOWS, TOUCH } from '../../constants/theme';
 
 type AppPageHeaderProps = {
   title: string;
@@ -22,8 +22,8 @@ export function AppPageHeader({ title, onBack, onHome }: AppPageHeaderProps) {
       </Text>
 
       <View style={[styles.side, styles.sideRight]}>
-        <TouchableOpacity onPress={onHome} style={styles.homeButton} activeOpacity={0.8}>
-          <House size={24} weight="bold" color={COLORS.textSecondary} />
+        <TouchableOpacity onPress={onHome} style={styles.homeButton} activeOpacity={0.75}>
+          <House size={22} weight="bold" color={COLORS.textSecondary} />
         </TouchableOpacity>
       </View>
     </View>
@@ -35,12 +35,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    minHeight: 56,
+    minHeight: 60,
     gap: 8,
   },
   side: {
-    width: 56,
-    height: 56,
+    width: TOUCH.childMinHeight,
+    height: TOUCH.childMinHeight,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -53,12 +53,15 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.xl,
     fontWeight: '900',
     color: COLORS.text,
+    letterSpacing: -0.3,
   },
   homeButton: {
-    width: 56,
-    height: 56,
-    borderRadius: RADIUS.full,
-    backgroundColor: COLORS.surfaceSecondary,
+    width: TOUCH.childMinHeight,
+    height: TOUCH.childMinHeight,
+    borderRadius: TOUCH.childMinHeight / 2,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
     alignItems: 'center',
     justifyContent: 'center',
     ...SHADOWS.sm,

@@ -7,14 +7,16 @@ interface CardProps {
   style?: StyleProp<ViewStyle>;
   color?: string;
   padded?: boolean;
+  elevated?: boolean;
 }
 
-export function Card({ children, style, color, padded = true }: CardProps) {
+export function Card({ children, style, color, padded = true, elevated = false }: CardProps) {
   return (
     <View
       style={[
         styles.card,
         padded && styles.padded,
+        elevated && styles.elevated,
         color ? { borderLeftWidth: 4, borderLeftColor: color } : undefined,
         style,
       ]}
@@ -27,10 +29,16 @@ export function Card({ children, style, color, padded = true }: CardProps) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: COLORS.surface,
-    borderRadius: RADIUS.lg,
+    borderRadius: RADIUS.xl,
+    borderWidth: 1,
+    borderColor: COLORS.border,
     ...SHADOWS.sm,
   },
   padded: {
-    padding: SPACING.md,
+    padding: SPACING.md + 4,
+  },
+  elevated: {
+    ...SHADOWS.md,
+    borderWidth: 0,
   },
 });
