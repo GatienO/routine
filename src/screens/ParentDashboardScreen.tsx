@@ -460,8 +460,6 @@ export function ParentDashboardScreen() {
         selectedCategories={selectedCategories}
         onToggleCategory={handleToggleCategory}
         onClearCategories={() => setSelectedCategories([])}
-        onGoBack={() => router.replace('/')}
-        onLogout={() => router.replace('/')}
         onGoToCatalog={() => router.push('/parent/catalog')}
         onGoToAddRoutine={handleGoToAddRoutine}
         onGoToChildren={() => router.push('/parent/children')}

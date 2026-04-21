@@ -13,12 +13,12 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
-import { House, SquaresFour, X } from 'phosphor-react-native';
+import { SquaresFour, X } from 'phosphor-react-native';
 import { useChildrenStore } from '../../src/stores/childrenStore';
 import { useRoutineStore } from '../../src/stores/routineStore';
 import { Avatar } from '../../src/components/ui/Avatar';
 import { Button } from '../../src/components/ui/Button';
-import { BackButton } from '../../src/components/ui/BackButton';
+import { AppPageHeader } from '../../src/components/ui/AppPageHeader';
 import { ColorSelectionField, IconSelectionField, CategorySelectionField } from '../../src/components/ui/Pickers';
 import { Card } from '../../src/components/ui/Card';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
@@ -353,19 +353,11 @@ export default function AddRoutineScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.header}>
-        <View style={styles.headerSide}>
-          <BackButton onPress={handleBack} />
-        </View>
-        <Text style={styles.headerTitle}>{isMerge ? 'Fusionner des routines' : 'Nouvelle routine'}</Text>
-        <View style={[styles.headerSide, styles.headerSideRight]}>
-          <TouchableOpacity
-            onPress={() => router.replace('/parent')}
-            style={styles.headerIconButton}
-            activeOpacity={0.8}
-          >
-            <House size={24} weight="bold" color={COLORS.textSecondary} />
-          </TouchableOpacity>
-        </View>
+        <AppPageHeader
+          title={isMerge ? 'Fusionner des routines' : 'Nouvelle routine'}
+          onBack={handleBack}
+          onHome={() => router.replace('/parent')}
+        />
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll}>
@@ -733,39 +725,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: SPACING.sm,
     paddingHorizontal: SPACING.lg,
-    paddingTop: SPACING.sm,
-    paddingBottom: SPACING.sm,
-  },
-  headerSide: {
-    width: 56,
-    alignItems: 'flex-start',
-    justifyContent: 'center',
-  },
-  headerSideRight: {
-    alignItems: 'flex-end',
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: FONT_SIZE.xl,
-    fontWeight: '800',
-    color: COLORS.text,
-    textAlign: 'center',
-  },
-  headerIconButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: COLORS.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    ...SHADOWS.sm,
+    paddingTop: SPACING.md,
+    paddingBottom: SPACING.xs,
   },
   scroll: {
     paddingHorizontal: SPACING.lg,

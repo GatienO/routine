@@ -14,6 +14,8 @@ beforeEach(() => {
     routines: [],
     executions: [],
     currentExecution: null,
+    chainQueue: [],
+    pendingStepOrders: {},
   });
 });
 
@@ -187,6 +189,48 @@ describe('routineStore', () => {
     expect(completed!.completedAt).toBeTruthy();
     expect(useRoutineStore.getState().currentExecution).toBeNull();
     expect(useRoutineStore.getState().executions).toHaveLength(1);
+  });
+
+  test('startChain advances to the second routine after finishing the first', () => {
+    const firstRoutine = useRoutineStore.getState().addRoutine({
+      childId: 'child-1',
+      name: 'First routine',
+      icon: '1',
+      color: '#FF6B6B',
+      category: 'morning',
+      steps: [
+        { id: 'first-step', title: 'S1', icon: '1', color: '#FF6B6B', durationMinutes: 1, instruction: '', isRequired: true, order: 0 },
+      ],
+      isActive: true,
+    });
+    const secondRoutine = useRoutineStore.getState().addRoutine({
+      childId: 'child-2',
+      name: 'Second routine',
+      icon: '2',
+      color: '#A29BFE',
+      category: 'evening',
+      steps: [
+        { id: 'second-step', title: 'S2', icon: '2', color: '#A29BFE', durationMinutes: 1, instruction: '', isRequired: true, order: 0 },
+      ],
+      isActive: true,
+    });
+
+    const firstExecution = useRoutineStore
+      .getState()
+      .startChain([firstRoutine.id, secondRoutine.id], ['child-1', 'child-2']);
+
+    expect(firstExecution?.routineId).toBe(firstRoutine.id);
+    expect(useRoutineStore.getState().chainQueue).toEqual([secondRoutine.id]);
+
+    useRoutineStore.getState().completeStep('first-step');
+    const completed = useRoutineStore.getState().finishExecution();
+    const nextExecution = useRoutineStore.getState().nextInChain();
+
+    expect(completed?.routineId).toBe(firstRoutine.id);
+    expect(nextExecution?.routineId).toBe(secondRoutine.id);
+    expect(nextExecution?.participantChildIds).toEqual(['child-1', 'child-2']);
+    expect(useRoutineStore.getState().currentExecution?.routineId).toBe(secondRoutine.id);
+    expect(useRoutineStore.getState().chainQueue).toEqual([]);
   });
 
   test('cancelExecution clears current execution', () => {

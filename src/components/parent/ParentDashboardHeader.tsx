@@ -11,13 +11,13 @@ import {
   Modal,
   Pressable,
 } from 'react-native';
-import { CaretDown, CaretLeft, CaretUp, Check, CloudSun, MagnifyingGlass } from 'phosphor-react-native';
+import { CaretDown, CaretUp, Check, CloudSun, MagnifyingGlass } from 'phosphor-react-native';
 import { Avatar } from '../ui/Avatar';
 import { OpenMoji } from '../ui/OpenMoji';
+import { AppTopNavigation } from '../ui/AppTopNavigation';
 import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../../constants/theme';
 import { Child, RoutineCategory } from '../../types';
 import {
-  HomeIcon,
   CatalogIcon,
   AddIcon,
   ChildProfileIcon,
@@ -64,8 +64,6 @@ export const ParentDashboardHeader = memo(function ParentDashboardHeader({
   selectedCategories,
   onToggleCategory,
   onClearCategories,
-  onGoBack,
-  onLogout,
   onGoToCatalog,
   onGoToAddRoutine,
   onGoToChildren,
@@ -92,8 +90,6 @@ export const ParentDashboardHeader = memo(function ParentDashboardHeader({
   selectedCategories: CategoryFilterValue[];
   onToggleCategory: (value: CategoryFilterValue) => void;
   onClearCategories: () => void;
-  onGoBack: () => void;
-  onLogout: () => void;
   onGoToCatalog: () => void;
   onGoToAddRoutine: () => void;
   onGoToChildren: () => void;
@@ -140,15 +136,7 @@ export const ParentDashboardHeader = memo(function ParentDashboardHeader({
 
   return (
     <View>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={onGoBack} style={styles.homeButton}>
-          <CaretLeft size={22} weight="bold" color={COLORS.textSecondary} />
-        </TouchableOpacity>
-        <Text style={styles.title}>Espace Parent</Text>
-        <TouchableOpacity onPress={onLogout} style={styles.homeButton}>
-          <HomeIcon size={22} color={COLORS.textSecondary} />
-        </TouchableOpacity>
-      </View>
+      <AppTopNavigation title="Espace Parent" style={styles.navigation} />
 
       <View style={styles.quickActions}>
         <QuickActionTile
@@ -547,32 +535,11 @@ const DropdownOption = memo(function DropdownOption({
 });
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  navigation: {
     marginBottom: SPACING.lg,
   },
-  title: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: FONT_SIZE.xl + 2,
-    fontWeight: '900',
-    color: COLORS.text,
-  },
-  homeButton: {
-    backgroundColor: COLORS.surface,
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.md,
-    borderRadius: RADIUS.full,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    minWidth: 44,
-    minHeight: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   quickActions: {
+    display: 'none',
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: SPACING.sm,

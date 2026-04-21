@@ -254,8 +254,9 @@ export const useRoutineStore = create<RoutineState>()(
       },
 
       nextInChain: () => {
-        const { chainQueue, currentExecution, routines, pendingStepOrders } = get();
-        if (chainQueue.length === 0 || !currentExecution) return null;
+        const { chainQueue, currentExecution, executions, routines, pendingStepOrders } = get();
+        const previousExecution = currentExecution ?? executions[executions.length - 1];
+        if (chainQueue.length === 0 || !previousExecution) return null;
         const [next, ...rest] = chainQueue;
         const nextRoutine = routines.find((item) => item.id === next);
         if (!nextRoutine) {
@@ -269,7 +270,7 @@ export const useRoutineStore = create<RoutineState>()(
           id: generateId(),
           routineId: next,
           childId: nextRoutine.childId,
-          participantChildIds: currentExecution.participantChildIds,
+          participantChildIds: previousExecution.participantChildIds,
           customStepOrder: pendingStepOrders[next],
           startedAt: new Date().toISOString(),
           stepsCompleted: [],

@@ -271,6 +271,8 @@ export default function RunRoutineScreen() {
         if (chainQueue.length > 0) {
           const nextExecution = nextInChain();
           if (nextExecution) {
+            isLeavingFlowRef.current = true;
+            router.replace('/child/pause');
             return;
           }
         }

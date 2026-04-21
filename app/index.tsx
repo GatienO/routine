@@ -18,6 +18,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { AnimatedPressable } from '../src/components/ui/AnimatedPressable';
+import { AppTopNavigation } from '../src/components/ui/AppTopNavigation';
 import { Button } from '../src/components/ui/Button';
 import { COLORS, SPACING, FONT_SIZE, SHADOWS, RADIUS, GRADIENTS, TOUCH } from '../src/constants/theme';
 import { useLocalProfileStore } from '../src/stores/localProfileStore';
@@ -27,6 +28,8 @@ import { AppTutorialModal } from '../src/components/tutorial/AppTutorialModal';
 export default function WelcomeScreen() {
   const router = useRouter();
   const profileName = useLocalProfileStore((state) => state.profileName);
+  const profileId = useLocalProfileStore((state) => state.profileId);
+  const tutorialCompletedAt = useLocalProfileStore((state) => state.tutorialCompletedAt);
   const tutorialPromptPending = useLocalProfileStore((state) => state.tutorialPromptPending);
   const dismissTutorialPrompt = useLocalProfileStore((state) => state.dismissTutorialPrompt);
   const completeTutorial = useLocalProfileStore((state) => state.completeTutorial);
@@ -50,12 +53,21 @@ export default function WelcomeScreen() {
     transform: [{ scale: heroScale.value }],
   }));
 
+  const shortProfileId = profileId ? profileId.slice(-6) : 'LOCAL';
+  const tutorialStatus = tutorialCompletedAt
+    ? `Guide termine le ${new Date(tutorialCompletedAt).toLocaleDateString('fr-FR')}`
+    : 'Guide non termine pour le moment';
+
   return (
     <LinearGradient
       colors={GRADIENTS.warmBackground}
       style={styles.gradient}
     >
       <SafeAreaView style={styles.safe}>
+        <View style={styles.navigationLayer}>
+          <AppTopNavigation title="Accueil" />
+        </View>
+
         <View style={styles.container}>
           {profileName ? (
             <TouchableOpacity
@@ -111,12 +123,34 @@ export default function WelcomeScreen() {
         >
           <Pressable style={styles.modalBackdrop} onPress={() => setShowProfileInfo(false)}>
             <Pressable style={styles.modalCard} onPress={(event) => event.stopPropagation()}>
-              <Text style={styles.modalEyebrow}>Profil local</Text>
+              <Text style={styles.modalEyebrow}>Profil local parent</Text>
               <Text style={styles.modalTitle}>{profileName}</Text>
+              <Text style={styles.modalId}>ID {shortProfileId}</Text>
               <Text style={styles.modalText}>
                 Vos routines, profils et reglages restent enregistres uniquement sur
                 cet appareil. Aucun compte ni serveur distant ne sont utilises.
               </Text>
+              <Text style={styles.modalHint}>{tutorialStatus}</Text>
+
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  onPress={() => setShowProfileInfo(false)}
+                  style={styles.modalSecondaryButton}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.modalSecondaryButtonText}>Fermer</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowProfileInfo(false);
+                    setShowTutorial(true);
+                  }}
+                  style={styles.modalPrimaryButton}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.modalPrimaryButtonText}>Relancer le tutoriel</Text>
+                </TouchableOpacity>
+              </View>
             </Pressable>
           </Pressable>
         </Modal>
@@ -173,6 +207,12 @@ export default function WelcomeScreen() {
 const styles = StyleSheet.create({
   gradient: { flex: 1 },
   safe: { flex: 1 },
+  navigationLayer: {
+    position: 'absolute',
+    top: SPACING.lg,
+    left: SPACING.lg,
+    zIndex: 20,
+  },
   container: {
     flex: 1,
     justifyContent: 'center',
@@ -182,7 +222,7 @@ const styles = StyleSheet.create({
   infoButton: {
     position: 'absolute',
     top: SPACING.lg,
-    left: SPACING.lg,
+    right: SPACING.lg,
     width: 44,
     height: 44,
     borderRadius: 22,
@@ -265,7 +305,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.overlay,
     justifyContent: 'flex-start',
-    alignItems: 'flex-start',
+    alignItems: 'flex-end',
     paddingTop: SPACING.xxl + 20,
     paddingLeft: SPACING.lg,
     paddingRight: SPACING.lg,
@@ -297,6 +337,51 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.sm,
     lineHeight: 21,
     color: COLORS.textSecondary,
+  },
+  modalId: {
+    fontSize: FONT_SIZE.xs,
+    fontWeight: '700',
+    color: COLORS.textLight,
+  },
+  modalHint: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '700',
+    color: COLORS.secondaryDark,
+    lineHeight: 20,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+    flexWrap: 'wrap',
+    marginTop: SPACING.sm,
+  },
+  modalSecondaryButton: {
+    minHeight: 44,
+    borderRadius: RADIUS.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: SPACING.lg,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  modalSecondaryButtonText: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '800',
+    color: COLORS.textSecondary,
+  },
+  modalPrimaryButton: {
+    minHeight: 44,
+    borderRadius: RADIUS.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: SPACING.lg,
+    backgroundColor: COLORS.secondary,
+  },
+  modalPrimaryButtonText: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '800',
+    color: '#FFF',
   },
   centeredBackdrop: {
     flex: 1,
