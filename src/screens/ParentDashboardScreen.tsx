@@ -14,6 +14,7 @@ import {
   Pressable,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowsDownUp } from 'phosphor-react-native';
 import { useChildrenStore } from '../stores/childrenStore';
 import { useRoutineStore } from '../stores/routineStore';
@@ -59,6 +60,13 @@ const CATEGORY_FILTER_OPTIONS: CategoryFilterValue[] = [
   'weekend',
   'emotion',
   'custom',
+];
+
+const DASHBOARD_GRADIENT: [string, string, string, string] = [
+  '#A9CDD6',
+  '#C6E9C2',
+  '#EEDFD7',
+  '#F6ECE2',
 ];
 
 export function ParentDashboardScreen() {
@@ -583,60 +591,73 @@ export function ParentDashboardScreen() {
 
   if (organizeMode && selectedChild) {
     return (
-      <SafeAreaView style={styles.safe}>
-        <ScrollView contentContainerStyle={styles.scroll}>
-          {headerElement}
-          <View style={styles.organizeHint}>
-            <ArrowsDownUp size={16} weight="bold" color={COLORS.secondary} />
-            <Text style={styles.organizeHintText}>
-              Appui long puis glisse pour reordonner les routines de {formatChildName(selectedChild.name)}.
-            </Text>
-          </View>
-          <DraggableList
-            data={selectedChildRoutines}
-            keyExtractor={(routine) => routine.id}
-            onReorder={(newOrder) => reorderRoutines(selectedChild.id, newOrder.map((routine) => routine.id))}
-            itemHeight={86}
-            renderItem={(routine) => (
-              <CompactRoutineRow
-                routine={routine}
-                child={selectedChild}
-                onEdit={() => router.push(`/parent/edit-routine?id=${routine.id}`)}
-                onToggle={() => toggleRoutine(routine.id)}
-                onDuplicate={() => handleDuplicateRoutine(routine)}
-                onShare={() => handleShareRoutine(routine)}
-                onDelete={() => handleDeleteRoutine(routine)}
-              />
-            )}
-          />
-        </ScrollView>
-      </SafeAreaView>
+      <LinearGradient
+        colors={DASHBOARD_GRADIENT}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.gradient}
+      >
+        <SafeAreaView style={styles.safe}>
+          <ScrollView contentContainerStyle={styles.scroll}>
+            {headerElement}
+            <View style={styles.organizeHint}>
+              <ArrowsDownUp size={16} weight="bold" color={COLORS.secondaryDark} />
+              <Text style={styles.organizeHintText}>
+                Appui long puis glisse pour reordonner les routines de {formatChildName(selectedChild.name)}.
+              </Text>
+            </View>
+            <DraggableList
+              data={selectedChildRoutines}
+              keyExtractor={(routine) => routine.id}
+              onReorder={(newOrder) => reorderRoutines(selectedChild.id, newOrder.map((routine) => routine.id))}
+              itemHeight={86}
+              renderItem={(routine) => (
+                <CompactRoutineRow
+                  routine={routine}
+                  child={selectedChild}
+                  onEdit={() => router.push(`/parent/edit-routine?id=${routine.id}`)}
+                  onToggle={() => toggleRoutine(routine.id)}
+                  onDuplicate={() => handleDuplicateRoutine(routine)}
+                  onShare={() => handleShareRoutine(routine)}
+                  onDelete={() => handleDeleteRoutine(routine)}
+                />
+              )}
+            />
+          </ScrollView>
+        </SafeAreaView>
+      </LinearGradient>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <FlatList
-        data={routinesExpanded ? paginatedListData : []}
-        keyExtractor={(item) => item.key}
-        renderItem={renderRoutineItem}
-        ListHeaderComponent={headerElement}
-        ListEmptyComponent={routinesExpanded ? (
-          <Card>
+    <LinearGradient
+      colors={DASHBOARD_GRADIENT}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.gradient}
+    >
+      <SafeAreaView style={styles.safe}>
+        <FlatList
+          data={routinesExpanded ? paginatedListData : []}
+          keyExtractor={(item) => item.key}
+          renderItem={renderRoutineItem}
+          ListHeaderComponent={headerElement}
+          ListEmptyComponent={routinesExpanded ? (
+          <Card style={styles.emptyCard}>
             <View style={styles.empty}>
               <Text style={styles.emptyIcon}>🧭</Text>
               <Text style={styles.emptyText}>{emptyMessage}</Text>
             </View>
           </Card>
-        ) : null}
-        ListFooterComponent={listFooterElement}
-        contentContainerStyle={styles.scroll}
-        showsVerticalScrollIndicator={false}
-        initialNumToRender={8}
-        windowSize={8}
-        removeClippedSubviews
-      />
-      <ParentWeatherSettingsModal
+          ) : null}
+          ListFooterComponent={listFooterElement}
+          contentContainerStyle={styles.scroll}
+          showsVerticalScrollIndicator={false}
+          initialNumToRender={8}
+          windowSize={8}
+          removeClippedSubviews
+        />
+        <ParentWeatherSettingsModal
         visible={showWeatherSettings}
         cityInput={cityInput}
         onCityInputChange={setCityInput}
@@ -667,7 +688,8 @@ export function ParentDashboardScreen() {
         onClose={() => setShowTutorial(false)}
         onComplete={completeTutorial}
       />
-    </SafeAreaView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
@@ -804,41 +826,52 @@ function ParentWeatherSettingsModal({
 }
 
 const styles = StyleSheet.create({
+  gradient: {
+    flex: 1,
+  },
   safe: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: 'transparent',
   },
   scroll: {
-    padding: SPACING.lg,
-    paddingBottom: SPACING.xxl,
+    paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.md,
+    paddingBottom: SPACING.xxl + SPACING.md,
   },
   headerLayer: {
     position: 'relative',
     zIndex: 40,
+    marginBottom: SPACING.sm,
   },
   empty: {
     alignItems: 'center',
     gap: SPACING.md,
-    paddingVertical: SPACING.xl,
+    paddingVertical: SPACING.xl + 4,
+  },
+  emptyCard: {
+    borderWidth: 0,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255,255,255,0.94)',
   },
   emptyIcon: {
     fontSize: 40,
   },
   emptyText: {
     fontSize: FONT_SIZE.md,
-    color: COLORS.textSecondary,
+    color: '#536078',
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 24,
+    fontWeight: '600',
   },
   paginationSection: {
-    marginTop: SPACING.md,
+    marginTop: SPACING.lg,
     marginBottom: SPACING.lg,
     gap: SPACING.sm,
   },
   paginationSummary: {
     fontSize: FONT_SIZE.xs,
     fontWeight: '700',
-    color: COLORS.textSecondary,
+    color: '#5A667C',
     textAlign: 'center',
   },
   paginationRow: {
@@ -855,9 +888,8 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.sm + 2,
     paddingHorizontal: SPACING.md,
     borderRadius: RADIUS.full,
-    backgroundColor: COLORS.surface,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    borderWidth: 0,
   },
   paginationButtonDisabled: {
     opacity: 0.4,
@@ -865,7 +897,7 @@ const styles = StyleSheet.create({
   paginationButtonText: {
     fontSize: FONT_SIZE.sm,
     fontWeight: '800',
-    color: COLORS.text,
+    color: '#32415E',
   },
   paginationButtonTextDisabled: {
     color: COLORS.textLight,
@@ -885,35 +917,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: SPACING.sm,
-    backgroundColor: COLORS.surface,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    backgroundColor: 'rgba(255,255,255,0.88)',
+    borderWidth: 0,
   },
   pageChipActive: {
-    backgroundColor: `${COLORS.secondary}18`,
-    borderColor: COLORS.secondary,
+    backgroundColor: '#EAF6EE',
   },
   pageChipText: {
     fontSize: FONT_SIZE.sm,
     fontWeight: '800',
-    color: COLORS.textSecondary,
+    color: '#62708A',
   },
   pageChipTextActive: {
-    color: COLORS.secondaryDark,
+    color: '#2F7D62',
   },
   organizeHint: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.sm,
-    backgroundColor: `${COLORS.secondary}14`,
-    borderRadius: RADIUS.xl,
-    paddingVertical: SPACING.sm + 2,
-    paddingHorizontal: SPACING.md,
+    backgroundColor: 'rgba(255,255,255,0.78)',
+    borderRadius: 22,
+    paddingVertical: SPACING.sm + 4,
+    paddingHorizontal: SPACING.md + 2,
     marginBottom: SPACING.md,
   },
   organizeHintText: {
     flex: 1,
-    color: COLORS.secondaryDark,
+    color: '#35596B',
     fontSize: FONT_SIZE.sm,
     fontWeight: '700',
     lineHeight: 20,

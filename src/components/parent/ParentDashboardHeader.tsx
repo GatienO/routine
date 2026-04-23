@@ -5,27 +5,15 @@ import {
   StyleSheet,
   TouchableOpacity,
   TextInput,
-  ScrollView,
   Platform,
   useWindowDimensions,
   Modal,
   Pressable,
 } from 'react-native';
-import { CaretDown, CaretUp, Check, CloudSun, MagnifyingGlass } from 'phosphor-react-native';
-import { Avatar } from '../ui/Avatar';
-import { OpenMoji } from '../ui/OpenMoji';
+import { CaretDown, Check, MagnifyingGlass, SlidersHorizontal } from 'phosphor-react-native';
 import { AppTopNavigation } from '../ui/AppTopNavigation';
 import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../../constants/theme';
 import { Child, RoutineCategory } from '../../types';
-import {
-  CatalogIcon,
-  AddIcon,
-  ChildProfileIcon,
-  GiftIcon,
-  StatsIcon,
-  ImportIcon,
-  TrashIcon,
-} from '../ui/ModernIcons';
 import { formatChildName } from '../../utils/children';
 
 const WEB_SEARCH_INPUT_RESET = Platform.OS === 'web'
@@ -51,6 +39,8 @@ const CATEGORY_FILTERS: Array<{ key: CategoryFilterValue; label: string }> = [
   { key: 'custom', label: 'Custom' },
 ];
 
+type DropdownKey = 'children' | 'category' | 'status';
+
 export const ParentDashboardHeader = memo(function ParentDashboardHeader({
   children,
   selectedChildIds,
@@ -64,19 +54,7 @@ export const ParentDashboardHeader = memo(function ParentDashboardHeader({
   selectedCategories,
   onToggleCategory,
   onClearCategories,
-  onGoToCatalog,
-  onGoToAddRoutine,
-  onGoToChildren,
-  onGoToRewards,
-  onGoToStats,
-  onGoToImport,
-  onGoToTrash,
-  onOpenProfile,
-  onOpenWeatherSettings,
   routinesExpanded,
-  onToggleRoutinesExpanded,
-  sortMode,
-  onToggleSortMode,
 }: {
   children: Child[];
   selectedChildIds: string[];
@@ -105,14 +83,26 @@ export const ParentDashboardHeader = memo(function ParentDashboardHeader({
   onToggleSortMode: () => void;
 }) {
   const { width } = useWindowDimensions();
-  const [openDropdown, setOpenDropdown] = useState<'status' | 'category' | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<DropdownKey | null>(null);
   const [dropdownAnchor, setDropdownAnchor] = useState<{ x: number; y: number; width: number } | null>(null);
-  const statusButtonRef = useRef<any>(null);
+  const childButtonRef = useRef<any>(null);
   const categoryButtonRef = useRef<any>(null);
-  const isCompactViewport = width < 1040;
+  const statusButtonRef = useRef<any>(null);
+  const isCompactViewport = width < 960;
 
-  const openAnchoredDropdown = (key: 'status' | 'category') => {
-    const targetRef = key === 'status' ? statusButtonRef : categoryButtonRef;
+  const childOptions = useMemo(
+    () => children.map((child) => ({ key: child.id, label: formatChildName(child.name) })),
+    [children],
+  );
+
+  const openAnchoredDropdown = (key: DropdownKey) => {
+    const targetRef = key === 'children'
+      ? childButtonRef
+      : key === 'category'
+        ? categoryButtonRef
+        : statusButtonRef;
+
     const targetNode = targetRef.current as unknown as {
       measureInWindow?: (callback: (x: number, y: number, width: number, height: number) => void) => void;
     } | null;
@@ -134,203 +124,141 @@ export const ParentDashboardHeader = memo(function ParentDashboardHeader({
     setDropdownAnchor(null);
   };
 
+  const handleToggleFilters = () => {
+    if (showFilters) {
+      closeDropdown();
+    }
+    setShowFilters((previous) => !previous);
+  };
+
+  const handleToggleDropdown = (key: DropdownKey) => {
+    if (openDropdown === key) {
+      closeDropdown();
+      return;
+    }
+    openAnchoredDropdown(key);
+  };
+
   return (
-    <View>
-      <AppTopNavigation title="Espace Parent" style={styles.navigation} />
+    <View style={styles.wrapper}>
+      <AppTopNavigation title="Espace parent" style={styles.navigation} />
 
-      <View style={styles.quickActions}>
-        <QuickActionTile
-          label="Catalogue routines"
-          onPress={onGoToCatalog}
-          icon={<CatalogIcon size={18} color="#A14D00" />}
-          backgroundColor="#FFF3E0"
-          color="#A14D00"
-        />
-        <QuickActionTile
-          label="Créer une routine"
-          onPress={onGoToAddRoutine}
-          icon={<AddIcon size={18} color="#B3261E" />}
-          backgroundColor="#FDECEC"
-          color="#B3261E"
-        />
-        <QuickActionTile
-          label="Enfants"
-          onPress={onGoToChildren}
-          icon={<ChildProfileIcon size={18} color="#C05A00" />}
-          backgroundColor="#FFF1E6"
-          color="#C05A00"
-        />
-        <QuickActionTile
-          label="Récompenses"
-          onPress={onGoToRewards}
-          icon={<GiftIcon size={18} color="#2E7D32" />}
-          backgroundColor="#E8F5E9"
-          color="#2E7D32"
-        />
-        <QuickActionTile
-          label="Statistiques"
-          onPress={onGoToStats}
-          icon={<StatsIcon size={18} color="#1565C0" />}
-          backgroundColor="#E3F2FD"
-          color="#1565C0"
-        />
-        <QuickActionTile
-          label="Importer routine"
-          onPress={onGoToImport}
-          icon={<ImportIcon size={18} color="#6A1B9A" />}
-          backgroundColor="#F3E5F5"
-          color="#6A1B9A"
-        />
-        <QuickActionTile
-          label="Corbeille"
-          onPress={onGoToTrash}
-          icon={<TrashIcon size={18} color="#B23A48" />}
-          backgroundColor="#FDECEF"
-          color="#B23A48"
-        />
-        <QuickActionTile
-          label="Profil local"
-          onPress={onOpenProfile}
-          icon={<OpenMoji emoji="🪪" size={18} />}
-          backgroundColor="#EEF6FF"
-          color="#2D6A9F"
-        />
-        <QuickActionTile
-          label="Météo"
-          onPress={onOpenWeatherSettings}
-          icon={<CloudSun size={18} color="#157A8A" weight="bold" />}
-          backgroundColor="#E7F9FC"
-          color="#157A8A"
-        />
+      <View style={styles.searchRow}>
+        <View style={styles.searchShell}>
+          <MagnifyingGlass size={18} weight="bold" color="#8CA3AC" />
+          <TextInput
+            value={searchQuery}
+            onChangeText={(value) => {
+              closeDropdown();
+              onSearchChange(value);
+            }}
+            placeholder="Rechercher une routine, une etape..."
+            placeholderTextColor="#A3B4BB"
+            style={[styles.searchInput, WEB_SEARCH_INPUT_RESET]}
+          />
+        </View>
+
+        <TouchableOpacity
+          onPress={handleToggleFilters}
+          activeOpacity={0.84}
+          style={[styles.filtersButton, showFilters && styles.filtersButtonActive]}
+        >
+          <SlidersHorizontal
+            size={18}
+            weight="bold"
+            color={showFilters ? '#FFFFFF' : '#5E7B86'}
+          />
+          <Text style={[styles.filtersButtonText, showFilters && styles.filtersButtonTextActive]}>
+            Filtres
+          </Text>
+        </TouchableOpacity>
       </View>
 
-      <View style={styles.sectionHeaderCompact}>
-        <Text style={styles.sectionTitle}>Routines</Text>
-        <View style={styles.sectionHeaderActions}>
-          <TouchableOpacity
-            onPress={onToggleRoutinesExpanded}
-            style={styles.expandButton}
-            activeOpacity={0.82}
-          >
-            <Text style={styles.expandButtonText}>{routinesExpanded ? 'Masquer' : 'Afficher'}</Text>
-            {routinesExpanded ? (
-              <CaretUp size={16} weight="bold" color={COLORS.textSecondary} />
-            ) : (
-              <CaretDown size={16} weight="bold" color={COLORS.textSecondary} />
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={onToggleSortMode}
-            style={styles.sortButton}
-            activeOpacity={0.82}
-          >
-            <Text style={styles.sortButtonLabel}>Tri</Text>
-            <Text style={styles.sortButtonValue}>
-              {sortMode === 'recent' ? 'Recents' : 'Alphabetique'}
-            </Text>
-          </TouchableOpacity>
+      {showFilters && routinesExpanded ? (
+        <View style={[styles.filtersPanel, isCompactViewport && styles.filtersPanelCompact]}>
+          <MultiSelectDropdown
+            title="Enfants"
+            options={childOptions}
+            selectedValues={selectedChildIds}
+            isOpen={openDropdown === 'children'}
+            allLabel="Tous les enfants"
+            onToggleOpen={() => handleToggleDropdown('children')}
+            onToggleValue={onToggleChild}
+            onClear={onClearChildSelection}
+            style={styles.dropdownControl}
+            buttonRef={childButtonRef}
+          />
+          <MultiSelectDropdown
+            title="Moment"
+            options={CATEGORY_FILTERS}
+            selectedValues={selectedCategories}
+            isOpen={openDropdown === 'category'}
+            allLabel="Tous les moments"
+            onToggleOpen={() => handleToggleDropdown('category')}
+            onToggleValue={(value) => onToggleCategory(value as CategoryFilterValue)}
+            onClear={onClearCategories}
+            style={styles.dropdownControl}
+            buttonRef={categoryButtonRef}
+          />
+          <MultiSelectDropdown
+            title="Etat"
+            options={STATUS_FILTERS}
+            selectedValues={selectedStatuses}
+            isOpen={openDropdown === 'status'}
+            allLabel="Toutes les routines"
+            onToggleOpen={() => handleToggleDropdown('status')}
+            onToggleValue={(value) => onToggleStatus(value as StatusFilterValue)}
+            onClear={onClearStatuses}
+            style={styles.dropdownControl}
+            buttonRef={statusButtonRef}
+          />
         </View>
-      </View>
-
-      {routinesExpanded ? (
-        <>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.focusChips}>
-            <FocusChip
-              label="Tous"
-              selected={selectedChildIds.length === 0}
-              onPress={onClearChildSelection}
-            />
-            {children.map((child) => (
-              <FocusChip
-                key={child.id}
-                label={formatChildName(child.name)}
-                child={child}
-                selected={selectedChildIds.includes(child.id)}
-                onPress={() => onToggleChild(child.id)}
-              />
-            ))}
-          </ScrollView>
-
-          <View style={[styles.filterControlsRow, isCompactViewport && styles.filterControlsRowCompact]}>
-            <View style={[styles.searchControl, isCompactViewport && styles.searchControlCompact]}>
-              <View style={styles.searchBox}>
-                <MagnifyingGlass size={18} weight="bold" color={COLORS.textLight} />
-                <TextInput
-                  value={searchQuery}
-                  onChangeText={(value) => {
-                    setOpenDropdown(null);
-                    onSearchChange(value);
-                  }}
-                  placeholder="Rechercher une routine, une etape..."
-                  placeholderTextColor={COLORS.textLight}
-                  style={[styles.searchInput, WEB_SEARCH_INPUT_RESET]}
-                />
-              </View>
-            </View>
-
-
-
-            <MultiSelectDropdown
-              title="Moment"
-              options={CATEGORY_FILTERS}
-              selectedValues={selectedCategories}
-              isOpen={openDropdown === 'category'}
-              allLabel="Moment de la journée"
-              onToggleOpen={() => {
-                if (openDropdown === 'category') {
-                  closeDropdown();
-                } else {
-                  openAnchoredDropdown('category');
-                }
-              }}
-              onToggleValue={(value) => onToggleCategory(value as CategoryFilterValue)}
-              onClear={onClearCategories}
-              style={[styles.dropdownControl, isCompactViewport && styles.dropdownControlCompact]}
-              buttonRef={categoryButtonRef}
-            />
-            <MultiSelectDropdown
-              title="Etat"
-              options={STATUS_FILTERS}
-              selectedValues={selectedStatuses}
-              isOpen={openDropdown === 'status'}
-              allLabel="Toutes les routines"
-              onToggleOpen={() => {
-                if (openDropdown === 'status') {
-                  closeDropdown();
-                } else {
-                  openAnchoredDropdown('status');
-                }
-              }}
-              onToggleValue={(value) => onToggleStatus(value as StatusFilterValue)}
-              onClear={onClearStatuses}
-              style={[styles.dropdownControl, isCompactViewport && styles.dropdownControlCompact]}
-              buttonRef={statusButtonRef}
-            />
-
-          </View>
-        </>
-      ) : (
-        <View style={styles.collapsedHint}>
-          <Text style={styles.collapsedHintText}>Section routines reduite</Text>
-        </View>
-      )}
+      ) : null}
 
       <DropdownPortal
-        visible={routinesExpanded && openDropdown !== null}
+        visible={showFilters && openDropdown !== null}
         anchor={dropdownAnchor}
-        title={openDropdown === 'status' ? 'Etat' : 'Moment'}
-        options={openDropdown === 'status' ? STATUS_FILTERS : CATEGORY_FILTERS}
-        selectedValues={openDropdown === 'status' ? selectedStatuses : selectedCategories}
-        allLabel={openDropdown === 'status' ? 'Tous les etats' : 'Tous les moments'}
+        title={
+          openDropdown === 'children'
+            ? 'Enfants'
+            : openDropdown === 'status'
+              ? 'Etat'
+              : 'Moment'
+        }
+        options={
+          openDropdown === 'children'
+            ? childOptions
+            : openDropdown === 'status'
+              ? STATUS_FILTERS
+              : CATEGORY_FILTERS
+        }
+        selectedValues={
+          openDropdown === 'children'
+            ? selectedChildIds
+            : openDropdown === 'status'
+              ? selectedStatuses
+              : selectedCategories
+        }
+        allLabel={
+          openDropdown === 'children'
+            ? 'Tous les enfants'
+            : openDropdown === 'status'
+              ? 'Tous les etats'
+              : 'Tous les moments'
+        }
         onToggleValue={(value) => {
-          if (openDropdown === 'status') {
+          if (openDropdown === 'children') {
+            onToggleChild(value);
+          } else if (openDropdown === 'status') {
             onToggleStatus(value as StatusFilterValue);
           } else if (openDropdown === 'category') {
             onToggleCategory(value as CategoryFilterValue);
           }
         }}
         onClear={() => {
-          if (openDropdown === 'status') {
+          if (openDropdown === 'children') {
+            onClearChildSelection();
+          } else if (openDropdown === 'status') {
             onClearStatuses();
           } else if (openDropdown === 'category') {
             onClearCategories();
@@ -340,59 +268,6 @@ export const ParentDashboardHeader = memo(function ParentDashboardHeader({
         onClose={closeDropdown}
       />
     </View>
-  );
-});
-
-const QuickActionTile = memo(function QuickActionTile({
-  label,
-  onPress,
-  icon,
-  backgroundColor,
-  color,
-}: {
-  label: string;
-  onPress: () => void;
-  icon: React.ReactNode;
-  backgroundColor: string;
-  color: string;
-}) {
-  return (
-    <TouchableOpacity style={[styles.actionTile, { backgroundColor }]} onPress={onPress} activeOpacity={0.75}>
-      {icon}
-      <Text style={[styles.actionTileLabel, { color }]}>{label}</Text>
-    </TouchableOpacity>
-  );
-});
-
-const FocusChip = memo(function FocusChip({
-  label,
-  child,
-  selected,
-  onPress,
-}: {
-  label: string;
-  child?: Child;
-  selected: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      style={[
-        styles.focusChip,
-        selected && {
-          backgroundColor: child ? `${child.color}22` : `${COLORS.secondary}22`,
-          borderColor: child?.color ?? COLORS.secondary,
-        },
-      ]}
-    >
-      {child ? (
-        <Avatar emoji={child.avatar} color={child.color} size={26} avatarConfig={child.avatarConfig} />
-      ) : (
-        <OpenMoji emoji="📚" size={18} />
-      )}
-      <Text style={[styles.focusChipText, selected && styles.focusChipTextSelected]}>{label}</Text>
-    </TouchableOpacity>
   );
 });
 
@@ -431,8 +306,6 @@ const MultiSelectDropdown = memo(function MultiSelectDropdown({
     return `${selectedValues.length} selections`;
   }, [allLabel, options, selectedValues]);
 
-  const allSelected = selectedValues.length === 0 || selectedValues.length === options.length;
-
   return (
     <View style={[styles.dropdownWrap, style, isOpen && styles.dropdownWrapOpen]}>
       <TouchableOpacity
@@ -446,7 +319,7 @@ const MultiSelectDropdown = memo(function MultiSelectDropdown({
           <Text style={styles.dropdownButtonValue} numberOfLines={1}>
             {summary}
           </Text>
-          <CaretDown size={16} weight="bold" color={COLORS.textSecondary} />
+          <CaretDown size={16} weight="bold" color="#6F8A93" />
         </View>
       </TouchableOpacity>
     </View>
@@ -478,7 +351,7 @@ const DropdownPortal = memo(function DropdownPortal({
     return null;
   }
 
-  const menuWidth = Math.max(220, Math.min(anchor?.width ?? 260, 320));
+  const menuWidth = Math.max(220, Math.min(anchor?.width ?? 260, 340));
   const menuLeft = anchor?.x ?? 0;
   const menuTop = anchor?.y ?? 0;
   const allSelected = selectedValues.length === 0 || selectedValues.length === options.length;
@@ -528,174 +401,84 @@ const DropdownOption = memo(function DropdownOption({
       onPress={onPress}
       activeOpacity={0.8}
     >
-      <Text style={[styles.dropdownOptionText, selected && styles.dropdownOptionTextSelected]}>{label}</Text>
-      {selected ? <Check size={14} weight="bold" color="#FFF" /> : null}
+      <Text style={[styles.dropdownOptionText, selected && styles.dropdownOptionTextSelected]}>
+        {label}
+      </Text>
+      {selected ? <Check size={14} weight="bold" color="#FFFFFF" /> : null}
     </TouchableOpacity>
   );
 });
 
 const styles = StyleSheet.create({
+  wrapper: {
+    gap: SPACING.md,
+  },
   navigation: {
-    marginBottom: SPACING.lg,
-  },
-  quickActions: {
-    display: 'none',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: SPACING.sm,
-    marginBottom: SPACING.lg,
-  },
-  actionTile: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'flex-start',
-    gap: SPACING.xs,
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.md,
-    borderRadius: RADIUS.full,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  actionTileLabel: {
-    fontSize: FONT_SIZE.xs,
-    fontWeight: '800',
-  },
-  sectionHeaderCompact: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: SPACING.sm,
     marginBottom: SPACING.sm,
   },
-  sectionHeaderActions: {
+  searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.xs,
-  },
-  sectionTitle: {
-    fontSize: FONT_SIZE.lg,
-    fontWeight: '800',
-    color: COLORS.text,
-  },
-  expandButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: 6,
-    paddingHorizontal: SPACING.sm,
-    borderRadius: RADIUS.full,
-    backgroundColor: COLORS.surface,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  expandButtonText: {
-    fontSize: FONT_SIZE.xs,
-    fontWeight: '800',
-    color: COLORS.textSecondary,
-  },
-  sortButton: {
-    minHeight: 40,
-    borderRadius: RADIUS.full,
-    paddingVertical: 4,
-    paddingHorizontal: SPACING.sm,
-    backgroundColor: COLORS.surface,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    justifyContent: 'center',
-  },
-  sortButtonLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: COLORS.textLight,
-    textTransform: 'uppercase',
-    letterSpacing: 0.3,
-  },
-  sortButtonValue: {
-    fontSize: FONT_SIZE.xs,
-    fontWeight: '800',
-    color: COLORS.textSecondary,
-  },
-  collapsedHint: {
-    marginBottom: SPACING.lg,
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.md,
-    borderRadius: RADIUS.lg,
-    backgroundColor: COLORS.surface,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  collapsedHintText: {
-    fontSize: FONT_SIZE.sm,
-    fontWeight: '700',
-    color: COLORS.textSecondary,
-  },
-  focusChips: {
     gap: SPACING.sm,
-    paddingBottom: SPACING.sm,
-    marginBottom: SPACING.sm,
   },
-  focusChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS.full,
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.md,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  focusChipText: {
-    fontSize: FONT_SIZE.sm,
-    fontWeight: '700',
-    color: COLORS.textSecondary,
-  },
-  focusChipTextSelected: {
-    color: COLORS.text,
-  },
-  filterControlsRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: SPACING.sm,
-    marginBottom: SPACING.lg,
-  },
-  filterControlsRowCompact: {
-    flexWrap: 'wrap',
-  },
-  searchControl: {
-    flex: 1.6,
-    minWidth: 280,
-  },
-  searchControlCompact: {
-    minWidth: 220,
-    flexBasis: '100%',
-  },
-  dropdownControl: {
+  searchShell: {
     flex: 1,
-    minWidth: 210,
-  },
-  dropdownControlCompact: {
-    minWidth: 160,
-    flexGrow: 1,
-  },
-  searchBox: {
+    minHeight: 58,
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.sm,
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS.lg,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderRadius: 22,
     paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    minHeight: 56,
+    borderWidth: 1,
+    borderColor: '#E2ECE7',
+    ...SHADOWS.sm,
   },
   searchInput: {
     flex: 1,
     fontSize: FONT_SIZE.md,
-    color: COLORS.text,
+    color: '#55727E',
     paddingVertical: 0,
+  },
+  filtersButton: {
+    minHeight: 58,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.xs,
+    paddingHorizontal: SPACING.md + 2,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    borderWidth: 1,
+    borderColor: '#DDE9E2',
+  },
+  filtersButtonActive: {
+    backgroundColor: '#86C8B1',
+    borderColor: '#86C8B1',
+  },
+  filtersButtonText: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '800',
+    color: '#5E7B86',
+  },
+  filtersButtonTextActive: {
+    color: '#FFFFFF',
+  },
+  filtersPanel: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+    padding: SPACING.md,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255,255,255,0.78)',
+    borderWidth: 1,
+    borderColor: 'rgba(221,233,226,0.9)',
+  },
+  filtersPanelCompact: {
+    flexWrap: 'wrap',
+  },
+  dropdownControl: {
+    flex: 1,
+    minWidth: 220,
   },
   dropdownWrap: {
     position: 'relative',
@@ -704,26 +487,26 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   dropdownButton: {
-    minHeight: 56,
-    borderRadius: RADIUS.lg,
-    backgroundColor: COLORS.surface,
+    minHeight: 60,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.95)',
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: '#DFEAE5',
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
     justifyContent: 'center',
-    gap: 3,
+    gap: 4,
   },
   dropdownButtonOpen: {
-    borderColor: COLORS.secondary,
-    backgroundColor: `${COLORS.secondary}08`,
+    borderColor: '#86C8B1',
+    backgroundColor: '#F4FBF8',
   },
   dropdownButtonLabel: {
     fontSize: 11,
-    fontWeight: '800',
-    color: COLORS.textLight,
+    fontWeight: '900',
+    color: '#A3B4BB',
     textTransform: 'uppercase',
-    letterSpacing: 0.3,
+    letterSpacing: 0.5,
   },
   dropdownSummaryRow: {
     flexDirection: 'row',
@@ -735,17 +518,17 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: FONT_SIZE.sm,
     fontWeight: '700',
-    color: COLORS.text,
+    color: '#55727E',
   },
   dropdownBackdrop: {
     flex: 1,
   },
   dropdownMenuPortal: {
     position: 'absolute',
-    borderRadius: RADIUS.lg,
-    backgroundColor: COLORS.surface,
+    borderRadius: 22,
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: '#DDE9E2',
     paddingVertical: SPACING.xs,
     ...SHADOWS.md,
     overflow: 'hidden',
@@ -755,13 +538,13 @@ const styles = StyleSheet.create({
     paddingTop: SPACING.xs,
     paddingBottom: SPACING.xs,
     fontSize: 11,
-    fontWeight: '800',
-    color: COLORS.textLight,
+    fontWeight: '900',
+    color: '#A3B4BB',
     textTransform: 'uppercase',
-    letterSpacing: 0.3,
+    letterSpacing: 0.5,
   },
   dropdownOption: {
-    minHeight: 40,
+    minHeight: 44,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.xs,
     flexDirection: 'row',
@@ -770,15 +553,15 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
   },
   dropdownOptionSelected: {
-    backgroundColor: COLORS.secondary,
+    backgroundColor: '#86C8B1',
   },
   dropdownOptionText: {
     flex: 1,
     fontSize: FONT_SIZE.sm,
-    color: COLORS.textSecondary,
+    color: '#5A737D',
     fontWeight: '700',
   },
   dropdownOptionTextSelected: {
-    color: '#FFF',
+    color: '#FFFFFF',
   },
 });

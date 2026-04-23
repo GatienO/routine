@@ -1,6 +1,12 @@
 import React, { memo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform, useWindowDimensions } from 'react-native';
-import { CopySimple, ShareNetwork, Trash, Printer } from 'phosphor-react-native';
+import {
+  CopySimple,
+  ShareNetwork,
+  Trash,
+  Printer,
+  PencilSimpleLine,
+} from 'phosphor-react-native';
 import { Card } from '../ui/Card';
 import { OpenMoji } from '../ui/OpenMoji';
 import { Avatar } from '../ui/Avatar';
@@ -29,6 +35,10 @@ type SharedProps = {
   onDelete: () => void;
 };
 
+const STEP_PREVIEW_LIMIT = 5;
+
+const softTint = (color: string) => `${color}20`;
+
 export const CompactRoutineRow = memo(function CompactRoutineRow({
   routine,
   child,
@@ -47,40 +57,32 @@ export const CompactRoutineRow = memo(function CompactRoutineRow({
   const totalDuration = routine.steps.reduce((sum, step) => sum + step.durationMinutes, 0);
 
   return (
-    <Card style={styles.card}>
-      <View style={[styles.row, isMobile && styles.rowStacked]}>
-        <TouchableOpacity
-          activeOpacity={0.78}
-          onPress={onEdit}
-          style={[styles.mainPressable, isMobile && styles.mainPressableStacked]}
-        >
-          <View style={[styles.iconWrap, { backgroundColor: `${routine.color}20` }]}>
-            <OpenMoji emoji={routine.icon} size={28} />
-          </View>
-          <View style={styles.info}>
-            <Text style={styles.name} numberOfLines={1}>
-              {routine.name}
-            </Text>
-            <Text style={styles.meta}>
-              {category?.label ?? routine.category} · {routine.steps.length} etapes · ~{formatDuration(totalDuration)}
-            </Text>
-            {child ? <Text style={styles.subMeta}>Pour {formatChildName(child.name)}</Text> : null}
-          </View>
-        </TouchableOpacity>
-
-        <RoutineActionPanel
-          routine={routine}
-          child={child}
-          isActive={routine.isActive}
-          statusLabel={routine.isActive ? 'Actif' : 'Pas actif'}
-          isMobile={isMobile}
-          onToggle={onToggle}
-          onDuplicate={onDuplicate}
-          onShare={onShare}
-          onDelete={onDelete}
-        />
-      </View>
-    </Card>
+    <RoutineShell
+      icon={routine.icon}
+      color={routine.color}
+      title={routine.name}
+      meta={[
+        category?.label ?? routine.category,
+        `${routine.steps.length} etapes`,
+        `~${formatDuration(totalDuration)}`,
+      ]}
+      child={child}
+      steps={routine.steps.slice(0, STEP_PREVIEW_LIMIT).map((step) => ({
+        id: step.id,
+        icon: step.icon,
+        title: step.title,
+      }))}
+      routine={routine}
+      childForPrint={child}
+      isActive={routine.isActive}
+      statusLabel={routine.isActive ? 'Active' : 'En pause'}
+      isMobile={isMobile}
+      onEdit={onEdit}
+      onToggle={onToggle}
+      onDuplicate={onDuplicate}
+      onShare={onShare}
+      onDelete={onDelete}
+    />
   );
 });
 
@@ -102,51 +104,176 @@ export const CompactRoutineGroupRow = memo(function CompactRoutineGroupRow({
   const totalDuration = group.sample.steps.reduce((sum, step) => sum + step.durationMinutes, 0);
   const activeCount = group.routines.filter((routine) => routine.isActive).length;
   const allActive = activeCount === group.routines.length;
-  const statusLabel = activeCount === 0 ? 'Pas actif' : allActive ? 'Actif' : 'Mixte';
+  const statusLabel = activeCount === 0 ? 'En pause' : allActive ? 'Actif' : 'Mixte';
   const previewChildren = group.childIds
     .slice(0, 3)
     .map((childId) => childrenById.get(childId))
     .filter((child): child is Child => Boolean(child));
 
   return (
-    <Card style={styles.card}>
-      <View style={[styles.row, isMobile && styles.rowStacked]}>
+    <RoutineShell
+      icon={group.sample.icon}
+      color={group.sample.color}
+      title={group.sample.name}
+      meta={[
+        category?.label ?? group.sample.category,
+        `${group.sample.steps.length} etapes`,
+        `~${formatDuration(totalDuration)}`,
+      ]}
+      steps={group.sample.steps.slice(0, STEP_PREVIEW_LIMIT).map((step) => ({
+        id: step.id,
+        icon: step.icon,
+        title: step.title,
+      }))}
+      groupChildren={previewChildren}
+      groupSummary={`${group.routines.length} routine${group.routines.length > 1 ? 's' : ''} partagee${group.routines.length > 1 ? 's' : ''} pour ${group.childIds.length} enfant${group.childIds.length > 1 ? 's' : ''}`}
+      routine={group.sample}
+      childForPrint={previewChildren[0]}
+      isActive={allActive}
+      isMuted={activeCount === 0}
+      statusLabel={statusLabel}
+      isMobile={isMobile}
+      onEdit={onEdit}
+      onToggle={onToggle}
+      onDuplicate={onDuplicate}
+      onShare={onShare}
+      onDelete={onDelete}
+    />
+  );
+});
+
+function RoutineShell({
+  icon,
+  color,
+  title,
+  meta,
+  child,
+  steps,
+  groupChildren,
+  groupSummary,
+  routine,
+  childForPrint,
+  isActive,
+  isMuted = false,
+  statusLabel,
+  isMobile,
+  onEdit,
+  onToggle,
+  onDuplicate,
+  onShare,
+  onDelete,
+}: {
+  icon: string;
+  color: string;
+  title: string;
+  meta: string[];
+  child?: Child;
+  steps: Array<{ id: string; icon: string; title: string }>;
+  groupChildren?: Child[];
+  groupSummary?: string;
+  routine: Routine;
+  childForPrint?: Child;
+  isActive: boolean;
+  isMuted?: boolean;
+  statusLabel: string;
+  isMobile: boolean;
+  onEdit: () => void;
+  onToggle: () => void;
+  onDuplicate: () => void;
+  onShare: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <Card padded={false} style={[styles.card, isMuted && styles.cardMuted]}>
+      <View style={styles.cardBody}>
         <TouchableOpacity
           activeOpacity={0.78}
           onPress={onEdit}
-          style={[styles.mainPressable, isMobile && styles.mainPressableStacked]}
+          style={[styles.headerPressable, isMobile && styles.headerPressableStacked]}
         >
-          <View style={[styles.iconWrap, { backgroundColor: `${group.sample.color}20` }]}>
-            <OpenMoji emoji={group.sample.icon} size={28} />
+          <View style={[styles.iconWrap, { backgroundColor: softTint(color) }]}>
+            <OpenMoji emoji={icon} size={30} />
           </View>
-          <View style={styles.info}>
-            <Text style={styles.name} numberOfLines={1}>
-              {group.sample.name}
-            </Text>
-            <Text style={styles.meta}>
-              {category?.label ?? group.sample.category} · {group.sample.steps.length} etapes · ~{formatDuration(totalDuration)}
-            </Text>
-            <View style={styles.groupChildrenRow}>
-              {previewChildren.map((child) => (
+
+          <View style={styles.headerContent}>
+            <View style={styles.headerTopRow}>
+              <View style={styles.info}>
+                <Text style={styles.name} numberOfLines={1}>
+                  {title}
+                </Text>
+                <View style={styles.metaRow}>
+                  {meta.map((label) => (
+                    <MetaPill key={label} label={label} />
+                  ))}
+                </View>
+              </View>
+
+              {!isMobile ? (
+                <View style={styles.headerUtilityRow}>
+                  <IconAction
+                    icon={<PencilSimpleLine size={18} weight="bold" color={COLORS.textSecondary} />}
+                    onPress={onEdit}
+                    label="Modifier"
+                    subtle
+                  />
+                  <StatusChip label={statusLabel} isActive={isActive} muted={isMuted} />
+                </View>
+              ) : null}
+            </View>
+
+            {child ? (
+              <View style={[styles.childPill, { backgroundColor: softTint(child.color) }]}>
                 <Avatar
-                  key={child.id}
                   emoji={child.avatar}
                   color={child.color}
-                  size={26}
+                  size={28}
                   avatarConfig={child.avatarConfig}
-                  style={styles.groupAvatar}
                 />
-              ))}
-            </View>
+                <Text style={styles.childPillText}>Pour {formatChildName(child.name)}</Text>
+              </View>
+            ) : null}
+
+            {groupChildren && groupSummary ? (
+              <View style={styles.groupRow}>
+                <View style={styles.groupAvatarStack}>
+                  {groupChildren.map((groupChild) => (
+                    <Avatar
+                      key={groupChild.id}
+                      emoji={groupChild.avatar}
+                      color={groupChild.color}
+                      size={28}
+                      avatarConfig={groupChild.avatarConfig}
+                      style={styles.groupAvatar}
+                    />
+                  ))}
+                </View>
+                <Text style={styles.groupSummary}>{groupSummary}</Text>
+              </View>
+            ) : null}
+
+            {steps.length > 0 ? (
+              <View style={styles.stepsRow}>
+                {steps.map((step) => (
+                  <View key={step.id} style={styles.stepPill}>
+                    <OpenMoji emoji={step.icon} size={14} />
+                    <Text style={styles.stepPillText} numberOfLines={1}>
+                      {step.title}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            ) : null}
           </View>
         </TouchableOpacity>
 
         <RoutineActionPanel
-          routine={group.sample}
-          child={previewChildren[0]}
-          isActive={allActive}
+          routine={routine}
+          child={childForPrint}
+          isActive={isActive}
           statusLabel={statusLabel}
+          isMuted={isMuted}
           isMobile={isMobile}
+          onEdit={onEdit}
           onToggle={onToggle}
           onDuplicate={onDuplicate}
           onShare={onShare}
@@ -155,14 +282,16 @@ export const CompactRoutineGroupRow = memo(function CompactRoutineGroupRow({
       </View>
     </Card>
   );
-});
+}
 
 const RoutineActionPanel = memo(function RoutineActionPanel({
   routine,
   child,
   isActive,
   statusLabel,
+  isMuted,
   isMobile,
+  onEdit,
   onToggle,
   onDuplicate,
   onShare,
@@ -172,7 +301,9 @@ const RoutineActionPanel = memo(function RoutineActionPanel({
   child?: Child;
   isActive: boolean;
   statusLabel: string;
+  isMuted?: boolean;
   isMobile: boolean;
+  onEdit: () => void;
   onToggle: () => void;
   onDuplicate: () => void;
   onShare: () => void;
@@ -185,15 +316,15 @@ const RoutineActionPanel = memo(function RoutineActionPanel({
     try {
       await printRoutine(routine, child);
       showAppToast({
-        title: 'Impression lancée',
-        message: 'Ouvre la fenêtre d\'impression',
+        title: 'Impression lancee',
+        message: "Ouvre la fenetre d'impression",
         tone: 'success',
         icon: '🖨️',
       });
     } catch (error) {
       showAppAlert({
         title: 'Erreur',
-        message: 'Impossible d\'imprimer',
+        message: "Impossible d'imprimer",
         tone: 'danger',
         icon: '⚠️',
       });
@@ -201,47 +332,98 @@ const RoutineActionPanel = memo(function RoutineActionPanel({
   };
 
   return (
-    <>
-      <View style={[styles.titleControls, isMobile && styles.titleControlsMobile]}>
-        <View style={styles.iconActionRow}>
-          {Platform.OS === 'web' && routine && child && (
-            <IconAction
-              icon={<Printer size={iconSize} weight="bold" color={COLORS.secondary} />}
-              onPress={handlePrint}
-              label="Imprimer / PDF"
-            />
-          )}
+    <View style={[styles.footerPanel, isMobile && styles.footerPanelMobile]}>
+      <View style={styles.iconActionRow}>
+        {Platform.OS === 'web' && routine && child ? (
           <IconAction
-            icon={<CopySimple size={iconSize} weight="bold" color={COLORS.secondaryDark} />}
-            onPress={onDuplicate}
-            label="Dupliquer"
+            icon={<Printer size={iconSize} weight="bold" color={COLORS.secondaryDark} />}
+            onPress={handlePrint}
+            label="Imprimer / PDF"
           />
+        ) : null}
+        <IconAction
+          icon={<CopySimple size={iconSize} weight="bold" color={COLORS.secondaryDark} />}
+          onPress={onDuplicate}
+          label="Dupliquer"
+        />
+        <IconAction
+          icon={<ShareNetwork size={iconSize} weight="bold" color={COLORS.secondaryDark} />}
+          onPress={onShare}
+          label="Partager"
+        />
+        <IconAction
+          icon={<Trash size={iconSize} weight="bold" color={COLORS.error} />}
+          onPress={onDelete}
+          label="Supprimer"
+        />
+        {isMobile ? (
           <IconAction
-            icon={<ShareNetwork size={iconSize} weight="bold" color={COLORS.secondaryDark} />}
-            onPress={onShare}
-            label="Partager"
+            icon={<PencilSimpleLine size={iconSize} weight="bold" color={COLORS.textSecondary} />}
+            onPress={onEdit}
+            label="Modifier"
           />
-          <IconAction
-            icon={<Trash size={iconSize} weight="bold" color={COLORS.error} />}
-            onPress={onDelete}
-            label="Supprimer"
-          />
-        </View>
-
-        <View style={styles.switchStatusRow}>
-          <TouchableOpacity style={styles.switchWrap} onPress={onToggle} activeOpacity={0.8}>
-            <View style={[styles.switchTrack, isActive ? styles.switchTrackActive : styles.switchTrackInactive]}>
-              <View style={[styles.switchThumb, isActive ? styles.switchThumbRight : styles.switchThumbLeft]} />
-            </View>
-          </TouchableOpacity>
-          <View style={[styles.statusPill, isActive ? styles.statusPillActive : styles.statusPillInactive]}>
-            <Text style={[styles.statusText, isActive ? styles.statusTextActive : styles.statusTextInactive]}>
-              {statusLabel}
-            </Text>
-          </View>
-        </View>
+        ) : null}
       </View>
-    </>
+
+      <TouchableOpacity
+        style={[
+          styles.switchStatusRow,
+          isActive ? styles.switchStatusRowActive : styles.switchStatusRowInactive,
+        ]}
+        onPress={onToggle}
+        activeOpacity={0.82}
+      >
+        <View style={[styles.switchTrack, isActive ? styles.switchTrackActive : styles.switchTrackInactive]}>
+          <View style={[styles.switchThumb, isActive ? styles.switchThumbRight : styles.switchThumbLeft]} />
+        </View>
+        <Text
+          style={[
+            styles.statusLabel,
+            isActive ? styles.statusLabelActive : styles.statusLabelInactive,
+            isMuted && styles.statusLabelInactive,
+          ]}
+        >
+          {statusLabel}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+});
+
+const MetaPill = memo(function MetaPill({ label }: { label: string }) {
+  return (
+    <View style={styles.metaPill}>
+      <Text style={styles.metaPillText}>{label}</Text>
+    </View>
+  );
+});
+
+const StatusChip = memo(function StatusChip({
+  label,
+  isActive,
+  muted = false,
+}: {
+  label: string;
+  isActive: boolean;
+  muted?: boolean;
+}) {
+  return (
+    <View
+      style={[
+        styles.statusChip,
+        isActive ? styles.statusChipActive : styles.statusChipInactive,
+        muted && styles.statusChipInactive,
+      ]}
+    >
+      <Text
+        style={[
+          styles.statusChipText,
+          isActive ? styles.statusChipTextActive : styles.statusChipTextInactive,
+        ]}
+      >
+        {label}
+      </Text>
+    </View>
   );
 });
 
@@ -249,15 +431,17 @@ const IconAction = memo(function IconAction({
   icon,
   onPress,
   label,
+  subtle = false,
 }: {
   icon: React.ReactNode;
   onPress: () => void;
   label: string;
+  subtle?: boolean;
 }) {
   return (
     <TouchableOpacity
       onPress={onPress}
-      style={styles.iconActionBtn}
+      style={[styles.iconActionBtn, subtle && styles.iconActionBtnSubtle]}
       accessibilityRole="button"
       accessibilityLabel={label}
       activeOpacity={0.78}
@@ -270,126 +454,193 @@ const IconAction = memo(function IconAction({
 
 const styles = StyleSheet.create({
   card: {
-    marginBottom: SPACING.sm,
+    marginBottom: SPACING.md,
+    borderWidth: 0,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255,255,255,0.96)',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#8CB386',
+        shadowOffset: { width: 0, height: 14 },
+        shadowOpacity: 0.14,
+        shadowRadius: 26,
+      },
+      android: {
+        elevation: 8,
+      },
+      web: {
+        boxShadow: '0 18px 34px rgba(140, 179, 134, 0.18)',
+      },
+    }),
   },
-  row: {
+  cardMuted: {
+    opacity: 0.86,
+  },
+  cardBody: {
+    padding: SPACING.lg,
+    gap: SPACING.md,
+  },
+  headerPressable: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.xs,
+    alignItems: 'flex-start',
+    gap: SPACING.md,
   },
-  rowStacked: {
-    flexDirection: 'column',
-    alignItems: 'stretch',
-    gap: SPACING.sm,
-  },
-  mainPressable: {
-    flex: 1,
-    minWidth: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.sm,
-  },
-  mainPressableStacked: {
+  headerPressableStacked: {
     width: '100%',
   },
   iconWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  headerContent: {
+    flex: 1,
+    minWidth: 0,
+    gap: SPACING.sm,
+  },
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: SPACING.sm,
   },
   info: {
     flex: 1,
     minWidth: 0,
+    gap: 6,
   },
-  titleControls: {
-    flexShrink: 0,
+  headerUtilityRow: {
+    alignItems: 'flex-end',
+    gap: SPACING.xs,
+  },
+  name: {
+    fontSize: 28,
+    fontWeight: '800',
+    fontStyle: 'italic',
+    color: '#4F707B',
+    letterSpacing: -0.6,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.xs,
+  },
+  metaPill: {
+    borderRadius: RADIUS.full,
+    paddingVertical: 6,
+    paddingHorizontal: SPACING.sm + 2,
+    backgroundColor: '#F3F9F6',
+  },
+  metaPillText: {
+    fontSize: FONT_SIZE.xs,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+  },
+  childPill: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    borderRadius: RADIUS.full,
+    paddingVertical: 8,
+    paddingHorizontal: SPACING.sm + 4,
+  },
+  childPillText: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  groupRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  groupAvatarStack: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingRight: SPACING.xs,
+  },
+  groupAvatar: {
+    marginRight: -8,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.96)',
+  },
+  groupSummary: {
+    flex: 1,
+    fontSize: FONT_SIZE.sm,
+    lineHeight: 20,
+    color: '#68808A',
+    fontWeight: '600',
+  },
+  stepsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.sm,
+  },
+  stepPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    maxWidth: '48%',
+    backgroundColor: '#F8FCFA',
+    borderRadius: 18,
+    paddingVertical: 9,
+    paddingHorizontal: SPACING.sm + 2,
+  },
+  stepPillText: {
+    flexShrink: 1,
+    fontSize: FONT_SIZE.sm,
+    color: '#668089',
+    fontWeight: '600',
+  },
+  footerPanel: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 6,
-    minWidth: 164,
+    gap: SPACING.md,
+    backgroundColor: '#F4FAF7',
+    borderRadius: 22,
+    paddingVertical: SPACING.sm + 2,
+    paddingHorizontal: SPACING.sm + 2,
   },
-  titleControlsMobile: {
-    width: '100%',
-    minWidth: 0,
-    flexShrink: 1,
+  footerPanelMobile: {
+    flexDirection: 'column',
+    alignItems: 'stretch',
   },
   iconActionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    flexShrink: 1,
+    flexWrap: 'wrap',
+    gap: SPACING.xs,
   },
   iconActionBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: COLORS.surface,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: 'rgba(255,255,255,0.94)',
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: '#DCEAE3',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  iconActionBtnSubtle: {
+    backgroundColor: '#F5FBF8',
   },
   switchStatusRow: {
-    flexDirection: 'column',
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-    gap: 3,
-    minWidth: 72,
-  },
-  name: {
-    fontSize: FONT_SIZE.md,
-    fontWeight: '800',
-    color: COLORS.text,
-  },
-  meta: {
-    marginTop: 2,
-    fontSize: FONT_SIZE.xs,
-    color: COLORS.textSecondary,
-    fontWeight: '700',
-  },
-  subMeta: {
-    marginTop: 4,
-    fontSize: FONT_SIZE.xs,
-    color: COLORS.textLight,
-    fontWeight: '700',
-  },
-  statusPill: {
-    minWidth: 74,
-    borderRadius: RADIUS.full,
-    paddingVertical: 3,
-    paddingHorizontal: SPACING.sm,
-    alignItems: 'center',
-  },
-  statusPillActive: {
-    backgroundColor: `${COLORS.success}18`,
-  },
-  statusPillInactive: {
-    backgroundColor: `${COLORS.textLight}14`,
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: '800',
-  },
-  statusTextActive: {
-    color: COLORS.success,
-  },
-  statusTextInactive: {
-    color: COLORS.textSecondary,
-  },
-  groupChildrenRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 2,
-    marginTop: 4,
+    justifyContent: 'center',
+    gap: SPACING.sm,
+    borderRadius: RADIUS.full,
+    paddingVertical: 7,
+    paddingHorizontal: SPACING.sm + 2,
   },
-  groupAvatar: {
-    marginRight: -6,
+  switchStatusRowActive: {
+    backgroundColor: '#EAF8F2',
   },
-  switchWrap: {
-    alignSelf: 'center',
+  switchStatusRowInactive: {
+    backgroundColor: '#EEF4F1',
   },
   switchTrack: {
     width: 46,
@@ -402,7 +653,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.success,
   },
   switchTrackInactive: {
-    backgroundColor: COLORS.textLight,
+    backgroundColor: '#BED0C8',
   },
   switchThumb: {
     width: 24,
@@ -415,5 +666,36 @@ const styles = StyleSheet.create({
   },
   switchThumbRight: {
     alignSelf: 'flex-end',
+  },
+  statusLabel: {
+    fontSize: FONT_SIZE.xs,
+    fontWeight: '800',
+  },
+  statusLabelActive: {
+    color: COLORS.success,
+  },
+  statusLabelInactive: {
+    color: '#68808A',
+  },
+  statusChip: {
+    borderRadius: RADIUS.full,
+    paddingVertical: 6,
+    paddingHorizontal: SPACING.sm + 2,
+  },
+  statusChipActive: {
+    backgroundColor: '#EAF8F2',
+  },
+  statusChipInactive: {
+    backgroundColor: '#EEF4F1',
+  },
+  statusChipText: {
+    fontSize: FONT_SIZE.xs,
+    fontWeight: '800',
+  },
+  statusChipTextActive: {
+    color: COLORS.success,
+  },
+  statusChipTextInactive: {
+    color: '#68808A',
   },
 });

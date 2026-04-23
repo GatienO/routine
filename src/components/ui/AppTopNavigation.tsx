@@ -39,7 +39,7 @@ type AppTopNavigationProps = {
 
 type NavigationKey = 'home' | 'child' | 'parent';
 
-export function AppTopNavigation({ onBack, style }: AppTopNavigationProps) {
+export function AppTopNavigation({ title, onBack, style }: AppTopNavigationProps) {
   const router = useRouter();
   const pathname = usePathname();
   const { width } = useWindowDimensions();
@@ -93,9 +93,10 @@ export function AppTopNavigation({ onBack, style }: AppTopNavigationProps) {
           hitSlop={6}
           style={styles.menuButton}
         >
-          <TfiMenu size={22} color={COLORS.text} />
+          <TfiMenu size={22} color="#54727D" />
         </TouchableOpacity>
-
+        {title ? <Text style={styles.screenTitle}>{title}</Text> : <View style={styles.titleSpacer} />}
+        <View style={styles.sideSpacer} />
       </View>
 
       <Modal transparent visible={menuOpen} animationType="fade" onRequestClose={() => setMenuOpen(false)}>
@@ -267,10 +268,17 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
   },
   topRow: {
-    alignSelf: 'flex-start',
+    alignSelf: 'stretch',
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.sm,
+  },
+  titleSpacer: {
+    flex: 1,
+  },
+  sideSpacer: {
+    width: TOUCH.minHeight,
+    height: TOUCH.minHeight,
   },
   menuButton: {
     width: TOUCH.minHeight,
@@ -283,9 +291,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     ...SHADOWS.sm,
   },
+  screenTitle: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: FONT_SIZE.xl,
+    fontWeight: '900',
+    color: 'rgb(33, 39, 48)',
+    letterSpacing: 0.2,
+  },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(33, 39, 48, 0.38)',
+    backgroundColor: 'rgba(33, 39, 49, 0.7)',
     alignItems: 'flex-start',
   },
   drawer: {

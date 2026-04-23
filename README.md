@@ -2,6 +2,8 @@
 
 Application mobile gamifiée qui transforme les tâches quotidiennes des enfants en aventures ludiques.
 
+Test: ![https://douceroutine.vercel.app/](https://douceroutine.vercel.app/)
+
 ![Expo](https://img.shields.io/badge/Expo-55-blue) ![React Native](https://img.shields.io/badge/React%20Native-0.83-61dafb) ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6) ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Fonctionnalités
