@@ -8,6 +8,7 @@ export type OutfitVisualId =
   | 'chaussures'
   | 'echarpe'
   | 'gants'
+  | 'impermeable'
   | 'lunettes'
   | 'manteau'
   | 'pantalon'
@@ -17,6 +18,8 @@ export type OutfitVisualId =
   | 'short'
   | 'tshirt'
   | 'tshirtML'
+  | 'vent'
+  | 'vesteLegere'
   | 'pyjamaEte'
   | 'pyjamaHiver'
   | 'doudou'
@@ -49,6 +52,7 @@ const ITEM_CATALOG: Record<OutfitVisualId, OutfitVisualItem> = {
   chaussures: { id: 'chaussures', label: 'Chaussures', render: 'asset' },
   echarpe: { id: 'echarpe', label: 'Echarpe', render: 'asset' },
   gants: { id: 'gants', label: 'Gants', render: 'asset' },
+  impermeable: { id: 'impermeable', label: 'Impermeable', render: 'emoji', emoji: '\u2602' },
   lunettes: { id: 'lunettes', label: 'Lunettes', render: 'asset' },
   manteau: { id: 'manteau', label: 'Manteau', render: 'asset' },
   pantalon: { id: 'pantalon', label: 'Pantalon', render: 'asset' },
@@ -58,6 +62,8 @@ const ITEM_CATALOG: Record<OutfitVisualId, OutfitVisualItem> = {
   short: { id: 'short', label: 'Short', render: 'asset' },
   tshirt: { id: 'tshirt', label: 'T-shirt', render: 'asset' },
   tshirtML: { id: 'tshirtML', label: 'T-shirt ML', render: 'asset' },
+  vent: { id: 'vent', label: 'Vent', render: 'emoji', emoji: '\u{1F32C}\uFE0F' },
+  vesteLegere: { id: 'vesteLegere', label: 'Veste legere', render: 'emoji', emoji: '\u{1F9E5}' },
   pyjamaEte: { id: 'pyjamaEte', label: 'Pyjama', render: 'asset' },
   pyjamaHiver: { id: 'pyjamaHiver', label: 'Pyjama', render: 'asset' },
   doudou: { id: 'doudou', label: 'Doudou', render: 'asset' },
@@ -76,6 +82,18 @@ function single(id: OutfitVisualId): OutfitTile {
 
 function uniqueItems(ids: OutfitVisualId[]): OutfitVisualItem[] {
   return [...new Set(ids)].map(item);
+}
+
+export function buildOutfitTile(ids: OutfitVisualId[]): OutfitTile {
+  return { items: ids.map(item) };
+}
+
+export function buildOutfitTiles(ids: OutfitVisualId[]): OutfitTile[] {
+  return ids.map(single);
+}
+
+export function buildOutfitExtras(ids: OutfitVisualId[]): OutfitVisualItem[] {
+  return uniqueItems(ids);
 }
 
 function chooseTop(temp: number, forecast: DayForecastSummary): OutfitVisualId {

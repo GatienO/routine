@@ -112,7 +112,7 @@ export const MOOD_CONFIG: Record<ChildMoodType, MoodConfig> = {
   grumpy: {
     emoji: '🥱',
     label: 'Fatigue',
-    color: '#A29BFE',
+    color: '#9EC6D5',
     polarity: 'negative',
     encouragements: [
       'On fait le minimum ensemble.',
@@ -126,7 +126,7 @@ export const MOOD_CONFIG: Record<ChildMoodType, MoodConfig> = {
     ],
     animationIntensity: 'calm',
     skipOptional: true,
-    gradientColors: ['#F5F0FF', '#E0D8FF'],
+    gradientColors: ['#EDF6F7', '#DCECF0'],
   },
 };
 

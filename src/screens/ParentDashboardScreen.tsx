@@ -72,6 +72,7 @@ const DASHBOARD_GRADIENT: [string, string, string, string] = [
 export function ParentDashboardScreen() {
   const router = useRouter();
   const children = useChildrenStore((state) => state.children);
+  const childrenHasHydrated = useChildrenStore((state) => state.hasHydrated);
   const routines = useRoutineStore((state) => state.routines);
   const toggleRoutine = useRoutineStore((state) => state.toggleRoutine);
   const updateRoutine = useRoutineStore((state) => state.updateRoutine);
@@ -110,6 +111,12 @@ export function ParentDashboardScreen() {
   useEffect(() => {
     cleanupExpiredTrash();
   }, [cleanupExpiredTrash]);
+
+  useEffect(() => {
+    if (childrenHasHydrated && children.length === 0) {
+      router.replace('/parent/add-child?first=1');
+    }
+  }, [children.length, childrenHasHydrated, router]);
 
   useEffect(() => {
     setCityInput(weatherCity);

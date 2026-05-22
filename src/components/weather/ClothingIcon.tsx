@@ -102,8 +102,11 @@ const clothingMap: Record<string, any[]> = {
 
 const emojiFallbacks: Partial<Record<OutfitVisualId, string>> = {
   bouteille_eau: '💧',
+  impermeable: '\u2602',
   pluie: '🌧️',
   neige: '❄️',
+  vent: '\u{1F32C}\uFE0F',
+  vesteLegere: '\u{1F9E5}',
 };
 
 function pickVariant(assets: any[], variant: number) {

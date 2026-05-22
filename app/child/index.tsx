@@ -27,7 +27,7 @@ import { BackButton } from '../../src/components/ui/BackButton';
 import { WeatherCard } from '../../src/components/weather/WeatherCard';
 import { ChildDashboardHeader, CategoryFilterValue } from '../../src/components/child/ChildDashboardHeader';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
-import { COLORS, SPACING, FONT_SIZE, SHADOWS, RADIUS } from '../../src/constants/theme';
+import { COLORS, SPACING, FONT_SIZE, SHADOWS, RADIUS, CATEGORY_CONFIG } from '../../src/constants/theme';
 import {
   DEFAULT_WEATHER_THEME,
   getWeatherSecondaryTextColor,
@@ -39,6 +39,7 @@ import { formatChildName } from '../../src/utils/children';
 import { formatDuration } from '../../src/utils/date';
 
 const ROUTINES_PER_PAGE = 10;
+const STEP_PREVIEW_LIMIT = 5;
 
 export type StatusFilterValue = 'active' | 'inactive';
 export type FavoriteFilterValue = 'all' | 'favorites' | 'others';
@@ -48,6 +49,8 @@ const ROUTINE_SORT_OPTIONS: Array<{ key: RoutineSortValue; label: string }> = [
   { key: 'recent', label: 'Plus recent' },
   { key: 'alphabetical', label: 'Alphabetique' },
 ];
+
+const softTint = (color: string, alpha = '20') => `${color}${alpha}`;
 
 export default function ChildLauncherScreen() {
   const router = useRouter();
@@ -267,7 +270,7 @@ export default function ChildLauncherScreen() {
   // Réinitialiser la page quand les filtres changent
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedChildIds, selectedCategories, deferredSearch, selectedSort]);
+  }, [selectedChildIds, selectedCategories, selectedStatuses, selectedFavorite, deferredSearch, selectedSort]);
 
   const handleContinue = () => {
     if (selectedRoutineIds.length === 0) return;
@@ -344,53 +347,11 @@ export default function ChildLauncherScreen() {
 
             {weather ? <WeatherCard weather={weather} /> : null}
 
-            {/* Chips de sélection d'enfants */}
-            <View style={styles.childrenChipsContainer}>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.childrenChips}>
-                <TouchableOpacity
-                  style={[
-                    styles.childChip,
-                    selectedChildIds.length === 0 && {
-                      backgroundColor: '#A5D6A7',
-                      borderColor: '#66BB6A',
-                    },
-                  ]}
-                  onPress={handleClearChildSelection}
-                  activeOpacity={0.75}
-                >
-                  <Text style={[
-                    styles.childChipText,
-                    selectedChildIds.length === 0 && { color: COLORS.text, fontWeight: '800' },
-                  ]}>
-                    Tous
-                  </Text>
-                </TouchableOpacity>
-                {children.map((child) => (
-                  <TouchableOpacity
-                    key={child.id}
-                    style={[
-                      styles.childChip,
-                      selectedChildIds.includes(child.id) && {
-                        backgroundColor: '#A5D6A7',
-                        borderColor: '#66BB6A',
-                      },
-                    ]}
-                    onPress={() => handleToggleChild(child.id)}
-                    activeOpacity={0.75}
-                  >
-                    <Avatar emoji={child.avatar} color={child.color} size={20} avatarConfig={child.avatarConfig} />
-                    <Text style={[
-                      styles.childChipText,
-                      selectedChildIds.includes(child.id) && { color: COLORS.text, fontWeight: '800' },
-                    ]}>
-                      {formatChildName(child.name)}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-
             <ChildDashboardHeader
+              children={children}
+              selectedChildIds={selectedChildIds}
+              onToggleChild={handleToggleChild}
+              onClearChildSelection={handleClearChildSelection}
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
               selectedCategories={selectedCategories}
@@ -399,41 +360,7 @@ export default function ChildLauncherScreen() {
               selectedStatuses={selectedStatuses}
               onToggleStatus={handleToggleStatus}
               onClearStatuses={handleClearStatuses}
-              selectedFavorite={selectedFavorite}
-              onToggleFavorite={handleToggleFavorite}
             />
-
-            {/* Titre et routines */}
-            <View style={styles.routinesHeader}>
-              <View style={styles.routinesHeaderText}>
-                <Text style={[styles.routinesTitle, { color: textColor }]}>Routines</Text>
-                <Text style={[styles.routinesCount, { color: secondaryColor }]}>
-                  {filteredRoutines.length} routine{filteredRoutines.length !== 1 ? 's' : ''}
-                </Text>
-              </View>
-              <View style={styles.sortControlWrap}>
-                <TouchableOpacity
-                  ref={sortButtonRef}
-                  style={styles.sortButton}
-                  onPress={() => {
-                    if (showSortMenu) {
-                      closeSortMenu();
-                    } else {
-                      openSortMenu();
-                    }
-                  }}
-                  activeOpacity={0.85}
-                >
-                  <Text style={styles.sortButtonLabel}>Tri</Text>
-                  <View style={styles.sortButtonRow}>
-                    <Text style={styles.sortButtonValue}>
-                      {ROUTINE_SORT_OPTIONS.find((option) => option.key === selectedSort)?.label ?? 'Plus recent'}
-                    </Text>
-                    <CaretDown size={16} weight="bold" color={COLORS.textSecondary} />
-                  </View>
-                </TouchableOpacity>
-              </View>
-            </View>
 
             {/* Liste des routines paginée */}
             <View style={styles.routinesTable}>
@@ -441,6 +368,8 @@ export default function ChildLauncherScreen() {
                 const duration = routine.steps.reduce((sum, step) => sum + step.durationMinutes, 0);
                 const isSelected = selectedRoutineIds.includes(routine.id);
                 const owner = getChild(routine.childId);
+                const category = CATEGORY_CONFIG[routine.category];
+                const previewSteps = routine.steps.slice(0, STEP_PREVIEW_LIMIT);
 
                 return (
                   <Animated.View
@@ -449,43 +378,92 @@ export default function ChildLauncherScreen() {
                   >
                     <AnimatedPressable
                       style={[
-                        styles.routineTableRow,
-                        {
-                          borderColor: `${routine.color}45`,
-                          backgroundColor: `${routine.color}16`,
-                        },
-                        isSelected && styles.routineRowSelected,
+                        styles.routineCard,
+                        isSelected && styles.routineCardSelected,
                       ]}
                       onPress={() => toggleRoutine(routine.id)}
                       scaleDown={0.98}
                       hitSlop={8}
                     >
-                      <View style={styles.routineRowMain}>
-                        <View style={[styles.routineIcon, { backgroundColor: `${routine.color}24` }]}>
-                          <OpenMoji emoji={routine.icon} size={24} />
+                      <View style={styles.routineCardHeader}>
+                        <View style={[styles.routineIcon, { backgroundColor: softTint(routine.color) }]}>
+                          <OpenMoji emoji={routine.icon} size={30} />
                         </View>
-                        <View style={styles.routineRowContent}>
-                          <Text style={[styles.routineRowName, { color: textColor }]} numberOfLines={1}>
-                            {routine.name}
-                          </Text>
-                          <Text style={[styles.routineRowMeta, { color: secondaryColor }]}>
-                            {routine.steps.length} étapes · {formatDuration(duration)}
-                            {owner ? ` · ${formatChildName(owner.name)}` : ''}
-                          </Text>
+
+                        <View style={styles.routineCardContent}>
+                          <View style={styles.routineCardHeading}>
+                            <View style={styles.routineCardInfo}>
+                              <Text style={styles.routineCardName} numberOfLines={1}>
+                                {routine.name}
+                              </Text>
+                              <View style={styles.metaRow}>
+                                <View style={styles.metaPill}>
+                                  <Text style={styles.metaPillText}>
+                                    {category?.label ?? routine.category}
+                                  </Text>
+                                </View>
+                                <View style={styles.metaPill}>
+                                  <Text style={styles.metaPillText}>
+                                    {routine.steps.length} etapes
+                                  </Text>
+                                </View>
+                                <View style={styles.metaPill}>
+                                  <Text style={styles.metaPillText}>
+                                    ~{formatDuration(duration)}
+                                  </Text>
+                                </View>
+                              </View>
+                            </View>
+
+                            <TouchableOpacity
+                              onPress={() => toggleFavorite(routine.id)}
+                              hitSlop={12}
+                              style={[
+                                styles.favoriteButton,
+                                routine.isFavorite && styles.favoriteButtonActive,
+                              ]}
+                            >
+                              <Heart
+                                size={18}
+                                weight={routine.isFavorite ? 'fill' : 'regular'}
+                                color={routine.isFavorite ? COLORS.error : COLORS.textSecondary}
+                              />
+                            </TouchableOpacity>
+                          </View>
+
+                          {owner ? (
+                            <View style={[styles.childPill, { backgroundColor: softTint(owner.color) }]}>
+                              <Avatar
+                                emoji={owner.avatar}
+                                color={owner.color}
+                                size={28}
+                                avatarConfig={owner.avatarConfig}
+                              />
+                              <Text style={styles.childPillText}>
+                                Pour {formatChildName(owner.name)}
+                              </Text>
+                            </View>
+                          ) : null}
+
+                          {previewSteps.length > 0 ? (
+                            <View style={styles.stepsRow}>
+                              {previewSteps.map((step) => (
+                                <View key={step.id} style={styles.stepPill}>
+                                  <OpenMoji emoji={step.icon} size={14} />
+                                  <Text style={styles.stepPillText} numberOfLines={1}>
+                                    {step.title}
+                                  </Text>
+                                </View>
+                              ))}
+                            </View>
+                          ) : null}
                         </View>
                       </View>
 
-                      <View style={styles.routineRowActions}>
-                        <TouchableOpacity
-                          onPress={() => toggleFavorite(routine.id)}
-                          hitSlop={12}
-                        >
-                          <Heart
-                            size={18}
-                            weight={routine.isFavorite ? 'fill' : 'regular'}
-                            color={routine.isFavorite ? COLORS.error : secondaryColor}
-                          />
-                        </TouchableOpacity>
+                      <View style={[styles.routineFooter, isSelected && styles.routineFooterSelected]}>
+                        <Text style={[styles.routineFooterLabel, isSelected && styles.routineFooterLabelSelected]}>
+                          {isSelected ? 'Selectionnee pour ma session' : 'Ajouter a ma session'}
+                        </Text>
                         <View style={[styles.orderBadge, isSelected && styles.orderBadgeActive]}>
                           <Text style={[styles.orderBadgeText, isSelected && styles.orderBadgeTextActive]}>
                             {isSelected ? selectedRoutineIds.indexOf(routine.id) + 1 : '+'}
@@ -680,61 +658,178 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
   },
   routineCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1.5,
-    borderRadius: RADIUS.xl,
-    padding: SPACING.md,
-    gap: SPACING.sm,
+    borderRadius: 30,
+    backgroundColor: '#EFF7FB',
+    padding: SPACING.lg,
+    gap: SPACING.md,
+    borderWidth: 1,
+    borderColor: '#D9E9F0',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#8CB386',
+        shadowOffset: { width: 0, height: 14 },
+        shadowOpacity: 0.14,
+        shadowRadius: 26,
+      },
+      android: {
+        elevation: 8,
+      },
+      web: {
+        boxShadow: '0 18px 34px rgba(140, 179, 134, 0.18)',
+      },
+    }),
   },
   routineCardSelected: {
-    borderColor: COLORS.secondary,
-    backgroundColor: `${COLORS.secondary}22`,
+    backgroundColor: '#DDF4D7',
+    borderColor: '#79C6A6',
+    borderWidth: 2,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#79C6A6',
+        shadowOffset: { width: 0, height: 16 },
+        shadowOpacity: 0.18,
+        shadowRadius: 28,
+      },
+      android: {
+        elevation: 10,
+      },
+      web: {
+        boxShadow: '0 18px 36px rgba(121, 198, 166, 0.2)',
+      },
+    }),
   },
-  routineMain: {
+  routineCardHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.sm,
+    alignItems: 'flex-start',
+    gap: SPACING.md,
     flex: 1,
   },
   routineIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  routineText: {
+  routineCardContent: {
     flex: 1,
-    gap: 2,
+    gap: SPACING.sm,
   },
-  routineName: {
-    fontSize: FONT_SIZE.md,
+  routineCardHeading: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: SPACING.sm,
+  },
+  routineCardInfo: {
+    flex: 1,
+    gap: 6,
+  },
+  routineCardName: {
+    fontSize: 28,
     fontWeight: '800',
+    fontStyle: 'italic',
+    color: '#4F707B',
+    letterSpacing: -0.6,
   },
-  routineMeta: {
-    fontSize: FONT_SIZE.xs,
-    fontWeight: '600',
+  metaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.sm,
   },
-  routineOwner: {
+  metaPill: {
+    borderRadius: RADIUS.full,
+    paddingVertical: 6,
+    paddingHorizontal: SPACING.sm + 2,
+    backgroundColor: '#F3F9F6',
+  },
+  metaPillText: {
     fontSize: FONT_SIZE.xs,
     fontWeight: '700',
+    color: COLORS.textSecondary,
   },
-  routineActions: {
+  favoriteButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: 'rgba(255,255,255,0.94)',
+    borderWidth: 1,
+    borderColor: '#DCEAE3',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  favoriteButtonActive: {
+    backgroundColor: '#FFF1F1',
+    borderColor: '#F7D3D3',
+  },
+  childPill: {
+    alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.sm,
+    borderRadius: RADIUS.full,
+    paddingVertical: 8,
+    paddingHorizontal: SPACING.sm + 4,
+  },
+  childPillText: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  stepsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.sm,
+  },
+  stepPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    maxWidth: '48%',
+    backgroundColor: '#F8FCFA',
+    borderRadius: 18,
+    paddingVertical: 9,
+    paddingHorizontal: SPACING.sm + 2,
+  },
+  stepPillText: {
+    flexShrink: 1,
+    fontSize: FONT_SIZE.sm,
+    color: '#668089',
+    fontWeight: '600',
+  },
+  routineFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: SPACING.md,
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    borderRadius: 22,
+    paddingVertical: SPACING.sm + 2,
+    paddingHorizontal: SPACING.sm + 2,
+    borderWidth: 1,
+    borderColor: 'rgba(220,234,227,0.72)',
+  },
+  routineFooterSelected: {
+    backgroundColor: '#F3FBEF',
+    borderColor: '#A8D8BC',
+  },
+  routineFooterLabel: {
+    flex: 1,
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '700',
+    color: '#68808A',
+  },
+  routineFooterLabelSelected: {
+    color: '#4C7C62',
   },
   orderBadge: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.88)',
-    borderWidth: 1.5,
-    borderColor: COLORS.border,
+    backgroundColor: 'rgba(255,255,255,0.94)',
+    borderWidth: 1,
+    borderColor: '#DCEAE3',
   },
   orderBadgeActive: {
     backgroundColor: COLORS.secondary,
@@ -793,33 +888,9 @@ const styles = StyleSheet.create({
   emptyTitle: { fontSize: FONT_SIZE.xl, fontWeight: '800', color: COLORS.text, textAlign: 'center' },
   emptyText: { fontSize: FONT_SIZE.md, color: COLORS.textSecondary, textAlign: 'center' },
   emptyBackButton: { marginTop: SPACING.xl },
-  // Children chips
-  childrenChipsContainer: {
-    marginVertical: SPACING.xs,
-  },
-  childrenChips: {
-    gap: SPACING.sm,
-    paddingHorizontal: 0,
-  },
-  childChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: 6,
-    paddingHorizontal: SPACING.md,
-    borderRadius: RADIUS.full,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.surface,
-  },
-  childChipText: {
-    fontSize: FONT_SIZE.sm,
-    fontWeight: '700',
-    color: COLORS.textSecondary,
-  },
   // Routines header
   routinesHeader: {
-    marginVertical: SPACING.md,
+    marginTop: SPACING.md,
     marginBottom: SPACING.sm,
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -831,20 +902,22 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   routinesTitle: {
-    fontSize: FONT_SIZE.lg,
+    fontSize: FONT_SIZE.xl,
     fontWeight: '800',
+    color: '#4F707B',
   },
   routinesCount: {
     fontSize: FONT_SIZE.xs,
-    fontWeight: '600',
+    fontWeight: '700',
     marginTop: 4,
+    color: '#7F949C',
   },
   sortButton: {
     minWidth: 180,
-    borderRadius: RADIUS.lg,
-    backgroundColor: COLORS.surface,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.95)',
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: '#DFEAE5',
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
     gap: 3,
@@ -855,10 +928,10 @@ const styles = StyleSheet.create({
   },
   sortButtonLabel: {
     fontSize: 11,
-    fontWeight: '800',
-    color: COLORS.textLight,
+    fontWeight: '900',
+    color: '#A3B4BB',
     textTransform: 'uppercase',
-    letterSpacing: 0.3,
+    letterSpacing: 0.5,
   },
   sortButtonRow: {
     flexDirection: 'row',
@@ -878,27 +951,28 @@ const styles = StyleSheet.create({
   },
   sortDropdownMenu: {
     position: 'absolute',
-    borderRadius: RADIUS.lg,
-    backgroundColor: '#FFFDF9',
+    borderRadius: 22,
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: '#DCEAE3',
     paddingVertical: SPACING.xs,
     ...SHADOWS.md,
+    overflow: 'hidden',
   },
   sortMenuTitle: {
     paddingHorizontal: SPACING.md,
     paddingTop: SPACING.xs,
-    paddingBottom: SPACING.sm,
+    paddingBottom: SPACING.xs,
     fontSize: 11,
-    fontWeight: '800',
-    color: COLORS.textLight,
+    fontWeight: '900',
+    color: '#A3B4BB',
     textTransform: 'uppercase',
-    letterSpacing: 0.3,
+    letterSpacing: 0.5,
   },
   sortOption: {
-    minHeight: 42,
+    minHeight: 44,
     paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
+    paddingVertical: SPACING.xs,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -918,42 +992,6 @@ const styles = StyleSheet.create({
   },
   // Routines table
   routinesTable: {
-    gap: SPACING.sm,
-  },
-  routineTableRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: SPACING.md,
-    borderRadius: RADIUS.lg,
-    borderWidth: 1,
-    minHeight: 80,
-  },
-  routineRowSelected: {
-    borderColor: COLORS.secondary,
-    backgroundColor: `${COLORS.secondary}08`,
-  },
-  routineRowMain: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.md,
-  },
-  routineRowContent: {
-    flex: 1,
-    gap: 2,
-  },
-  routineRowName: {
-    fontSize: FONT_SIZE.md,
-    fontWeight: '800',
-  },
-  routineRowMeta: {
-    fontSize: FONT_SIZE.xs,
-    fontWeight: '600',
-  },
-  routineRowActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
     gap: SPACING.md,
   },
   // Pagination
@@ -968,9 +1006,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
     borderRadius: RADIUS.full,
-    backgroundColor: COLORS.surface,
+    backgroundColor: 'rgba(255,255,255,0.95)',
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: '#DCEAE3',
   },
   paginationButtonDisabled: {
     opacity: 0.5,
@@ -978,5 +1016,6 @@ const styles = StyleSheet.create({
   paginationText: {
     fontSize: FONT_SIZE.sm,
     fontWeight: '700',
+    color: '#7F949C',
   },
 });

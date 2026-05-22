@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   Image,
   useWindowDimensions,
+  Modal,
+  Pressable,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Reanimated, {
@@ -23,16 +25,33 @@ import { useMoodStore } from '../../src/stores/moodStore';
 import { useChildrenStore } from '../../src/stores/childrenStore';
 import { MOOD_CONFIG, isNegativeMood } from '../../src/constants/moods';
 import { ProgressBar } from '../../src/components/ui/ProgressBar';
-import { X, ArrowRight, CheckCircle } from 'phosphor-react-native';
+import { X, ArrowRight, CheckCircle, Pause, Play, ShieldCheck, SkipForward } from 'phosphor-react-native';
 import { CircularTimer } from '../../src/components/ui/CircularTimer';
 import { AnimatedPressable } from '../../src/components/ui/AnimatedPressable';
-import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS, TOUCH } from '../../src/constants/theme';
+import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../../src/constants/theme';
 import { useTimer } from '../../src/hooks/useTimer';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
 import { Avatar } from '../../src/components/ui/Avatar';
 import { Child } from '../../src/types';
 import * as Haptics from 'expo-haptics';
 import { formatChildName } from '../../src/utils/children';
+
+const STEP_START_LOCK_MS = 650;
+const PARENT_HOLD_MS = 3000;
+
+const DEFAULT_ENCOURAGEMENTS = [
+  "C'est parti !",
+  'Tu geres !',
+  'Encore un effort !',
+  'Super travail !',
+  'Continue !',
+];
+
+function formatTime(seconds: number) {
+  const minutes = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${minutes}:${secs.toString().padStart(2, '0')}`;
+}
 
 function ParticipantValidationButton({
   child,
@@ -99,6 +118,94 @@ function ParticipantValidationButton({
   );
 }
 
+function ParentModeButton({
+  holdProgress,
+  onPressIn,
+  onPressOut,
+}: {
+  holdProgress: number;
+  onPressIn: () => void;
+  onPressOut: () => void;
+}) {
+  return (
+    <TouchableOpacity
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
+      onPress={() => {}}
+      activeOpacity={0.9}
+      style={styles.parentModeButton}
+    >
+      <View
+        style={[
+          styles.parentModeFill,
+          { width: `${holdProgress * 100}%` },
+        ]}
+      />
+      <ShieldCheck size={18} weight="bold" color={COLORS.secondaryDark} />
+      <Text style={styles.parentModeText} selectable={false}>Parent</Text>
+    </TouchableOpacity>
+  );
+}
+
+function ParentActionsModal({
+  visible,
+  isPaused,
+  pauseDisabled,
+  onClose,
+  onTogglePause,
+  onSkipStep,
+}: {
+  visible: boolean;
+  isPaused: boolean;
+  pauseDisabled: boolean;
+  onClose: () => void;
+  onTogglePause: () => void;
+  onSkipStep: () => void;
+}) {
+  return (
+    <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
+      <Pressable style={styles.parentModalBackdrop} onPress={onClose}>
+        <Pressable style={styles.parentActionCard} onPress={(event) => event.stopPropagation()}>
+          <View style={styles.parentActionHeader}>
+            <ShieldCheck size={20} weight="fill" color={COLORS.secondaryDark} />
+            <Text style={styles.parentActionTitle} selectable={false}>Mode parent</Text>
+          </View>
+
+          <TouchableOpacity
+            onPress={onTogglePause}
+            activeOpacity={0.86}
+            disabled={pauseDisabled}
+            style={[
+              styles.parentActionButton,
+              pauseDisabled && styles.parentActionButtonDisabled,
+            ]}
+          >
+            {isPaused ? (
+              <Play size={18} weight="bold" color={COLORS.text} />
+            ) : (
+              <Pause size={18} weight="bold" color={COLORS.text} />
+            )}
+            <Text style={styles.parentActionButtonText} selectable={false}>
+              {isPaused ? 'Reprendre' : 'Mettre en pause'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={onSkipStep}
+            activeOpacity={0.86}
+            style={styles.parentActionButton}
+          >
+            <SkipForward size={18} weight="bold" color={COLORS.text} />
+            <Text style={styles.parentActionButtonText} selectable={false}>
+              Passer l'etape
+            </Text>
+          </TouchableOpacity>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
+
 export default function RunRoutineScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
@@ -121,9 +228,10 @@ export default function RunRoutineScreen() {
   const completingStepIdRef = useRef<string | null>(null);
   const [confirmedChildIds, setConfirmedChildIds] = useState<string[]>([]);
   const [stepConfirmationEnabled, setStepConfirmationEnabled] = useState(false);
-  const [pauseHoldProgress, setPauseHoldProgress] = useState(0);
-  const pauseHoldIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const pauseHoldTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [parentHoldProgress, setParentHoldProgress] = useState(0);
+  const [parentMenuVisible, setParentMenuVisible] = useState(false);
+  const parentHoldIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const parentHoldTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const currentMood =
     activeChildId && isMoodFresh(activeChildId) ? getMood(activeChildId)?.mood : undefined;
@@ -131,7 +239,7 @@ export default function RunRoutineScreen() {
 
   const routine = currentExecution ? getRoutine(currentExecution.routineId) : undefined;
 
-  const activeSteps = React.useMemo(() => {
+  const activeSteps = useMemo(() => {
     if (!routine) return [];
     const baseSteps =
       currentExecution?.customStepOrder?.length ? currentExecution.customStepOrder : routine.steps;
@@ -182,8 +290,6 @@ export default function RunRoutineScreen() {
   const currentStep = activeSteps[currentStepIndex];
   const progress = totalSteps > 0 ? completedCount / totalSteps : 0;
 
-  const STEP_START_LOCK_MS = 650;
-
   const minimumStepSeconds = currentStep ? (currentStep.minimumDurationMinutes ?? 0) * 60 : 0;
   const timerDuration = currentStep
     ? Math.max(currentStep.durationMinutes, currentStep.minimumDurationMinutes ?? 0) * 60
@@ -193,7 +299,7 @@ export default function RunRoutineScreen() {
   const minimumTimeRemaining = Math.max(0, minimumStepSeconds - elapsedStepSeconds);
   const isMinimumTimeReached = minimumStepSeconds === 0 || elapsedStepSeconds >= minimumStepSeconds;
   const canConfirmStep = stepConfirmationEnabled && isMinimumTimeReached;
-  const HOLD_TO_PAUSE_MS = 4000;
+  const parentPauseDisabled = timerDuration <= 0 || timer.isFinished;
 
   useEffect(() => {
     if (currentStep && timerDuration > 0) {
@@ -204,11 +310,11 @@ export default function RunRoutineScreen() {
 
   useEffect(() => {
     return () => {
-      if (pauseHoldIntervalRef.current) {
-        clearInterval(pauseHoldIntervalRef.current);
+      if (parentHoldIntervalRef.current) {
+        clearInterval(parentHoldIntervalRef.current);
       }
-      if (pauseHoldTimeoutRef.current) {
-        clearTimeout(pauseHoldTimeoutRef.current);
+      if (parentHoldTimeoutRef.current) {
+        clearTimeout(parentHoldTimeoutRef.current);
       }
     };
   }, []);
@@ -236,19 +342,13 @@ export default function RunRoutineScreen() {
     return () => clearTimeout(unlockTimer);
   }, [currentExecution?.id, currentStep?.id]);
 
-  const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${minutes}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const handleComplete = useCallback(async () => {
+  const handleComplete = useCallback(async (ignoreMinimumTime = false) => {
     if (!currentStep || !routine) {
       isAdvancingStepRef.current = false;
       completingStepIdRef.current = null;
       return;
     }
-    if (minimumStepSeconds > 0 && !isMinimumTimeReached) {
+    if (!ignoreMinimumTime && minimumStepSeconds > 0 && !isMinimumTimeReached) {
       isAdvancingStepRef.current = false;
       completingStepIdRef.current = null;
       return;
@@ -272,7 +372,7 @@ export default function RunRoutineScreen() {
           const nextExecution = nextInChain();
           if (nextExecution) {
             isLeavingFlowRef.current = true;
-            router.replace('/child/pause');
+            router.replace('/child/run');
             return;
           }
         }
@@ -353,19 +453,21 @@ export default function RunRoutineScreen() {
     router.replace('/child');
   };
 
-  const clearPauseHold = useCallback(() => {
-    if (pauseHoldIntervalRef.current) {
-      clearInterval(pauseHoldIntervalRef.current);
-      pauseHoldIntervalRef.current = null;
+  const clearParentHold = useCallback(() => {
+    if (parentHoldIntervalRef.current) {
+      clearInterval(parentHoldIntervalRef.current);
+      parentHoldIntervalRef.current = null;
     }
-    if (pauseHoldTimeoutRef.current) {
-      clearTimeout(pauseHoldTimeoutRef.current);
-      pauseHoldTimeoutRef.current = null;
+    if (parentHoldTimeoutRef.current) {
+      clearTimeout(parentHoldTimeoutRef.current);
+      parentHoldTimeoutRef.current = null;
     }
-    setPauseHoldProgress(0);
+    setParentHoldProgress(0);
   }, []);
 
   const handlePauseToggle = useCallback(async () => {
+    if (timerDuration <= 0 || timer.isFinished) return;
+
     if (timer.isPaused) {
       timer.resume();
     } else {
@@ -375,39 +477,43 @@ export default function RunRoutineScreen() {
     try {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     } catch {}
-  }, [timer]);
+  }, [timer, timerDuration]);
 
-  const handlePausePressIn = useCallback(() => {
-    if (timerDuration <= 0 || timer.isFinished) return;
-
-    clearPauseHold();
+  const handleParentPressIn = useCallback(() => {
+    clearParentHold();
     const startedAt = Date.now();
 
-    setPauseHoldProgress(0.02);
-    pauseHoldIntervalRef.current = setInterval(() => {
+    setParentHoldProgress(0.02);
+    parentHoldIntervalRef.current = setInterval(() => {
       const elapsed = Date.now() - startedAt;
-      setPauseHoldProgress(Math.min(1, elapsed / HOLD_TO_PAUSE_MS));
+      setParentHoldProgress(Math.min(1, elapsed / PARENT_HOLD_MS));
     }, 50);
 
-    pauseHoldTimeoutRef.current = setTimeout(() => {
-      clearPauseHold();
-      void handlePauseToggle();
-    }, HOLD_TO_PAUSE_MS);
-  }, [clearPauseHold, handlePauseToggle, timer.isFinished, timerDuration]);
+    parentHoldTimeoutRef.current = setTimeout(async () => {
+      clearParentHold();
+      setParentMenuVisible(true);
+      try {
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      } catch {}
+    }, PARENT_HOLD_MS);
+  }, [clearParentHold]);
 
-  const handlePausePressOut = useCallback(() => {
-    clearPauseHold();
-  }, [clearPauseHold]);
+  const handleParentPressOut = useCallback(() => {
+    clearParentHold();
+  }, [clearParentHold]);
 
-  const defaultEncouragements = [
-    "C'est parti !",
-    'Tu geres !',
-    'Encore un effort !',
-    'Super travail !',
-    'Continue !',
-  ];
+  const handleParentPause = useCallback(() => {
+    setParentMenuVisible(false);
+    void handlePauseToggle();
+  }, [handlePauseToggle]);
 
-  const encouragements = moodConfig?.encouragements ?? defaultEncouragements;
+  const handleParentSkipStep = useCallback(() => {
+    setParentMenuVisible(false);
+    isAdvancingStepRef.current = true;
+    void handleComplete(true);
+  }, [handleComplete]);
+
+  const encouragements = moodConfig?.encouragements ?? DEFAULT_ENCOURAGEMENTS;
   const gradientColors = moodConfig?.gradientColors ?? ['#FFF8F0', '#FFE8D6'];
   const animSpeed =
     moodConfig?.animationIntensity === 'calm'
@@ -440,9 +546,16 @@ export default function RunRoutineScreen() {
             entering={FadeIn.duration(300)}
             style={[styles.topBar, isMobile && styles.topBarMobile]}
           >
-            <TouchableOpacity onPress={handleQuit} style={styles.quitBtn}>
-              <X size={22} weight="bold" color={COLORS.textLight} />
-            </TouchableOpacity>
+            <View style={styles.topLeftActions}>
+              <TouchableOpacity onPress={handleQuit} style={styles.quitBtn}>
+                <X size={22} weight="bold" color={COLORS.textLight} />
+              </TouchableOpacity>
+              <ParentModeButton
+                holdProgress={parentHoldProgress}
+                onPressIn={handleParentPressIn}
+                onPressOut={handleParentPressOut}
+              />
+            </View>
             <View style={[styles.topBarBadges, isMobile && styles.topBarBadgesMobile]}>
               {chainQueue.length > 0 ? (
                 <View style={styles.chainIndicator}>
@@ -556,39 +669,6 @@ export default function RunRoutineScreen() {
                   {timer.isFinished ? (
                     <Text style={styles.timerFinishedLabel} selectable={false}>Temps ecoule !</Text>
                   ) : null}
-
-                  <TouchableOpacity
-                    onPressIn={handlePausePressIn}
-                    onPressOut={handlePausePressOut}
-                    onPress={() => {}}
-                    activeOpacity={0.92}
-                    disabled={timer.isFinished}
-                    style={[
-                      styles.pauseHoldButton,
-                      isMobile && styles.pauseHoldButtonMobile,
-                      timer.isPaused && styles.pauseHoldButtonPaused,
-                    ]}
-                  >
-                    <View
-                      style={[
-                        styles.pauseHoldFill,
-                        {
-                          width: `${pauseHoldProgress * 100}%`,
-                        },
-                        timer.isPaused && styles.pauseHoldFillPaused,
-                      ]}
-                    />
-                    <View style={styles.pauseHoldContent}>
-                      <Text style={styles.pauseHoldTitle} selectable={false}>
-                        {timer.isPaused ? 'Maintenir 4 s pour reprendre' : 'Maintenir 4 s pour pause'}
-                      </Text>
-                      <Text style={styles.pauseHoldText} selectable={false}>
-                        {timer.isPaused
-                          ? 'Reserve a un adulte'
-                          : 'Securite adulte avant arret du timer'}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
                 </View>
               ) : null}
               {!currentStep.isRequired ? (
@@ -620,7 +700,7 @@ export default function RunRoutineScreen() {
 
           {!currentStep.isRequired ? (
             <TouchableOpacity
-              onPress={handleComplete}
+              onPress={() => void handleComplete()}
               style={[styles.skipBtn, !canConfirmStep && styles.skipBtnDisabled]}
               disabled={!canConfirmStep}
             >
@@ -639,6 +719,15 @@ export default function RunRoutineScreen() {
               </View>
             </TouchableOpacity>
           ) : null}
+
+          <ParentActionsModal
+            visible={parentMenuVisible}
+            isPaused={timer.isPaused}
+            pauseDisabled={parentPauseDisabled}
+            onClose={() => setParentMenuVisible(false)}
+            onTogglePause={handleParentPause}
+            onSkipStep={handleParentSkipStep}
+          />
         </View>
       </SafeAreaView>
     </LinearGradient>
@@ -672,6 +761,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-start',
   },
+  topLeftActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+  },
   quitBtn: {
     width: 48,
     height: 48,
@@ -682,6 +776,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     ...SHADOWS.sm,
+  },
+  parentModeButton: {
+    position: 'relative',
+    overflow: 'hidden',
+    minHeight: 42,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    paddingHorizontal: SPACING.sm + 2,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    ...SHADOWS.sm,
+  },
+  parentModeFill: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: `${COLORS.secondaryDark}66`,
+  },
+  parentModeText: {
+    fontSize: FONT_SIZE.xs,
+    fontWeight: '900',
+    color: COLORS.secondaryDark,
   },
   counterBadge: {
     backgroundColor: COLORS.surface,
@@ -873,54 +994,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: SPACING.xs,
   },
-  pauseHoldButton: {
-    position: 'relative',
-    overflow: 'hidden',
-    minWidth: 200,
-    maxWidth: 240,
-    borderRadius: RADIUS.xl,
-    backgroundColor: COLORS.surface,
-    borderWidth: 1.5,
-    borderColor: COLORS.border,
-  },
-  pauseHoldButtonMobile: {
-    minWidth: 0,
-    width: '100%',
-    maxWidth: 320,
-  },
-  pauseHoldButtonPaused: {
-    borderColor: COLORS.warning,
-    backgroundColor: `${COLORS.warning}18`,
-  },
-  pauseHoldFill: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    backgroundColor: `${COLORS.error}22`,
-  },
-  pauseHoldFillPaused: {
-    backgroundColor: `${COLORS.success}22`,
-  },
-  pauseHoldContent: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.md,
-    gap: 2,
-  },
-  pauseHoldTitle: {
-    fontSize: FONT_SIZE.sm,
-    fontWeight: '800',
-    color: COLORS.text,
-    textAlign: 'center',
-  },
-  pauseHoldText: {
-    fontSize: FONT_SIZE.xs,
-    fontWeight: '700',
-    color: COLORS.textSecondary,
-    textAlign: 'center',
-  },
   timerFinishedLabel: {
     fontSize: FONT_SIZE.md,
     fontWeight: '700',
@@ -976,5 +1049,55 @@ const styles = StyleSheet.create({
   },
   skipTextDisabled: {
     color: COLORS.textLight,
+  },
+  parentModalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(45, 58, 64, 0.28)',
+    alignItems: 'flex-start',
+    justifyContent: 'flex-start',
+    paddingTop: 78,
+    paddingHorizontal: SPACING.lg,
+  },
+  parentActionCard: {
+    width: 260,
+    maxWidth: '100%',
+    borderRadius: RADIUS.xl,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    padding: SPACING.md,
+    gap: SPACING.sm,
+    ...SHADOWS.md,
+  },
+  parentActionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+    paddingBottom: SPACING.xs,
+  },
+  parentActionTitle: {
+    fontSize: FONT_SIZE.md,
+    fontWeight: '900',
+    color: COLORS.text,
+  },
+  parentActionButton: {
+    minHeight: 48,
+    borderRadius: RADIUS.lg,
+    backgroundColor: `${COLORS.secondary}18`,
+    borderWidth: 1,
+    borderColor: `${COLORS.secondary}40`,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+  },
+  parentActionButtonDisabled: {
+    opacity: 0.45,
+  },
+  parentActionButtonText: {
+    flex: 1,
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '800',
+    color: COLORS.text,
   },
 });

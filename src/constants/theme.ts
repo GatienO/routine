@@ -1,53 +1,52 @@
-import { Platform, Dimensions } from 'react-native';
+import { Platform } from 'react-native';
 
 export const COLORS = {
-  primary: '#FF6B6B',
-  primaryLight: '#FF8E8E',
-  primaryDark: '#E85555',
-  secondary: '#4ECDC4',
-  secondaryLight: '#6ED9D2',
-  secondaryDark: '#3BB8B0',
-  accent: '#FFE66D',
-  accentDark: '#FFD93D',
-  background: '#FFF8F0',
+  primary: '#D96B6B',
+  primaryLight: '#E79595',
+  primaryDark: '#C85C5C',
+  secondary: '#86C8B1',
+  secondaryLight: '#B7E3D3',
+  secondaryDark: '#5F9F8A',
+  accent: '#F2D7A6',
+  accentDark: '#DEBE83',
+  background: '#F4F8F5',
   surface: '#FFFFFF',
-  surfaceSecondary: '#F5F0EB',
-  text: '#2D3436',
-  textSecondary: '#636E72',
-  textLight: '#B2BEC3',
-  success: '#00B894',
-  successLight: '#55EFC4',
-  warning: '#FDCB6E',
-  error: '#FF7675',
-  star: '#FDCB6E',
-  shadow: '#00000015',
-  // Extended palette for richer UI
-  primarySoft: '#FFE0E0',
-  secondarySoft: '#D4F5F2',
-  accentSoft: '#FFF5D0',
-  successSoft: '#D0F5EB',
-  warningSoft: '#FFF3D0',
-  errorSoft: '#FFE0E0',
-  border: '#EDE8E3',
-  divider: '#F0EBE6',
-  overlay: 'rgba(33, 39, 48, 0.4)',
-  cardHighlight: '#FFFDFB',
+  surfaceSecondary: '#EDF5F1',
+  text: '#55727E',
+  textSecondary: '#6C8791',
+  textLight: '#A6B8BE',
+  success: '#53B78B',
+  successLight: '#98DEC0',
+  warning: '#E0B874',
+  error: '#E28383',
+  star: '#E6C26C',
+  shadow: '#86A89A22',
+  primarySoft: '#F7E0E0',
+  secondarySoft: '#E2F3EC',
+  accentSoft: '#F8F0DE',
+  successSoft: '#E2F5EA',
+  warningSoft: '#F9F0DB',
+  errorSoft: '#F8E1E1',
+  border: '#DCEAE3',
+  divider: '#E6F0EB',
+  overlay: 'rgba(95, 123, 134, 0.28)',
+  cardHighlight: '#F9FCFA',
 } as const;
 
 export const CHILD_COLORS = [
-  '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4',
-  '#FFEAA7', '#DDA0DD', '#FF8C69', '#87CEEB',
-  '#98D8C8', '#F7DC6F', '#BB8FCE', '#82E0AA',
+  '#D96B6B', '#86C8B1', '#7CB8C7', '#A8D5BF',
+  '#F1D79E', '#E8B89C', '#F0A78F', '#9DC9D7',
+  '#B1DDD1', '#E6C26C', '#C5D8A8', '#8BC9A5',
 ] as const;
 
 export const CATEGORY_CONFIG: Record<string, { label: string; icon: string; color: string }> = {
-  morning: { label: 'Matin', icon: '🌅', color: '#FFE66D' },
-  evening: { label: 'Soir', icon: '🌙', color: '#A29BFE' },
-  school: { label: 'École', icon: '🎒', color: '#74B9FF' },
-  home: { label: 'Maison', icon: '🏠', color: '#55EFC4' },
-  weekend: { label: 'Week-end', icon: '🎉', color: '#FD79A8' },
-  emotion: { label: 'Émotions', icon: '❤️', color: '#FB7185' },
-  custom: { label: 'Personnalisé', icon: '✨', color: '#FDCB6E' },
+  morning: { label: 'Matin', icon: '🌤️', color: '#F2D7A6' },
+  evening: { label: 'Soir', icon: '🌙', color: '#9EC6D5' },
+  school: { label: 'Ecole', icon: '🎒', color: '#88BDD4' },
+  home: { label: 'Maison', icon: '🏠', color: '#9FD6B9' },
+  weekend: { label: 'Week-end', icon: '🎉', color: '#E8B89C' },
+  emotion: { label: 'Emotions', icon: '❤️', color: '#E59A9A' },
+  custom: { label: 'Personnalise', icon: '✨', color: '#D7C48E' },
 };
 
 export const SPACING = {
@@ -110,63 +109,59 @@ function createShadow({
 
 export const SHADOWS = {
   sm: createShadow({
-    boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.1)',
+    boxShadow: '0px 8px 18px rgba(134, 168, 154, 0.12)',
     elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-  }),
-  md: createShadow({
-    boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.12)',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowColor: '#86A89A',
+    shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.12,
-    shadowRadius: 6,
-  }),
-  lg: createShadow({
-    boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.15)',
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
     shadowRadius: 12,
   }),
+  md: createShadow({
+    boxShadow: '0px 12px 24px rgba(134, 168, 154, 0.16)',
+    elevation: 4,
+    shadowColor: '#86A89A',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.16,
+    shadowRadius: 18,
+  }),
+  lg: createShadow({
+    boxShadow: '0px 18px 34px rgba(134, 168, 154, 0.18)',
+    elevation: 8,
+    shadowColor: '#86A89A',
+    shadowOffset: { width: 0, height: 14 },
+    shadowOpacity: 0.18,
+    shadowRadius: 24,
+  }),
   glow: (color: string) => createShadow({
-    boxShadow: `0px 4px 16px ${color}40`,
+    boxShadow: `0px 8px 22px ${color}40`,
     elevation: 6,
     shadowColor: color,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.22,
+    shadowRadius: 18,
   }),
 } as const;
 
-// Child-friendly touch target sizes
 export const TOUCH = {
   minHeight: 48,
   childMinHeight: 56,
   childMinWidth: 56,
 } as const;
 
-// Shared gradient presets
 export const GRADIENTS = {
-  warmBackground: ['#FFF8F0', '#FFE8D6', '#FFDCC8'] as const,
-  coolBackground: ['#F0F8FF', '#E8F0FE', '#D6E8FF'] as const,
-  childHeader: ['#FFF8F0', '#FFE8D6'] as const,
-  celebration: ['#FFF8F0', '#FFE8D6', '#FFDCC8'] as const,
-  wellness: ['#E8E0F0', '#D0C4E8', '#B8A9D9'] as const,
+  warmBackground: ['#A9CDD6', '#C6E9C2', '#F6ECE2'] as const,
+  coolBackground: ['#D8EEF0', '#E5F6ED', '#F4EFE7'] as const,
+  childHeader: ['#B8DADF', '#D3EFCB'] as const,
+  celebration: ['#B8DADF', '#D4EDC6', '#F4E8DE'] as const,
+  wellness: ['#D6ECE8', '#E4F4EB', '#F2ECE5'] as const,
 } as const;
 
-// Section divider style helper
 export const SECTION_DIVIDER = {
   height: 1,
   backgroundColor: COLORS.divider,
   marginVertical: SPACING.lg,
 } as const;
 
-// Consistent content container widths
 export const CONTENT_MAX_WIDTH = {
   sm: 480,
   md: 720,

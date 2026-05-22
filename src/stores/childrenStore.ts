@@ -6,16 +6,19 @@ import { generateId } from '../utils/id';
 
 interface ChildrenState {
   children: Child[];
+  hasHydrated: boolean;
   addChild: (child: Omit<Child, 'id' | 'createdAt'>) => Child;
   updateChild: (id: string, updates: Partial<Omit<Child, 'id' | 'createdAt'>>) => void;
   removeChild: (id: string) => void;
   getChild: (id: string) => Child | undefined;
+  setHasHydrated: (hydrated: boolean) => void;
 }
 
 export const useChildrenStore = create<ChildrenState>()(
   persist(
     (set, get) => ({
       children: [],
+      hasHydrated: false,
       addChild: (data) => {
         const child: Child = {
           ...data,
@@ -36,10 +39,17 @@ export const useChildrenStore = create<ChildrenState>()(
           children: state.children.filter((c) => c.id !== id),
         })),
       getChild: (id) => get().children.find((c) => c.id === id),
+      setHasHydrated: (hydrated) => set({ hasHydrated: hydrated }),
     }),
     {
       name: 'children-store',
       storage: createJSONStorage(() => AsyncStorage),
+      partialize: (state) => ({
+        children: state.children,
+      }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     }
   )
 );

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-na
 import { useRouter } from 'expo-router';
 import { useAppStore } from '../src/stores/appStore';
 import { AppPageHeader } from '../src/components/ui/AppPageHeader';
-import { COLORS, SPACING, FONT_SIZE } from '../src/constants/theme';
+import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../src/constants/theme';
 import { backOrReplace } from '../src/utils/navigation';
 
 const DIGITS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'];
@@ -142,6 +142,7 @@ const styles = StyleSheet.create({
     marginTop: SPACING.xs,
     marginBottom: SPACING.xl,
     textAlign: 'center',
+    lineHeight: 24,
   },
   dots: {
     flexDirection: 'row',
@@ -182,16 +183,22 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: COLORS.surface,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderWidth: 1,
+    borderColor: COLORS.border,
     alignItems: 'center',
     justifyContent: 'center',
+    ...SHADOWS.sm,
   },
   keyEmpty: {
     backgroundColor: 'transparent',
+    borderWidth: 0,
+    elevation: 0,
+    shadowOpacity: 0,
   },
   keyText: {
     fontSize: FONT_SIZE.xl,
-    fontWeight: '700',
-    color: COLORS.text,
+    fontWeight: '800',
+    color: COLORS.primary,
   },
 });

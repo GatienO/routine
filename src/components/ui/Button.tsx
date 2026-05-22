@@ -41,16 +41,16 @@ export function Button({
     sizes[size],
     variant === 'primary' && { backgroundColor: bgColor, ...SHADOWS.md },
     variant === 'secondary' && {
-      backgroundColor: `${COLORS.textLight}10`,
+      backgroundColor: COLORS.surfaceSecondary,
       borderWidth: 1,
       borderColor: COLORS.border,
     },
     variant === 'outline' && {
-      borderWidth: 2,
+      borderWidth: 1,
       borderColor: bgColor,
       backgroundColor: `${bgColor}08`,
     },
-    variant === 'ghost' && { backgroundColor: 'transparent' },
+    variant === 'ghost' && { backgroundColor: COLORS.surfaceSecondary },
     disabled && styles.disabled,
     fullWidth && { width: '100%', alignSelf: 'stretch' } as ViewStyle,
     style as ViewStyle,
@@ -110,7 +110,7 @@ const textSizes: Record<string, TextStyle> = {
 
 const styles = StyleSheet.create({
   base: {
-    borderRadius: RADIUS.xl,
+    borderRadius: RADIUS.xl + 4,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

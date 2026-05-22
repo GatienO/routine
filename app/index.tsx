@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FONT_SIZE.hero + 8,
     fontWeight: '900',
-    color: COLORS.text,
+    color: COLORS.primary,
     letterSpacing: -1,
   },
   subtitle: {
@@ -276,13 +276,13 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
   },
   childButton: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.secondary,
     ...SHADOWS.md,
     minHeight: 72,
   },
   parentButton: {
-    backgroundColor: COLORS.surface,
-    borderWidth: 2,
+    backgroundColor: 'rgba(255,255,255,0.94)',
+    borderWidth: 1,
     borderColor: COLORS.border,
     ...SHADOWS.sm,
     minHeight: 64,
@@ -298,8 +298,8 @@ const styles = StyleSheet.create({
   },
   parentButtonText: {
     fontSize: FONT_SIZE.md,
-    fontWeight: '700',
-    color: COLORS.textSecondary,
+    fontWeight: '800',
+    color: COLORS.primary,
   },
   modalBackdrop: {
     flex: 1,
@@ -432,7 +432,7 @@ const styles = StyleSheet.create({
     minHeight: 44,
     paddingHorizontal: SPACING.md,
     borderRadius: RADIUS.full,
-    backgroundColor: `${COLORS.textLight}14`,
+    backgroundColor: COLORS.surfaceSecondary,
     alignItems: 'center',
     justifyContent: 'center',
   },

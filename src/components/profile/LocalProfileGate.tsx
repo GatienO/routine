@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 248, 240, 0.96)',
+    backgroundColor: 'rgba(244, 248, 245, 0.96)',
     padding: SPACING.lg,
     zIndex: 200,
   },

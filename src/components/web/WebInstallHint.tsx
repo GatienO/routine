@@ -4,12 +4,12 @@ import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 const DISMISS_KEY = 'routine-install-hint-dismissed';
 const CARD_SHADOW =
   Platform.OS === 'web'
-    ? { boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.12)', elevation: 8 }
+    ? { boxShadow: '0px 14px 28px rgba(134, 168, 154, 0.18)', elevation: 8 }
     : {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.12,
-        shadowRadius: 16,
+        shadowColor: '#86A89A',
+        shadowOffset: { width: 0, height: 12 },
+        shadowOpacity: 0.18,
+        shadowRadius: 20,
         elevation: 8,
       };
 
@@ -118,10 +118,10 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 560,
-    backgroundColor: 'rgba(255, 248, 240, 0.98)',
-    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.97)',
+    borderRadius: 24,
     borderWidth: 1,
-    borderColor: '#E6D9C8',
+    borderColor: '#DCEAE3',
     padding: 16,
     gap: 10,
     ...CARD_SHADOW,
@@ -129,17 +129,17 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#443126',
+    color: '#D96B6B',
   },
   body: {
     fontSize: 14,
     lineHeight: 20,
-    color: '#6A5446',
+    color: '#6C8791',
   },
   button: {
     alignSelf: 'flex-start',
     borderRadius: 999,
-    backgroundColor: '#5CC8A1',
+    backgroundColor: '#86C8B1',
     paddingHorizontal: 14,
     paddingVertical: 10,
   },

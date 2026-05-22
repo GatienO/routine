@@ -40,7 +40,7 @@ function FallingParticle({ index }: { index: number }) {
   const translateX = useSharedValue(0);
   const opacity = useSharedValue(0);
   const startX = (index / 8) * SCREEN_WIDTH - SCREEN_WIDTH * 0.1;
-  const colors = ['#FF6B6B', '#4ECDC4', '#FFE66D', '#A29BFE', '#FD79A8', '#00B894'];
+  const colors = ['#D96B6B', '#86C8B1', '#F2D7A6', '#9EC6D5', '#E8B89C', '#53B78B'];
   const color = colors[index % colors.length];
 
   useEffect(() => {

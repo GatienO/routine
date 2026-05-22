@@ -12,7 +12,7 @@ export interface WeatherTheme {
 
 const DAY_THEMES: Record<WeatherCondition, WeatherTheme> = {
   clear: {
-    gradient: ['#FFF8F0', '#FFE8D6'],
+    gradient: ['#B8DADF', '#E5F4E4'],
     emoji: '☀️',
     label: 'Ensoleillé',
     particles: ['☀️', '🌻', '🦋'],
@@ -21,7 +21,7 @@ const DAY_THEMES: Record<WeatherCondition, WeatherTheme> = {
     tip: 'Pense à mettre de la crème solaire ☀️',
   },
   partly_cloudy: {
-    gradient: ['#F0F4FF', '#E8EDF5'],
+    gradient: ['#DCEEF1', '#EEF6EC'],
     emoji: '⛅',
     label: 'Nuageux',
     particles: ['⛅', '☁️', '🌤️'],
@@ -30,7 +30,7 @@ const DAY_THEMES: Record<WeatherCondition, WeatherTheme> = {
     tip: 'Prends une petite veste au cas où 🧥',
   },
   cloudy: {
-    gradient: ['#E8ECF0', '#D5DAE0'],
+    gradient: ['#DCE7EA', '#EAEFE9'],
     emoji: '☁️',
     label: 'Couvert',
     particles: ['☁️', '🌥️'],
@@ -39,7 +39,7 @@ const DAY_THEMES: Record<WeatherCondition, WeatherTheme> = {
     tip: 'Une veste, c\'est plus prudent 🧥',
   },
   fog: {
-    gradient: ['#EAECEE', '#D5D8DC'],
+    gradient: ['#E2EBEC', '#EDEFEA'],
     emoji: '🌫️',
     label: 'Brouillard',
     particles: ['🌫️', '💨'],
@@ -48,7 +48,7 @@ const DAY_THEMES: Record<WeatherCondition, WeatherTheme> = {
     tip: 'Fais attention en marchant dehors 👀',
   },
   rain: {
-    gradient: ['#D6E4F0', '#B8CDE0'],
+    gradient: ['#CFE3EA', '#DCEBE5'],
     emoji: '🌧️',
     label: 'Pluie',
     particles: ['💧', '🌧️', '☔'],
@@ -57,7 +57,7 @@ const DAY_THEMES: Record<WeatherCondition, WeatherTheme> = {
     tip: 'N\'oublie pas ton parapluie et tes bottes ☔',
   },
   snow: {
-    gradient: ['#F0F5FF', '#E0E8F5'],
+    gradient: ['#EEF5F4', '#E5EFEB'],
     emoji: '❄️',
     label: 'Neige',
     particles: ['❄️', '⛄', '🌨️'],
@@ -66,7 +66,7 @@ const DAY_THEMES: Record<WeatherCondition, WeatherTheme> = {
     tip: 'Habille-toi bien chaud : bonnet et gants ! 🧤',
   },
   thunderstorm: {
-    gradient: ['#C8D0DC', '#A0AAB8'],
+    gradient: ['#D7E3E4', '#D9E6DD'],
     emoji: '⛈️',
     label: 'Orage',
     particles: ['⚡', '🌩️', '💨'],
@@ -78,7 +78,7 @@ const DAY_THEMES: Record<WeatherCondition, WeatherTheme> = {
 
 const NIGHT_THEMES: Record<WeatherCondition, WeatherTheme> = {
   clear: {
-    gradient: ['#1A1A2E', '#16213E'],
+    gradient: ['#5F7E89', '#7A9C96'],
     emoji: '🌙',
     label: 'Nuit claire',
     particles: ['🌙', '⭐', '✨'],
@@ -87,7 +87,7 @@ const NIGHT_THEMES: Record<WeatherCondition, WeatherTheme> = {
     tip: 'C\'est l\'heure de se préparer pour le dodo 🛏️',
   },
   partly_cloudy: {
-    gradient: ['#1E2030', '#252840'],
+    gradient: ['#627D87', '#87A497'],
     emoji: '🌙',
     label: 'Nuit nuageuse',
     particles: ['🌙', '☁️', '✨'],
@@ -96,7 +96,7 @@ const NIGHT_THEMES: Record<WeatherCondition, WeatherTheme> = {
     tip: 'Bientôt au lit, demain sera super 🌟',
   },
   cloudy: {
-    gradient: ['#1C1C2E', '#2A2A3E'],
+    gradient: ['#68818B', '#8CA59A'],
     emoji: '☁️',
     label: 'Nuit couverte',
     particles: ['☁️', '🌙'],
@@ -105,7 +105,7 @@ const NIGHT_THEMES: Record<WeatherCondition, WeatherTheme> = {
     tip: 'Bien au chaud sous ta couette 🛌',
   },
   fog: {
-    gradient: ['#1E1E30', '#2C2C40'],
+    gradient: ['#6A828A', '#92A89D'],
     emoji: '🌫️',
     label: 'Nuit brumeuse',
     particles: ['🌫️', '🌙'],
@@ -114,7 +114,7 @@ const NIGHT_THEMES: Record<WeatherCondition, WeatherTheme> = {
     tip: 'Reste au chaud ce soir 🏡',
   },
   rain: {
-    gradient: ['#1A1A30', '#252540'],
+    gradient: ['#617884', '#809A93'],
     emoji: '🌧️',
     label: 'Pluie nocturne',
     particles: ['💧', '🌧️', '🌙'],
@@ -123,7 +123,7 @@ const NIGHT_THEMES: Record<WeatherCondition, WeatherTheme> = {
     tip: 'Écoute la pluie tomber… bonne nuit 💤',
   },
   snow: {
-    gradient: ['#202035', '#2A2A45'],
+    gradient: ['#708893', '#90A89F'],
     emoji: '❄️',
     label: 'Neige nocturne',
     particles: ['❄️', '🌙', '✨'],
@@ -132,7 +132,7 @@ const NIGHT_THEMES: Record<WeatherCondition, WeatherTheme> = {
     tip: 'Demain matin, tout sera blanc dehors ⛄',
   },
   thunderstorm: {
-    gradient: ['#151525', '#1E1E35'],
+    gradient: ['#60737D', '#7F938A'],
     emoji: '⛈️',
     label: 'Orage nocturne',
     particles: ['⚡', '🌩️', '🌙'],
@@ -154,9 +154,9 @@ export const DEFAULT_WEATHER_THEME = DAY_THEMES.clear;
 
 /** Text color for night mode */
 export function getWeatherTextColor(isDay: boolean) {
-  return isDay ? '#2D3436' : '#F0F0F0';
+  return isDay ? '#55727E' : '#F5FBF8';
 }
 
 export function getWeatherSecondaryTextColor(isDay: boolean) {
-  return isDay ? '#636E72' : '#C8C8D8';
+  return isDay ? '#6C8791' : '#E6F1EC';
 }

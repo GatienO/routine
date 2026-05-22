@@ -10,7 +10,7 @@ import {
   Modal,
   Pressable,
 } from 'react-native';
-import { CaretDown, Check, MagnifyingGlass, SlidersHorizontal } from 'phosphor-react-native';
+import { BookOpen, CaretDown, Check, MagnifyingGlass, Plus, SlidersHorizontal } from 'phosphor-react-native';
 import { AppTopNavigation } from '../ui/AppTopNavigation';
 import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../../constants/theme';
 import { Child, RoutineCategory } from '../../types';
@@ -54,6 +54,8 @@ export const ParentDashboardHeader = memo(function ParentDashboardHeader({
   selectedCategories,
   onToggleCategory,
   onClearCategories,
+  onGoToCatalog,
+  onGoToAddRoutine,
   routinesExpanded,
 }: {
   children: Child[];
@@ -141,7 +143,27 @@ export const ParentDashboardHeader = memo(function ParentDashboardHeader({
 
   return (
     <View style={styles.wrapper}>
-      <AppTopNavigation title="Espace parent" style={styles.navigation} />
+      <AppTopNavigation title="Espace Parent" style={styles.navigation} />
+
+      <View style={styles.quickActionsRow}>
+        <TouchableOpacity
+          onPress={onGoToAddRoutine}
+          activeOpacity={0.84}
+          style={[styles.quickActionButton, styles.quickActionButtonPrimary]}
+        >
+          <Plus size={16} weight="bold" color="#FFFFFF" />
+          <Text style={[styles.quickActionText, styles.quickActionTextPrimary]}>Creer</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={onGoToCatalog}
+          activeOpacity={0.84}
+          style={styles.quickActionButton}
+        >
+          <BookOpen size={16} weight="bold" color="#5E7B86" />
+          <Text style={styles.quickActionText}>Catalogue</Text>
+        </TouchableOpacity>
+      </View>
 
       <View style={styles.searchRow}>
         <View style={styles.searchShell}>
@@ -415,6 +437,36 @@ const styles = StyleSheet.create({
   },
   navigation: {
     marginBottom: SPACING.sm,
+  },
+  quickActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    flexWrap: 'wrap',
+  },
+  quickActionButton: {
+    minHeight: 42,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.xs,
+    paddingHorizontal: SPACING.md,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    borderWidth: 1,
+    borderColor: '#DDE9E2',
+  },
+  quickActionButtonPrimary: {
+    backgroundColor: '#86C8B1',
+    borderColor: '#86C8B1',
+  },
+  quickActionText: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '900',
+    color: '#5E7B86',
+  },
+  quickActionTextPrimary: {
+    color: '#FFFFFF',
   },
   searchRow: {
     flexDirection: 'row',

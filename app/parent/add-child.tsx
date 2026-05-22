@@ -44,10 +44,11 @@ const COMPANION_INNER_SHADOW = SHADOWS.lg;
 export default function AddChildScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
-  const params = useLocalSearchParams<{ id?: string }>();
+  const params = useLocalSearchParams<{ id?: string; first?: string }>();
   const { addChild, updateChild, removeChild, getChild } = useChildrenStore();
   const { removeRoutine, routines } = useRoutineStore();
   const editing = params.id ? getChild(params.id) : undefined;
+  const isFirstChildSetup = params.first === '1' && !editing;
 
   const [name, setName] = useState(editing?.name ?? '');
   const [avatar, setAvatar] = useState(editing?.avatar ?? AVATAR_ASSET_OPTIONS[0].id);
@@ -212,7 +213,7 @@ export default function AddChildScreen() {
       <ScrollView contentContainerStyle={[styles.scroll, styles.scrollCentered]}>
         <View style={[styles.content, { width: contentWidth, maxWidth: '100%' }]}>
           <AppPageHeader
-            title={editing ? 'Modifier le profil' : 'Nouvel enfant'}
+            title={editing ? 'Modifier le profil' : isFirstChildSetup ? 'Premier profil enfant' : 'Nouvel enfant'}
             onBack={() => backOrReplace(router, '/parent')}
             onHome={() => router.replace('/parent')}
           />

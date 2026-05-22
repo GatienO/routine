@@ -129,7 +129,7 @@ export default function WellnessScreen() {
           </Reanimated.View>
 
           {phase !== 'intro' && (
-            <ProgressBar progress={progress} color="#A29BFE" height={10} />
+          <ProgressBar progress={progress} color={COLORS.secondary} height={10} />
           )}
 
           {/* Content */}
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
   introStepTitle: { fontSize: FONT_SIZE.md, fontWeight: '800', color: COLORS.text },
   introStepDesc: { fontSize: FONT_SIZE.sm, color: COLORS.textSecondary },
   startButton: {
-    backgroundColor: '#A29BFE',
+    backgroundColor: COLORS.secondary,
     paddingVertical: SPACING.md,
     paddingHorizontal: SPACING.xl + SPACING.lg,
     borderRadius: RADIUS.full,

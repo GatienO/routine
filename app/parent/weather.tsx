@@ -14,6 +14,7 @@ import { CloudSun } from 'phosphor-react-native';
 import { AppPageHeader } from '../../src/components/ui/AppPageHeader';
 import { showAppToast } from '../../src/components/feedback/AppFeedbackProvider';
 import { COLORS, FONT_SIZE, RADIUS, SHADOWS, SPACING } from '../../src/constants/theme';
+import { getClothingRecommendation } from '../../src/services/weatherClothingRecommendation';
 import { useAppStore } from '../../src/stores/appStore';
 import { useWeatherStore } from '../../src/stores/weatherStore';
 import { backOrReplace } from '../../src/utils/navigation';
@@ -24,8 +25,10 @@ export default function ParentWeatherScreen() {
   const useGeolocation = useAppStore((state) => state.useGeolocation);
   const setWeatherCity = useAppStore((state) => state.setWeatherCity);
   const setUseGeolocation = useAppStore((state) => state.setUseGeolocation);
+  const weather = useWeatherStore((state) => state.weather);
   const refreshWeather = useWeatherStore((state) => state.refresh);
   const [cityInput, setCityInput] = useState(weatherCity);
+  const recommendation = weather ? getClothingRecommendation(weather) : null;
 
   useEffect(() => {
     setCityInput(weatherCity);
@@ -98,6 +101,28 @@ export default function ParentWeatherScreen() {
               </View>
             ) : null}
           </View>
+
+          {recommendation ? (
+            <View style={styles.parentWeatherSummary}>
+              <Text style={styles.summaryTitle}>Resume parent</Text>
+              <Text style={styles.summaryLine}>
+                Maintenant : {recommendation.parentSummary.currentTemperature}°C
+                {typeof recommendation.parentSummary.apparentTemperature === 'number'
+                  ? ` (ressenti ${recommendation.parentSummary.apparentTemperature}°C)`
+                  : ''}
+              </Text>
+              <Text style={styles.summaryLine}>
+                Journee : {recommendation.parentSummary.minTemperature} / {recommendation.parentSummary.maxTemperature}°C
+              </Text>
+              <Text style={styles.summaryLine}>
+                Meteo dominante : {recommendation.parentSummary.dominantCondition}
+              </Text>
+              <Text style={styles.summaryLine}>
+                Recommandation : {recommendation.parentSummary.mainRecommendation}
+              </Text>
+              <Text style={styles.summaryReason}>{recommendation.parentSummary.reason}</Text>
+            </View>
+          ) : null}
 
           <TouchableOpacity style={styles.saveButton} onPress={handleSaveCity} activeOpacity={0.85}>
             <Text style={styles.saveButtonText}>Enregistrer</Text>
@@ -176,6 +201,30 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.xs,
     color: COLORS.textSecondary,
     lineHeight: 18,
+  },
+  parentWeatherSummary: {
+    gap: SPACING.xs,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.cardHighlight,
+    padding: SPACING.md,
+  },
+  summaryTitle: {
+    fontSize: FONT_SIZE.md,
+    fontWeight: '900',
+    color: COLORS.text,
+  },
+  summaryLine: {
+    fontSize: FONT_SIZE.sm,
+    color: COLORS.text,
+    lineHeight: 20,
+  },
+  summaryReason: {
+    fontSize: FONT_SIZE.sm,
+    color: COLORS.textSecondary,
+    lineHeight: 20,
+    fontWeight: '700',
   },
   input: {
     borderWidth: 1,

@@ -5,21 +5,23 @@ import {
   StyleSheet,
   TouchableOpacity,
   TextInput,
-  ScrollView,
   Platform,
   useWindowDimensions,
   Modal,
   Pressable,
 } from 'react-native';
-import { CaretDown, CaretUp, Check, MagnifyingGlass } from 'phosphor-react-native';
+import { CaretDown, Check, MagnifyingGlass, SlidersHorizontal } from 'phosphor-react-native';
 import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../../constants/theme';
-import { RoutineCategory } from '../../types';
+import { Child, RoutineCategory } from '../../types';
+import { formatChildName } from '../../utils/children';
 
 const WEB_SEARCH_INPUT_RESET = Platform.OS === 'web'
   ? ({ outlineWidth: 0, borderWidth: 0 } as const)
   : undefined;
 
 export type CategoryFilterValue = RoutineCategory;
+export type StatusFilterValue = 'active' | 'inactive';
+export type FavoriteFilterValue = 'all' | 'favorites' | 'others';
 
 const CATEGORY_FILTERS: Array<{ key: CategoryFilterValue; label: string }> = [
   { key: 'morning', label: 'Matin' },
@@ -31,21 +33,18 @@ const CATEGORY_FILTERS: Array<{ key: CategoryFilterValue; label: string }> = [
   { key: 'custom', label: 'Custom' },
 ];
 
-export type StatusFilterValue = 'active' | 'inactive';
-export type FavoriteFilterValue = 'all' | 'favorites' | 'others';
-
 const STATUS_FILTERS: Array<{ key: StatusFilterValue; label: string }> = [
   { key: 'active', label: 'Actives' },
   { key: 'inactive', label: 'Inactives' },
 ];
 
-const FAVORITE_FILTERS: Array<{ key: FavoriteFilterValue; label: string }> = [
-  { key: 'all', label: 'Tous' },
-  { key: 'favorites', label: 'Favoris' },
-  { key: 'others', label: 'Non-favoris' },
-];
+type DropdownKey = 'children' | 'category' | 'status';
 
 export const ChildDashboardHeader = memo(function ChildDashboardHeader({
+  children,
+  selectedChildIds,
+  onToggleChild,
+  onClearChildSelection,
   searchQuery,
   onSearchChange,
   selectedCategories,
@@ -54,9 +53,11 @@ export const ChildDashboardHeader = memo(function ChildDashboardHeader({
   selectedStatuses,
   onToggleStatus,
   onClearStatuses,
-  selectedFavorite,
-  onToggleFavorite,
 }: {
+  children: Child[];
+  selectedChildIds: string[];
+  onToggleChild: (childId: string) => void;
+  onClearChildSelection: () => void;
   searchQuery: string;
   onSearchChange: (value: string) => void;
   selectedCategories: CategoryFilterValue[];
@@ -65,19 +66,28 @@ export const ChildDashboardHeader = memo(function ChildDashboardHeader({
   selectedStatuses: StatusFilterValue[];
   onToggleStatus: (value: StatusFilterValue) => void;
   onClearStatuses: () => void;
-  selectedFavorite: FavoriteFilterValue;
-  onToggleFavorite: (value: FavoriteFilterValue) => void;
 }) {
   const { width } = useWindowDimensions();
-  const [openDropdown, setOpenDropdown] = useState<'category' | 'status' | 'favorite' | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<DropdownKey | null>(null);
   const [dropdownAnchor, setDropdownAnchor] = useState<{ x: number; y: number; width: number } | null>(null);
+  const childButtonRef = useRef<any>(null);
   const categoryButtonRef = useRef<any>(null);
   const statusButtonRef = useRef<any>(null);
-  const favoriteButtonRef = useRef<any>(null);
-  const isCompactViewport = width < 1040;
+  const isCompactViewport = width < 980;
 
-  const openAnchoredDropdown = (key: 'category' | 'status' | 'favorite') => {
-    const targetRef = key === 'category' ? categoryButtonRef : key === 'status' ? statusButtonRef : favoriteButtonRef;
+  const childOptions = useMemo(
+    () => children.map((child) => ({ key: child.id, label: formatChildName(child.name) })),
+    [children],
+  );
+
+  const openAnchoredDropdown = (key: DropdownKey) => {
+    const targetRef = key === 'children'
+      ? childButtonRef
+      : key === 'category'
+        ? categoryButtonRef
+      : statusButtonRef;
+
     const targetNode = targetRef.current as unknown as {
       measureInWindow?: (callback: (x: number, y: number, width: number, height: number) => void) => void;
     } | null;
@@ -99,132 +109,140 @@ export const ChildDashboardHeader = memo(function ChildDashboardHeader({
     setDropdownAnchor(null);
   };
 
+  const handleToggleFilters = () => {
+    if (showFilters) {
+      closeDropdown();
+    }
+    setShowFilters((previous) => !previous);
+  };
+
+  const handleToggleDropdown = (key: DropdownKey) => {
+    if (openDropdown === key) {
+      closeDropdown();
+      return;
+    }
+    openAnchoredDropdown(key);
+  };
+
   return (
-    <View>
-      <View style={[styles.filterControlsRow, isCompactViewport && styles.filterControlsRowCompact]}>
-        <View style={[styles.searchControl, isCompactViewport && styles.searchControlCompact]}>
-          <View style={styles.searchBox}>
-            <MagnifyingGlass size={18} weight="bold" color={COLORS.textLight} />
-            <TextInput
-              value={searchQuery}
-              onChangeText={(value) => {
-                setOpenDropdown(null);
-                onSearchChange(value);
-              }}
-              placeholder="Rechercher une routine, une etape..."
-              placeholderTextColor={COLORS.textLight}
-              style={[styles.searchInput, WEB_SEARCH_INPUT_RESET]}
-            />
-          </View>
+    <View style={styles.wrapper}>
+      <View style={styles.searchRow}>
+        <View style={styles.searchShell}>
+          <MagnifyingGlass size={18} weight="bold" color="#8CA3AC" />
+          <TextInput
+            value={searchQuery}
+            onChangeText={(value) => {
+              closeDropdown();
+              onSearchChange(value);
+            }}
+            placeholder="Rechercher une routine, une etape..."
+            placeholderTextColor="#A3B4BB"
+            style={[styles.searchInput, WEB_SEARCH_INPUT_RESET]}
+          />
         </View>
 
-        <MultiSelectDropdown
-          title="Moment"
-          options={CATEGORY_FILTERS}
-          selectedValues={selectedCategories}
-          isOpen={openDropdown === 'category'}
-          allLabel="Moment de la journée"
-          onToggleOpen={() => {
-            if (openDropdown === 'category') {
-              closeDropdown();
-            } else {
-              openAnchoredDropdown('category');
-            }
-          }}
-          onToggleValue={(value) => onToggleCategory(value as CategoryFilterValue)}
-          onClear={onClearCategories}
-          style={[styles.dropdownControl, isCompactViewport && styles.dropdownControlCompact]}
-          buttonRef={categoryButtonRef}
-        />
-
-        <MultiSelectDropdown
-          title="Etat"
-          options={STATUS_FILTERS}
-          selectedValues={selectedStatuses}
-          isOpen={openDropdown === 'status'}
-          allLabel="Toutes les routines"
-          onToggleOpen={() => {
-            if (openDropdown === 'status') {
-              closeDropdown();
-            } else {
-              openAnchoredDropdown('status');
-            }
-          }}
-          onToggleValue={(value) => onToggleStatus(value as StatusFilterValue)}
-          onClear={onClearStatuses}
-          style={[styles.dropdownControl, isCompactViewport && styles.dropdownControlCompact]}
-          buttonRef={statusButtonRef}
-        />
-
-        <MultiSelectDropdown
-          title="Favoris"
-          options={FAVORITE_FILTERS}
-          selectedValues={[selectedFavorite]}
-          isOpen={openDropdown === 'favorite'}
-          allLabel="Tous"
-          isSingle={true}
-          onToggleOpen={() => {
-            if (openDropdown === 'favorite') {
-              closeDropdown();
-            } else {
-              openAnchoredDropdown('favorite');
-            }
-          }}
-          onToggleValue={(value) => {
-            onToggleFavorite(value as FavoriteFilterValue);
-            closeDropdown();
-          }}
-          onClear={() => {
-            onToggleFavorite('all');
-            closeDropdown();
-          }}
-          style={[styles.dropdownControl, isCompactViewport && styles.dropdownControlCompact]}
-          buttonRef={favoriteButtonRef}
-        />
+        <TouchableOpacity
+          onPress={handleToggleFilters}
+          activeOpacity={0.84}
+          style={[styles.filtersButton, showFilters && styles.filtersButtonActive]}
+        >
+          <SlidersHorizontal
+            size={18}
+            weight="bold"
+            color={showFilters ? '#FFFFFF' : '#5E7B86'}
+          />
+          <Text style={[styles.filtersButtonText, showFilters && styles.filtersButtonTextActive]}>
+            Filtres
+          </Text>
+        </TouchableOpacity>
       </View>
 
+      {showFilters ? (
+        <View style={[styles.filtersPanel, isCompactViewport && styles.filtersPanelCompact]}>
+          <MultiSelectDropdown
+            title="Enfants"
+            options={childOptions}
+            selectedValues={selectedChildIds}
+            isOpen={openDropdown === 'children'}
+            allLabel="Tous les enfants"
+            onToggleOpen={() => handleToggleDropdown('children')}
+            onToggleValue={onToggleChild}
+            onClear={onClearChildSelection}
+            style={styles.dropdownControl}
+            buttonRef={childButtonRef}
+          />
+          <MultiSelectDropdown
+            title="Moment"
+            options={CATEGORY_FILTERS}
+            selectedValues={selectedCategories}
+            isOpen={openDropdown === 'category'}
+            allLabel="Tous les moments"
+            onToggleOpen={() => handleToggleDropdown('category')}
+            onToggleValue={(value) => onToggleCategory(value as CategoryFilterValue)}
+            onClear={onClearCategories}
+            style={styles.dropdownControl}
+            buttonRef={categoryButtonRef}
+          />
+          <MultiSelectDropdown
+            title="Etat"
+            options={STATUS_FILTERS}
+            selectedValues={selectedStatuses}
+            isOpen={openDropdown === 'status'}
+            allLabel="Toutes les routines"
+            onToggleOpen={() => handleToggleDropdown('status')}
+            onToggleValue={(value) => onToggleStatus(value as StatusFilterValue)}
+            onClear={onClearStatuses}
+            style={styles.dropdownControl}
+            buttonRef={statusButtonRef}
+          />
+        </View>
+      ) : null}
+
       <DropdownPortal
-        visible={openDropdown !== null}
+        visible={showFilters && openDropdown !== null}
         anchor={dropdownAnchor}
-        title={openDropdown === 'status' ? 'Etat' : openDropdown === 'favorite' ? 'Favoris' : 'Moment'}
+        title={
+          openDropdown === 'children'
+            ? 'Enfants'
+            : openDropdown === 'status'
+              ? 'Etat'
+              : 'Moment'
+        }
         options={
-          openDropdown === 'status'
-            ? STATUS_FILTERS
-            : openDropdown === 'favorite'
-            ? FAVORITE_FILTERS
-            : CATEGORY_FILTERS
+          openDropdown === 'children'
+            ? childOptions
+            : openDropdown === 'status'
+              ? STATUS_FILTERS
+              : CATEGORY_FILTERS
         }
         selectedValues={
-          openDropdown === 'status'
-            ? selectedStatuses
-            : openDropdown === 'favorite'
-            ? [selectedFavorite]
-            : selectedCategories
+          openDropdown === 'children'
+            ? selectedChildIds
+            : openDropdown === 'status'
+              ? selectedStatuses
+              : selectedCategories
         }
         allLabel={
-          openDropdown === 'status'
-            ? 'Toutes les routines'
-            : openDropdown === 'favorite'
-            ? 'Tous'
-            : 'Tous les moments'
+          openDropdown === 'children'
+            ? 'Tous les enfants'
+            : openDropdown === 'status'
+              ? 'Toutes les routines'
+              : 'Tous les moments'
         }
-        isSingle={openDropdown === 'favorite'}
         onToggleValue={(value) => {
-          if (openDropdown === 'status') {
+          if (openDropdown === 'children') {
+            onToggleChild(value);
+          } else if (openDropdown === 'status') {
             onToggleStatus(value as StatusFilterValue);
-          } else if (openDropdown === 'favorite') {
-            onToggleFavorite(value as FavoriteFilterValue);
-            closeDropdown();
           } else if (openDropdown === 'category') {
             onToggleCategory(value as CategoryFilterValue);
           }
         }}
         onClear={() => {
-          if (openDropdown === 'status') {
+          if (openDropdown === 'children') {
+            onClearChildSelection();
+          } else if (openDropdown === 'status') {
             onClearStatuses();
-          } else if (openDropdown === 'favorite') {
-            onToggleFavorite('all');
-            closeDropdown();
           } else if (openDropdown === 'category') {
             onClearCategories();
           }
@@ -242,7 +260,7 @@ const MultiSelectDropdown = memo(function MultiSelectDropdown({
   selectedValues,
   isOpen,
   allLabel,
-  isSingle,
+  isSingle = false,
   onToggleOpen,
   onToggleValue,
   onClear,
@@ -275,9 +293,7 @@ const MultiSelectDropdown = memo(function MultiSelectDropdown({
     }
 
     return `${selectedValues.length} selections`;
-  }, [allLabel, options, selectedValues, isSingle]);
-
-  const allSelected = selectedValues.length === 0 || selectedValues.length === options.length;
+  }, [allLabel, isSingle, options, selectedValues]);
 
   return (
     <View style={[styles.dropdownWrap, style, isOpen && styles.dropdownWrapOpen]}>
@@ -292,7 +308,7 @@ const MultiSelectDropdown = memo(function MultiSelectDropdown({
           <Text style={styles.dropdownButtonValue} numberOfLines={1}>
             {summary}
           </Text>
-          <CaretDown size={16} weight="bold" color={COLORS.textSecondary} />
+          <CaretDown size={16} weight="bold" color="#6F8A93" />
         </View>
       </TouchableOpacity>
     </View>
@@ -326,10 +342,10 @@ const DropdownPortal = memo(function DropdownPortal({
     return null;
   }
 
-  const menuWidth = Math.max(220, Math.min(anchor?.width ?? 260, 320));
+  const menuWidth = Math.max(220, Math.min(anchor?.width ?? 260, 340));
   const menuLeft = anchor?.x ?? 0;
   const menuTop = anchor?.y ?? 0;
-  const allSelected = isSingle ? false : selectedValues.length === 0 || selectedValues.length === options.length;
+  const allSelected = !isSingle && (selectedValues.length === 0 || selectedValues.length === options.length);
 
   return (
     <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
@@ -376,57 +392,82 @@ const DropdownOption = memo(function DropdownOption({
       onPress={onPress}
       activeOpacity={0.8}
     >
-      <Text style={[styles.dropdownOptionText, selected && styles.dropdownOptionTextSelected]}>{label}</Text>
-      {selected ? <Check size={14} weight="bold" color="#FFF" /> : null}
+      <Text style={[styles.dropdownOptionText, selected && styles.dropdownOptionTextSelected]}>
+        {label}
+      </Text>
+      {selected ? <Check size={14} weight="bold" color="#FFFFFF" /> : null}
     </TouchableOpacity>
   );
 });
 
 const styles = StyleSheet.create({
-  filterControlsRow: {
+  wrapper: {
+    gap: SPACING.md,
+    marginTop: SPACING.sm,
+  },
+  searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.sm,
-    marginBottom: SPACING.xs,
-    marginTop: 0,
   },
-  filterControlsRowCompact: {
-    flexWrap: 'wrap',
-    alignItems: 'flex-start',
-  },
-  searchControl: {
-    flex: 1.6,
-    minWidth: 280,
-  },
-  searchControlCompact: {
-    minWidth: 220,
-    flexBasis: '100%',
-  },
-  dropdownControl: {
+  searchShell: {
     flex: 1,
-    minWidth: 210,
-  },
-  dropdownControlCompact: {
-    minWidth: 160,
-    flexGrow: 1,
-  },
-  searchBox: {
+    minHeight: 58,
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.sm,
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS.lg,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderRadius: 22,
     paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    minHeight: 44,
+    borderWidth: 1,
+    borderColor: '#DCEAE3',
+    ...SHADOWS.sm,
   },
   searchInput: {
     flex: 1,
     fontSize: FONT_SIZE.md,
     color: COLORS.text,
     paddingVertical: 0,
+  },
+  filtersButton: {
+    minHeight: 58,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.xs,
+    paddingHorizontal: SPACING.md + 2,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    borderWidth: 1,
+    borderColor: '#DCEAE3',
+  },
+  filtersButtonActive: {
+    backgroundColor: COLORS.secondary,
+    borderColor: COLORS.secondary,
+  },
+  filtersButtonText: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '800',
+    color: '#5E7B86',
+  },
+  filtersButtonTextActive: {
+    color: '#FFFFFF',
+  },
+  filtersPanel: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+    padding: SPACING.md,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255,255,255,0.78)',
+    borderWidth: 1,
+    borderColor: 'rgba(220,234,227,0.92)',
+  },
+  filtersPanelCompact: {
+    flexWrap: 'wrap',
+  },
+  dropdownControl: {
+    flex: 1,
+    minWidth: 200,
   },
   dropdownWrap: {
     position: 'relative',
@@ -435,26 +476,26 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   dropdownButton: {
-    minHeight: 44,
-    borderRadius: RADIUS.lg,
-    backgroundColor: COLORS.surface,
+    minHeight: 60,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.95)',
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: '#DFEAE5',
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
     justifyContent: 'center',
-    gap: 3,
+    gap: 4,
   },
   dropdownButtonOpen: {
     borderColor: COLORS.secondary,
-    backgroundColor: `${COLORS.secondary}08`,
+    backgroundColor: '#F4FBF8',
   },
   dropdownButtonLabel: {
     fontSize: 11,
-    fontWeight: '800',
-    color: COLORS.textLight,
+    fontWeight: '900',
+    color: '#A3B4BB',
     textTransform: 'uppercase',
-    letterSpacing: 0.3,
+    letterSpacing: 0.5,
   },
   dropdownSummaryRow: {
     flexDirection: 'row',
@@ -473,10 +514,10 @@ const styles = StyleSheet.create({
   },
   dropdownMenuPortal: {
     position: 'absolute',
-    borderRadius: RADIUS.lg,
-    backgroundColor: COLORS.surface,
+    borderRadius: 22,
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: '#DCEAE3',
     paddingVertical: SPACING.xs,
     ...SHADOWS.md,
     overflow: 'hidden',
@@ -486,13 +527,13 @@ const styles = StyleSheet.create({
     paddingTop: SPACING.xs,
     paddingBottom: SPACING.xs,
     fontSize: 11,
-    fontWeight: '800',
-    color: COLORS.textLight,
+    fontWeight: '900',
+    color: '#A3B4BB',
     textTransform: 'uppercase',
-    letterSpacing: 0.3,
+    letterSpacing: 0.5,
   },
   dropdownOption: {
-    minHeight: 40,
+    minHeight: 44,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.xs,
     flexDirection: 'row',
@@ -501,7 +542,7 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
   },
   dropdownOptionSelected: {
-    backgroundColor: '#1FA8E0',
+    backgroundColor: COLORS.secondary,
   },
   dropdownOptionText: {
     flex: 1,
@@ -510,6 +551,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   dropdownOptionTextSelected: {
-    color: '#FFF',
+    color: '#FFFFFF',
   },
 });

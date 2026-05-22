@@ -28,8 +28,8 @@ export function Card({ children, style, color, padded = true, elevated = false }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS.xl,
+    backgroundColor: 'rgba(255,255,255,0.96)',
+    borderRadius: RADIUS.xl + 4,
     borderWidth: 1,
     borderColor: COLORS.border,
     ...SHADOWS.sm,
