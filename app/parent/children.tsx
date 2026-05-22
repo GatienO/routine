@@ -16,7 +16,6 @@ import { Avatar } from '../../src/components/ui/Avatar';
 import { Button } from '../../src/components/ui/Button';
 import { AppPageHeader } from '../../src/components/ui/AppPageHeader';
 import { COLORS, FONT_SIZE, RADIUS, SPACING } from '../../src/constants/theme';
-import { backOrReplace } from '../../src/utils/navigation';
 import { getGridItemWidth, getResponsiveColumns } from '../../src/utils/responsive';
 import { formatChildName } from '../../src/utils/children';
 
@@ -54,8 +53,6 @@ export default function ParentChildrenScreen() {
           <View style={[styles.headerBlock, { width: contentWidth, maxWidth: '100%' }]}>
             <AppPageHeader
               title="Gestion des enfants"
-              onBack={() => backOrReplace(router, '/parent')}
-              onHome={() => router.replace('/parent')}
             />
             <Text style={styles.subtitle}>
               Un ecran dedie et compact pour naviguer plus vite entre les profils

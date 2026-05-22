@@ -100,7 +100,6 @@ export default function ChildPresenceScreen() {
           <AppPageHeader
             title="Presence"
             onBack={() => backOrReplace(router, summaryHref)}
-            onHome={() => router.replace('/child')}
           />
 
           <Animated.Text entering={FadeIn.duration(400)} style={styles.title}>

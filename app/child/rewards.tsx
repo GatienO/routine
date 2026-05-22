@@ -74,7 +74,6 @@ export default function ChildRewardsScreen() {
           <AppPageHeader
             title="Badges et recompenses"
             onBack={() => backOrReplace(router, '/child')}
-            onHome={() => router.replace('/child')}
           />
           <Text style={styles.emptyTitle}>Aucun enfant disponible</Text>
         </View>
@@ -122,7 +121,6 @@ export default function ChildRewardsScreen() {
           <AppPageHeader
             title="Badges et recompenses"
             onBack={() => backOrReplace(router, '/child')}
-            onHome={() => router.replace('/child')}
           />
           <View style={styles.hero}>
             <Text style={styles.subtitle}>

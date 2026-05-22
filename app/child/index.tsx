@@ -23,7 +23,6 @@ import { useWeatherStore } from '../../src/stores/weatherStore';
 import { Avatar } from '../../src/components/ui/Avatar';
 import { AnimatedPressable } from '../../src/components/ui/AnimatedPressable';
 import { AppPageHeader } from '../../src/components/ui/AppPageHeader';
-import { BackButton } from '../../src/components/ui/BackButton';
 import { WeatherCard } from '../../src/components/weather/WeatherCard';
 import { ChildDashboardHeader, CategoryFilterValue } from '../../src/components/child/ChildDashboardHeader';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
@@ -171,11 +170,6 @@ export default function ChildLauncherScreen() {
     return () => subscription.remove();
   }, [weatherCity, useGeolocation, refreshWeather]);
 
-  const handleGoBack = () => {
-    selectChild(null);
-    router.replace('/');
-  };
-
   const handleOpenRewards = () => {
     router.push('/child/rewards');
   };
@@ -294,7 +288,6 @@ export default function ChildLauncherScreen() {
             <Animated.Text entering={FadeInUp.delay(450)} style={[styles.emptyText, { color: secondaryColor }]}>
               Demande a tes parents de creer ton profil.
             </Animated.Text>
-            <BackButton onPress={handleGoBack} style={styles.emptyBackButton} />
           </View>
         </SafeAreaView>
       </LinearGradient>
@@ -311,7 +304,6 @@ export default function ChildLauncherScreen() {
             <Text style={[styles.emptyText, { color: secondaryColor }]}>
               Demande a tes parents de preparer une routine pour commencer.
             </Text>
-            <BackButton onPress={handleGoBack} style={styles.emptyBackButton} />
           </View>
         </SafeAreaView>
       </LinearGradient>
@@ -327,11 +319,7 @@ export default function ChildLauncherScreen() {
         >
           <View style={[styles.content, { width: contentWidth, maxWidth: '100%' }]}>
             <Animated.View entering={FadeInUp.duration(300)} style={styles.topBar}>
-                <AppPageHeader
-                  title="Espace Enfant"
-                  onBack={handleGoBack}
-                  onHome={() => router.replace('/')}
-                />
+                <AppPageHeader title="Espace Enfant" />
               </Animated.View>
 
               <Animated.View entering={FadeInUp.duration(300)} style={styles.topBarActions}>
@@ -594,7 +582,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     marginBottom: SPACING.xs,
   },
-  headerBackButton: {},
   topRewardsButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -887,7 +874,6 @@ const styles = StyleSheet.create({
   emptyIcon: { fontSize: 70 },
   emptyTitle: { fontSize: FONT_SIZE.xl, fontWeight: '800', color: COLORS.text, textAlign: 'center' },
   emptyText: { fontSize: FONT_SIZE.md, color: COLORS.textSecondary, textAlign: 'center' },
-  emptyBackButton: { marginTop: SPACING.xl },
   // Routines header
   routinesHeader: {
     marginTop: SPACING.md,

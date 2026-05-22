@@ -215,7 +215,6 @@ export default function AddChildScreen() {
           <AppPageHeader
             title={editing ? 'Modifier le profil' : isFirstChildSetup ? 'Premier profil enfant' : 'Nouvel enfant'}
             onBack={() => backOrReplace(router, '/parent')}
-            onHome={() => router.replace('/parent')}
           />
 
         <View style={[styles.avatarSection, stackedLayout && styles.avatarSectionStacked]}>

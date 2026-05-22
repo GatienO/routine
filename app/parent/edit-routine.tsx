@@ -453,7 +453,6 @@ export default function EditRoutineScreen() {
         <AppPageHeader
           title="Modifier la routine"
           onBack={handleBack}
-          onHome={() => router.replace('/parent')}
         />
       </View>
 

@@ -9,7 +9,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { CloudSun } from 'phosphor-react-native';
 import { AppPageHeader } from '../../src/components/ui/AppPageHeader';
 import { showAppToast } from '../../src/components/feedback/AppFeedbackProvider';
@@ -17,10 +16,8 @@ import { COLORS, FONT_SIZE, RADIUS, SHADOWS, SPACING } from '../../src/constants
 import { getClothingRecommendation } from '../../src/services/weatherClothingRecommendation';
 import { useAppStore } from '../../src/stores/appStore';
 import { useWeatherStore } from '../../src/stores/weatherStore';
-import { backOrReplace } from '../../src/utils/navigation';
 
 export default function ParentWeatherScreen() {
-  const router = useRouter();
   const weatherCity = useAppStore((state) => state.weatherCity);
   const useGeolocation = useAppStore((state) => state.useGeolocation);
   const setWeatherCity = useAppStore((state) => state.setWeatherCity);
@@ -54,11 +51,7 @@ export default function ParentWeatherScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <AppPageHeader
-          title="Config meteo"
-          onBack={() => backOrReplace(router, '/parent')}
-          onHome={() => router.replace('/parent')}
-        />
+        <AppPageHeader title="Config meteo" />
 
         <View style={styles.card}>
           <View style={styles.iconWrap}>

@@ -21,7 +21,6 @@ import {
   CloudSun,
   Gear,
   Gift,
-  House,
   PlusCircle,
   Trash,
   UploadSimple,
@@ -37,7 +36,7 @@ type AppTopNavigationProps = {
   style?: StyleProp<ViewStyle>;
 };
 
-type NavigationKey = 'home' | 'child' | 'parent';
+type NavigationKey = 'child' | 'parent';
 
 export function AppTopNavigation({ title, onBack, style }: AppTopNavigationProps) {
   const router = useRouter();
@@ -49,16 +48,9 @@ export function AppTopNavigation({ title, onBack, style }: AppTopNavigationProps
   const drawerWidth = Math.min(width * 0.84, 340);
 
   const activeKey: NavigationKey =
-    pathname.startsWith('/child')
-      ? 'child'
-      : pathname.startsWith('/parent') || pathname.startsWith('/pin')
-        ? 'parent'
-        : 'home';
-
-  const navigateHome = () => {
-    setMenuOpen(false);
-    router.replace('/');
-  };
+    pathname.startsWith('/parent') || pathname.startsWith('/pin')
+      ? 'parent'
+      : 'child';
 
   const navigateChild = () => {
     setMenuOpen(false);
@@ -68,35 +60,52 @@ export function AppTopNavigation({ title, onBack, style }: AppTopNavigationProps
 
   const navigateParent = () => {
     setMenuOpen(false);
-    router.replace(isParentMode ? '/parent' : '/pin');
+    router.replace((isParentMode ? '/parent' : parentPinRoute('/parent')) as any);
   };
 
   const navigateParentRoute = (href: string) => {
     setMenuOpen(false);
-    router.push((isParentMode ? href : '/pin') as any);
+    router.push((isParentMode ? href : parentPinRoute(href)) as any);
   };
 
-  const navigateBack = () => {
-    setMenuOpen(false);
-    onBack?.();
-  };
+  const parentPinRoute = (redirect: string) => ({
+    pathname: '/pin',
+    params: { redirect },
+  });
+
+  const renderMenuButton = () => (
+    <TouchableOpacity
+      onPress={() => setMenuOpen(true)}
+      activeOpacity={0.82}
+      accessibilityRole="button"
+      accessibilityLabel="Ouvrir le menu de navigation"
+      accessibilityState={{ expanded: menuOpen }}
+      hitSlop={6}
+      style={styles.menuButton}
+    >
+      <TfiMenu size={22} color="#54727D" />
+    </TouchableOpacity>
+  );
+
+  const renderBackButton = () => (
+    <TouchableOpacity
+      onPress={onBack}
+      activeOpacity={0.82}
+      accessibilityRole="button"
+      accessibilityLabel="Retour"
+      hitSlop={6}
+      style={styles.backButton}
+    >
+      <ArrowLeft size={22} weight="bold" color={COLORS.textSecondary} />
+    </TouchableOpacity>
+  );
 
   return (
     <View style={[styles.container, style]}>
       <View style={styles.topRow}>
-        <TouchableOpacity
-          onPress={() => setMenuOpen(true)}
-          activeOpacity={0.82}
-          accessibilityRole="button"
-          accessibilityLabel="Ouvrir le menu de navigation"
-          accessibilityState={{ expanded: menuOpen }}
-          hitSlop={6}
-          style={styles.menuButton}
-        >
-          <TfiMenu size={22} color="#54727D" />
-        </TouchableOpacity>
+        <View style={styles.navSlot}>{onBack ? renderBackButton() : <View style={styles.sideSpacer} />}</View>
         {title ? <Text style={styles.screenTitle}>{title}</Text> : <View style={styles.titleSpacer} />}
-        <View style={styles.sideSpacer} />
+        <View style={[styles.navSlot, styles.navSlotRight]}>{renderMenuButton()}</View>
       </View>
 
       <Modal transparent visible={menuOpen} animationType="fade" onRequestClose={() => setMenuOpen(false)}>
@@ -123,27 +132,6 @@ export function AppTopNavigation({ title, onBack, style }: AppTopNavigationProps
             </View>
 
             <ScrollView contentContainerStyle={styles.drawerItems} showsVerticalScrollIndicator={false}>
-              {onBack ? (
-                <NavigationPill
-                  label="Retour"
-                  onPress={navigateBack}
-                  icon={<ArrowLeft size={20} weight="bold" color={COLORS.textSecondary} />}
-                  muted
-                />
-              ) : null}
-
-              <NavigationPill
-                label="Accueil"
-                onPress={navigateHome}
-                active={activeKey === 'home'}
-                icon={
-                  <House
-                    size={20}
-                    weight={activeKey === 'home' ? 'fill' : 'bold'}
-                    color={activeKey === 'home' ? COLORS.secondaryDark : COLORS.textSecondary}
-                  />
-                }
-              />
               <NavigationPill
                 label="Espace enfant"
                 onPress={navigateChild}
@@ -273,6 +261,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: SPACING.sm,
   },
+  navSlot: {
+    width: TOUCH.minHeight,
+    height: TOUCH.minHeight,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+  },
+  navSlotRight: {
+    alignItems: 'flex-end',
+  },
   titleSpacer: {
     flex: 1,
   },
@@ -281,6 +278,17 @@ const styles = StyleSheet.create({
     height: TOUCH.minHeight,
   },
   menuButton: {
+    width: TOUCH.minHeight,
+    height: TOUCH.minHeight,
+    borderRadius: RADIUS.full,
+    backgroundColor: 'rgba(255, 255, 255, 0.88)',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...SHADOWS.sm,
+  },
+  backButton: {
     width: TOUCH.minHeight,
     height: TOUCH.minHeight,
     borderRadius: RADIUS.full,
@@ -302,17 +310,17 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(33, 39, 49, 0.7)',
-    alignItems: 'flex-start',
+    alignItems: 'flex-end',
   },
   drawer: {
     height: '100%',
     backgroundColor: COLORS.surface,
-    borderTopRightRadius: RADIUS.xl + 6,
-    borderBottomRightRadius: RADIUS.xl + 6,
+    borderTopLeftRadius: RADIUS.xl + 6,
+    borderBottomLeftRadius: RADIUS.xl + 6,
     paddingTop: SPACING.xl,
     paddingHorizontal: SPACING.lg,
     paddingBottom: SPACING.xl,
-    borderRightWidth: 1,
+    borderLeftWidth: 1,
     borderColor: COLORS.border,
     ...SHADOWS.lg,
   },

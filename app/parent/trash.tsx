@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useRouter } from 'expo-router';
 import { ArrowCounterClockwise, Trash } from 'phosphor-react-native';
 import { AppPageHeader } from '../../src/components/ui/AppPageHeader';
 import { Card } from '../../src/components/ui/Card';
@@ -15,7 +14,6 @@ function getDaysLeft(expiresAt: string) {
 }
 
 export default function ParentTrashScreen() {
-  const router = useRouter();
   const trashedRoutines = useRoutineStore((state) => state.trashedRoutines);
   const restoreRoutine = useRoutineStore((state) => state.restoreRoutine);
   const cleanupExpiredTrash = useRoutineStore((state) => state.cleanupExpiredTrash);
@@ -36,11 +34,7 @@ export default function ParentTrashScreen() {
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.header}>
-          <AppPageHeader
-            title="Corbeille"
-            onBack={() => router.replace('/parent')}
-            onHome={() => router.replace('/parent')}
-          />
+          <AppPageHeader title="Corbeille" />
           <Text style={styles.subtitle}>
             Les routines supprimees restent restaurables pendant 30 jours.
           </Text>

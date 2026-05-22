@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAppStore } from '../src/stores/appStore';
 import { AppPageHeader } from '../src/components/ui/AppPageHeader';
 import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../src/constants/theme';
@@ -10,6 +10,7 @@ const DIGITS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'];
 
 export default function PinScreen() {
   const router = useRouter();
+  const { redirect } = useLocalSearchParams<{ redirect?: string | string[] }>();
   const { parentPin, setParentPin, setParentMode } = useAppStore();
   const [pin, setPin] = useState('');
   const [isSetup] = useState(!parentPin);
@@ -17,6 +18,12 @@ export default function PinScreen() {
   const [error, setError] = useState('');
 
   const isConfirmStep = isSetup && confirmPin !== null;
+  const requestedRedirect = Array.isArray(redirect) ? redirect[0] : redirect;
+  const parentDestination = isParentRedirect(requestedRedirect) ? requestedRedirect : '/parent';
+
+  const goToParentDestination = () => {
+    router.replace(parentDestination as any);
+  };
 
   const handleDigit = (digit: string) => {
     if (digit === '⌫') {
@@ -38,7 +45,7 @@ export default function PinScreen() {
         if (nextPin === confirmPin) {
           setParentPin(nextPin);
           setParentMode(true);
-          router.replace('/parent');
+          goToParentDestination();
         } else {
           setError('Les codes ne correspondent pas');
           setTimeout(() => {
@@ -49,7 +56,7 @@ export default function PinScreen() {
         }
       } else if (nextPin === parentPin) {
         setParentMode(true);
-        router.replace('/parent');
+        goToParentDestination();
       } else {
         setError('Code incorrect');
         setTimeout(() => {
@@ -70,8 +77,7 @@ export default function PinScreen() {
       <View style={styles.container}>
         <AppPageHeader
           title={isSetup ? setupTitle : 'Code parent'}
-          onBack={() => backOrReplace(router, '/')}
-          onHome={() => router.replace('/')}
+          onBack={() => backOrReplace(router, '/child')}
         />
 
         <Text style={styles.emoji}>🔒</Text>
@@ -110,6 +116,10 @@ export default function PinScreen() {
       </View>
     </SafeAreaView>
   );
+}
+
+function isParentRedirect(value: unknown): value is string {
+  return typeof value === 'string' && (value === '/parent' || value.startsWith('/parent/'));
 }
 
 const styles = StyleSheet.create({

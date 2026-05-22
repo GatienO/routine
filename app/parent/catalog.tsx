@@ -24,7 +24,6 @@ import { showAppToast } from '../../src/components/feedback/AppFeedbackProvider'
 import { generateId } from '../../src/utils/id';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
 import { Avatar } from '../../src/components/ui/Avatar';
-import { backOrReplace } from '../../src/utils/navigation';
 import { formatChildName } from '../../src/utils/children';
 import { formatDuration } from '../../src/utils/date';
 
@@ -107,7 +106,6 @@ export default function CatalogScreen() {
           <AppPageHeader
             title="Catalogue de routines"
             onBack={() => setSelectedTemplate(null)}
-            onHome={() => router.replace('/parent')}
           />
 
           <View style={styles.detailHeader}>
@@ -186,11 +184,7 @@ export default function CatalogScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <AppPageHeader
-          title="Catalogue de routines"
-          onBack={() => backOrReplace(router, '/parent')}
-          onHome={() => router.replace('/parent')}
-        />
+        <AppPageHeader title="Catalogue de routines" />
         <Text style={styles.subtitle}>
           Choisissez un modele et importez-le en un tap
         </Text>

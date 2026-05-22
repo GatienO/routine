@@ -181,7 +181,6 @@ export default function RoutineSummaryScreen() {
           <AppPageHeader
             title="Resume"
             onBack={() => backOrReplace(router, '/child')}
-            onHome={() => router.replace('/child')}
           />
         </View>
 

@@ -3,8 +3,7 @@ import { AppTopNavigation } from './AppTopNavigation';
 
 type AppPageHeaderProps = {
   title: string;
-  onBack: () => void;
-  onHome?: () => void;
+  onBack?: () => void;
 };
 
 export function AppPageHeader({ title, onBack }: AppPageHeaderProps) {

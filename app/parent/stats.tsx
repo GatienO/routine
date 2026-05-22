@@ -7,7 +7,6 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useChildrenStore } from '../../src/stores/childrenStore';
 import { useRoutineStore } from '../../src/stores/routineStore';
 import { useRewardStore } from '../../src/stores/rewardStore';
@@ -19,13 +18,11 @@ import { AppPageHeader } from '../../src/components/ui/AppPageHeader';
 import { BADGES } from '../../src/constants/badges';
 import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../../src/constants/theme';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
-import { backOrReplace } from '../../src/utils/navigation';
 import { formatChildName } from '../../src/utils/children';
 
 const ROUTINES_PER_PAGE = 10;
 
 export default function StatsScreen() {
-  const router = useRouter();
   const { children } = useChildrenStore();
   const { executions, getRoutinesForChild, getRoutine } = useRoutineStore();
   const { getRewards, getUnlockedBadges } = useRewardStore();
@@ -86,11 +83,7 @@ export default function StatsScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <AppPageHeader
-          title="Statistiques"
-          onBack={() => backOrReplace(router, '/parent')}
-          onHome={() => router.replace('/parent')}
-        />
+        <AppPageHeader title="Statistiques" />
 
         {children.length > 1 && (
           <ScrollView

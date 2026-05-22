@@ -74,7 +74,6 @@ export default function ChildRoutinePauseScreen() {
           <AppPageHeader
             title="Pause"
             onBack={handleStop}
-            onHome={handleStop}
           />
 
           <Animated.View entering={FadeIn.duration(350)} style={styles.hero}>

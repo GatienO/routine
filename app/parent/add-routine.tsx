@@ -356,7 +356,6 @@ export default function AddRoutineScreen() {
         <AppPageHeader
           title={isMerge ? 'Fusionner des routines' : 'Nouvelle routine'}
           onBack={handleBack}
-          onHome={() => router.replace('/parent')}
         />
       </View>
 

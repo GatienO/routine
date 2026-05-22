@@ -9,7 +9,6 @@ import {
   TouchableOpacity,
   useWindowDimensions,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { CheckCircle, Gift, PlusCircle, Star, XCircle } from 'phosphor-react-native';
 import { useChildrenStore } from '../../src/stores/childrenStore';
 import { useRewardStore } from '../../src/stores/rewardStore';
@@ -24,7 +23,6 @@ import {
   showAppAlert,
   showAppConfirm,
 } from '../../src/components/feedback/AppFeedbackProvider';
-import { backOrReplace } from '../../src/utils/navigation';
 import { getGridItemWidth, getResponsiveColumns } from '../../src/utils/responsive';
 import {
   formatRemainingCooldown,
@@ -41,7 +39,6 @@ const COOLDOWN_OPTIONS: Array<{ value: RealRewardCooldownUnit; label: string }> 
 ];
 
 export default function ParentRewardsScreen() {
-  const router = useRouter();
   const { width } = useWindowDimensions();
   const children = useChildrenStore((state) => state.children);
   const rewardsState = useRewardStore((state) => state.rewards);
@@ -195,11 +192,7 @@ export default function ParentRewardsScreen() {
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={[styles.scroll, styles.scrollCentered]}>
         <View style={[styles.content, { width: contentWidth, maxWidth: '100%' }]}>
-          <AppPageHeader
-            title="Recompenses reelles"
-            onBack={() => backOrReplace(router, '/parent')}
-            onHome={() => router.replace('/parent')}
-          />
+          <AppPageHeader title="Recompenses reelles" />
           <Text style={styles.subtitle}>
             Motivez votre enfant avec des récompenses concrètes !
           </Text>
@@ -947,4 +940,3 @@ const styles = StyleSheet.create({
     marginTop: SPACING.lg,
   },
 });
-

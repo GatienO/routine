@@ -111,11 +111,7 @@ export default function ImportScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <AppPageHeader
-          title="Importer une routine"
-          onBack={() => backOrReplace(router, '/parent')}
-          onHome={() => router.replace('/parent')}
-        />
+        <AppPageHeader title="Importer une routine" />
 
         {children.length === 0 ? (
           <View style={styles.emptyState}>
