@@ -19,28 +19,28 @@ interface TutorialStep {
 
 const TUTORIAL_STEPS: TutorialStep[] = [
   {
-    id: 'local',
-    emoji: '🏠',
-    title: 'Tout reste sur cet appareil',
-    text: 'Le profil, les enfants, les routines et les récompenses restent enregistrés localement, sans compte ni serveur distant.',
+    id: 'child-profile',
+    emoji: '👶',
+    title: 'On commence par un enfant',
+    text: 'Le premier profil enfant sert de base pour attribuer les routines, personnaliser l experience et suivre les recompenses.',
+  },
+  {
+    id: 'pin',
+    emoji: '🔒',
+    title: 'Le code protege l espace parent',
+    text: 'Le code parent se choisit apres le premier enfant. Il protege les reglages, les routines et les recompenses.',
   },
   {
     id: 'parent',
     emoji: '👨‍👩‍👧',
-    title: 'L’espace parent prépare tout',
-    text: 'Depuis l’espace parent, on crée les enfants, les routines, les récompenses et on peut relancer ce guide plus tard.',
+    title: 'Les parents preparent les routines',
+    text: 'Depuis l espace parent, on cree les routines, les profils, les recompenses et les reglages utiles.',
   },
   {
     id: 'child',
-    emoji: '🧒',
-    title: 'L’espace enfant lance les routines',
-    text: 'L’enfant choisit sa routine, suit les étapes une à une et gagne des étoiles au fil de la progression.',
-  },
-  {
-    id: 'share',
     emoji: '✨',
-    title: 'Import, partage et liberté',
-    text: 'Les routines peuvent être dupliquées, partagées, importées et adaptées à chaque appareil sans créer de compte.',
+    title: 'L enfant suit son espace',
+    text: 'L espace enfant reste simple : choisir une routine, avancer et gagner des etoiles au fil des etapes.',
   },
 ];
 

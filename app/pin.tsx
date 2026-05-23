@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Backspace, Lock } from 'phosphor-react-native';
 import { useAppStore } from '../src/stores/appStore';
 import { AppPageHeader } from '../src/components/ui/AppPageHeader';
-import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../src/constants/theme';
+import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../src/constants/theme';
 import { backOrReplace } from '../src/utils/navigation';
 
-const DIGITS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'];
+const DIGITS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '<'];
 
 export default function PinScreen() {
   const router = useRouter();
@@ -26,7 +27,7 @@ export default function PinScreen() {
   };
 
   const handleDigit = (digit: string) => {
-    if (digit === '⌫') {
+    if (digit === '<') {
       setPin((value) => value.slice(0, -1));
       setError('');
       return;
@@ -74,44 +75,60 @@ export default function PinScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <View style={styles.container}>
-        <AppPageHeader
-          title={isSetup ? setupTitle : 'Code parent'}
-          onBack={() => backOrReplace(router, '/child')}
-        />
+      <View style={styles.backgroundLayer}>
+        <AppPageHeader title="Espace parent" onBack={() => backOrReplace(router, '/child')} />
 
-        <Text style={styles.emoji}>🔒</Text>
-        <Text style={styles.subtitle}>
-          {isSetup ? setupSubtitle : 'Entrez votre code a 4 chiffres'}
-        </Text>
-
-        <View style={styles.dots}>
-          {[0, 1, 2, 3].map((index) => (
-            <View
-              key={index}
-              style={[
-                styles.dot,
-                pin.length > index && styles.dotFilled,
-                error ? styles.dotError : null,
-              ]}
-            />
-          ))}
+        <View style={styles.contextPanel}>
+          <Text style={styles.contextEyebrow}>Acces protege</Text>
+          <Text style={styles.contextTitle}>Les reglages parent restent securises</Text>
+          <Text style={styles.contextText}>
+            Saisissez le code parent pour gerer les enfants, les routines et les recompenses.
+          </Text>
         </View>
+      </View>
 
-        {error ? <Text style={styles.error}>{error}</Text> : null}
+      <View style={styles.overlayLayer}>
+        <View style={styles.pinCard}>
+          <View style={styles.lockBadge}>
+            <Lock size={34} weight="fill" color={COLORS.secondaryDark} />
+          </View>
+          <Text style={styles.cardTitle}>{isSetup ? setupTitle : 'Code parent'}</Text>
+          <Text style={styles.subtitle}>
+            {isSetup ? setupSubtitle : 'Entrez votre code a 4 chiffres'}
+          </Text>
 
-        <View style={styles.keypad}>
-          {DIGITS.map((digit, index) => (
-            <TouchableOpacity
-              key={index}
-              style={[styles.key, digit === '' && styles.keyEmpty]}
-              onPress={() => handleDigit(digit)}
-              disabled={digit === ''}
-              activeOpacity={0.6}
-            >
-              <Text style={styles.keyText}>{digit}</Text>
-            </TouchableOpacity>
-          ))}
+          <View style={styles.dots}>
+            {[0, 1, 2, 3].map((index) => (
+              <View
+                key={index}
+                style={[
+                  styles.dot,
+                  pin.length > index && styles.dotFilled,
+                  error ? styles.dotError : null,
+                ]}
+              />
+            ))}
+          </View>
+
+          {error ? <Text style={styles.error}>{error}</Text> : null}
+
+          <View style={styles.keypad}>
+            {DIGITS.map((digit, index) => (
+              <TouchableOpacity
+                key={index}
+                style={[styles.key, digit === '' && styles.keyEmpty]}
+                onPress={() => handleDigit(digit)}
+                disabled={digit === ''}
+                activeOpacity={0.6}
+              >
+                {digit === '<' ? (
+                  <Backspace size={25} weight="bold" color={COLORS.primary} />
+                ) : (
+                  <Text style={styles.keyText}>{digit}</Text>
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
       </View>
     </SafeAreaView>
@@ -127,24 +144,72 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  container: {
+  backgroundLayer: {
     flex: 1,
-    alignItems: 'center',
     paddingTop: SPACING.xl,
     paddingHorizontal: SPACING.xl,
   },
-  back: {
-    alignSelf: 'flex-start',
-    marginBottom: SPACING.xl,
+  contextPanel: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: SPACING.lg,
   },
-  emoji: {
-    fontSize: 48,
+  contextEyebrow: {
+    fontSize: FONT_SIZE.xs,
+    fontWeight: '900',
+    color: COLORS.secondaryDark,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  contextTitle: {
+    maxWidth: 520,
+    marginTop: SPACING.sm,
+    fontSize: FONT_SIZE.xxl,
+    fontWeight: '900',
+    color: COLORS.text,
+    textAlign: 'center',
+  },
+  contextText: {
+    maxWidth: 500,
+    marginTop: SPACING.sm,
+    fontSize: FONT_SIZE.md,
+    lineHeight: 24,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+  },
+  overlayLayer: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: SPACING.lg,
+    backgroundColor: 'rgba(33, 39, 49, 0.34)',
+  },
+  pinCard: {
+    width: '100%',
+    maxWidth: 440,
+    alignItems: 'center',
+    borderRadius: RADIUS.xl + 8,
+    padding: SPACING.xl,
+    backgroundColor: 'rgba(255, 255, 255, 0.94)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.7)',
+    ...SHADOWS.lg,
+  },
+  lockBadge: {
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: `${COLORS.secondary}20`,
     marginBottom: SPACING.md,
   },
-  title: {
+  cardTitle: {
     fontSize: FONT_SIZE.xl,
-    fontWeight: '800',
+    fontWeight: '900',
     color: COLORS.text,
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: FONT_SIZE.md,

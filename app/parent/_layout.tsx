@@ -1,6 +1,7 @@
 import React from 'react';
 import { Stack, useRouter, useFocusEffect, useLocalSearchParams, usePathname } from 'expo-router';
 import { useAppStore } from '../../src/stores/appStore';
+import { useChildrenStore } from '../../src/stores/childrenStore';
 import { COLORS } from '../../src/constants/theme';
 
 export default function ParentLayout() {
@@ -8,6 +9,10 @@ export default function ParentLayout() {
   const pathname = usePathname();
   const searchParams = useLocalSearchParams<Record<string, string | string[]>>();
   const isParentMode = useAppStore((s) => s.isParentMode);
+  const parentPin = useAppStore((s) => s.parentPin);
+  const children = useChildrenStore((state) => state.children);
+  const childrenHasHydrated = useChildrenStore((state) => state.hasHydrated);
+  const canUseFirstSetup = !parentPin && childrenHasHydrated && children.length === 0;
   const redirectTarget = React.useMemo(
     () => buildRedirectTarget(pathname, searchParams),
     [pathname, searchParams]
@@ -16,16 +21,16 @@ export default function ParentLayout() {
   // Redirect to PIN screen if not authenticated
   useFocusEffect(
     React.useCallback(() => {
-      if (!isParentMode) {
+      if (!isParentMode && !canUseFirstSetup) {
         router.replace({
           pathname: '/pin',
           params: { redirect: redirectTarget },
         } as any);
       }
-    }, [isParentMode, redirectTarget, router])
+    }, [canUseFirstSetup, isParentMode, redirectTarget, router])
   );
 
-  if (!isParentMode) return null;
+  if (!isParentMode && !canUseFirstSetup) return null;
 
   return (
     <Stack

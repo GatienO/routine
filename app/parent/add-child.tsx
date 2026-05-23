@@ -13,6 +13,7 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useChildrenStore } from '../../src/stores/childrenStore';
 import { useRoutineStore } from '../../src/stores/routineStore';
+import { useAppStore } from '../../src/stores/appStore';
 import { Button } from '../../src/components/ui/Button';
 import { AppPageHeader } from '../../src/components/ui/AppPageHeader';
 import { EmojiPicker, ColorPicker } from '../../src/components/ui/Pickers';
@@ -44,11 +45,13 @@ const COMPANION_INNER_SHADOW = SHADOWS.lg;
 export default function AddChildScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
-  const params = useLocalSearchParams<{ id?: string; first?: string }>();
+  const params = useLocalSearchParams<{ id?: string; first?: string; onboarding?: string }>();
   const { addChild, updateChild, removeChild, getChild } = useChildrenStore();
   const { removeRoutine, routines } = useRoutineStore();
+  const setParentMode = useAppStore((state) => state.setParentMode);
   const editing = params.id ? getChild(params.id) : undefined;
   const isFirstChildSetup = params.first === '1' && !editing;
+  const isOnboarding = params.onboarding === '1' && !editing;
 
   const [name, setName] = useState(editing?.name ?? '');
   const [avatar, setAvatar] = useState(editing?.avatar ?? AVATAR_ASSET_OPTIONS[0].id);
@@ -61,6 +64,9 @@ export default function AddChildScreen() {
   const [ageTouched, setAgeTouched] = useState(false);
   const stackedLayout = width < 980;
   const contentWidth = Math.min(width - SPACING.lg * 2, 1180);
+  const previewAvatarSize = stackedLayout ? 128 : 184;
+  const previewRingSize = previewAvatarSize + 18;
+  const previewWrapperSize = previewRingSize + 8;
 
   const canSave = name.trim().length > 0 && age.length > 0;
 
@@ -99,6 +105,12 @@ export default function AddChildScreen() {
       updateChild(editing.id, data);
     } else {
       addChild(data);
+    }
+
+    if (isOnboarding) {
+      setParentMode(true);
+      router.replace('/parent?setupPin=1');
+      return;
     }
 
     backOrReplace(router, '/parent');
@@ -214,22 +226,46 @@ export default function AddChildScreen() {
         <View style={[styles.content, { width: contentWidth, maxWidth: '100%' }]}>
           <AppPageHeader
             title={editing ? 'Modifier le profil' : isFirstChildSetup ? 'Premier profil enfant' : 'Nouvel enfant'}
-            onBack={() => backOrReplace(router, '/parent')}
+            onBack={isOnboarding ? undefined : () => backOrReplace(router, '/parent')}
           />
+
+          {isOnboarding ? (
+            <View style={styles.onboardingCard}>
+              <Text style={styles.onboardingEyebrow}>Premiere etape</Text>
+              <Text style={styles.onboardingTitle}>Cree le profil de ton enfant</Text>
+              <Text style={styles.onboardingText}>
+                Routine commence par un profil enfant. Son prenom, son age et son avatar
+                permettront ensuite de lui attribuer des routines et de suivre ses recompenses.
+              </Text>
+            </View>
+          ) : null}
 
         <View style={[styles.avatarSection, stackedLayout && styles.avatarSectionStacked]}>
           <View style={[styles.avatarPreviewCol, stackedLayout && styles.avatarPreviewColStacked]}>
-            <View style={styles.avatarWrapper}>
+            <View
+              style={[
+                styles.avatarWrapper,
+                { width: previewWrapperSize, height: previewWrapperSize },
+              ]}
+            >
               <View
                 style={[
                   styles.avatarRing,
                   {
+                    width: previewRingSize,
+                    height: previewRingSize,
+                    borderRadius: previewRingSize / 2,
                     borderColor: color,
                     backgroundColor: `${color}18`,
                   },
                 ]}
               />
-              <Avatar emoji={avatar} color={color} size={110} style={styles.avatarMain} />
+              <Avatar
+                emoji={avatar}
+                color={color}
+                size={previewAvatarSize}
+                style={styles.avatarMain}
+              />
               {companion ? (
                 <View style={styles.companionBadge}>
                   <View style={styles.companionRing} />
@@ -364,6 +400,34 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     marginBottom: SPACING.lg,
   },
+  onboardingCard: {
+    marginTop: SPACING.md,
+    marginBottom: SPACING.lg,
+    padding: SPACING.lg,
+    gap: SPACING.xs,
+    borderRadius: RADIUS.xl,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    ...SHADOWS.md,
+  },
+  onboardingEyebrow: {
+    fontSize: FONT_SIZE.xs,
+    fontWeight: '900',
+    color: COLORS.secondaryDark,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  onboardingTitle: {
+    fontSize: FONT_SIZE.lg,
+    fontWeight: '900',
+    color: COLORS.text,
+  },
+  onboardingText: {
+    fontSize: FONT_SIZE.sm,
+    lineHeight: 21,
+    color: COLORS.textSecondary,
+  },
   avatarSection: {
     flexDirection: 'row',
     marginBottom: SPACING.lg,
@@ -390,16 +454,11 @@ const styles = StyleSheet.create({
   },
   avatarWrapper: {
     position: 'relative',
-    width: 130,
-    height: 130,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarRing: {
     position: 'absolute',
-    width: 126,
-    height: 126,
-    borderRadius: 63,
     borderWidth: 4,
     borderColor: COLORS.secondary,
     backgroundColor: COLORS.surface,
@@ -408,9 +467,6 @@ const styles = StyleSheet.create({
   },
   avatarMain: {
     position: 'absolute',
-    width: 110,
-    height: 110,
-    borderRadius: 55,
     borderWidth: 3,
     borderColor: '#FFF',
     backgroundColor: '#FFF',

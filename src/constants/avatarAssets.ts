@@ -1,12 +1,42 @@
 import { ImageSourcePropType } from 'react-native';
 
-export const AVATAR_ASSET_OPTIONS = [
-  { id: 'asset-avatar-1', label: 'Avatar 1', source: require('../../assets/avatars/avatar/1.png') },
-  { id: 'asset-avatar-2', label: 'Avatar 2', source: require('../../assets/avatars/avatar/2.png') },
-  { id: 'asset-avatar-3', label: 'Avatar 3', source: require('../../assets/avatars/avatar/3.png') },
-  { id: 'asset-avatar-4', label: 'Avatar 4', source: require('../../assets/avatars/avatar/4.png') },
-  { id: 'asset-avatar-5', label: 'Avatar 5', source: require('../../assets/avatars/avatar/5.png') },
-] as const;
+type AssetOption = {
+  id: string;
+  label: string;
+  source: ImageSourcePropType;
+};
+
+type AvatarContext = {
+  (key: string): ImageSourcePropType;
+  keys: () => string[];
+};
+
+declare const require: NodeRequire & {
+  context: (directory: string, useSubdirectories: boolean, regExp: RegExp) => AvatarContext;
+};
+
+function createAvatarAssetOptions(): AssetOption[] {
+  const avatarContext = require.context('../../assets/avatars/avatar', false, /\.png$/);
+
+  return avatarContext
+    .keys()
+    .map((key) => {
+      const filename = key.replace('./', '');
+      const label = filename.replace(/\.[^.]+$/, '');
+      const order = Number.parseInt(label, 10);
+
+      return {
+        id: `asset-avatar-${label}`,
+        label: `Avatar ${label}`,
+        source: avatarContext(key),
+        order: Number.isNaN(order) ? Number.MAX_SAFE_INTEGER : order,
+      };
+    })
+    .sort((left, right) => left.order - right.order || left.label.localeCompare(right.label))
+    .map(({ order, ...option }) => option);
+}
+
+export const AVATAR_ASSET_OPTIONS = createAvatarAssetOptions();
 
 export const DOUDOU_ASSET_OPTIONS = [
   { id: 'doudou_ours', label: 'Ours', source: require('../../assets/clothes/doudous/doudou_ours.png') },

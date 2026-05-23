@@ -20,6 +20,7 @@ import { useChildrenStore } from '../../src/stores/childrenStore';
 import { useAppStore } from '../../src/stores/appStore';
 import { useRoutineStore } from '../../src/stores/routineStore';
 import { useWeatherStore } from '../../src/stores/weatherStore';
+import { useLocalProfileStore } from '../../src/stores/localProfileStore';
 import { Avatar } from '../../src/components/ui/Avatar';
 import { AnimatedPressable } from '../../src/components/ui/AnimatedPressable';
 import { AppPageHeader } from '../../src/components/ui/AppPageHeader';
@@ -55,7 +56,10 @@ export default function ChildLauncherScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const { children, getChild } = useChildrenStore();
-  const { selectChild, weatherCity, useGeolocation } = useAppStore();
+  const childrenHasHydrated = useChildrenStore((state) => state.hasHydrated);
+  const { selectChild, setParentMode, weatherCity, useGeolocation } = useAppStore();
+  const profileName = useLocalProfileStore((state) => state.profileName);
+  const tutorialPromptPending = useLocalProfileStore((state) => state.tutorialPromptPending);
   const { routines, toggleFavorite } = useRoutineStore();
   const { weather, refresh: refreshWeather } = useWeatherStore();
   const [selectedRoutineIds, setSelectedRoutineIds] = useState<string[]>([]);
@@ -169,6 +173,15 @@ export default function ChildLauncherScreen() {
 
     return () => subscription.remove();
   }, [weatherCity, useGeolocation, refreshWeather]);
+
+  useEffect(() => {
+    if (!profileName || !tutorialPromptPending || !childrenHasHydrated || children.length > 0) {
+      return;
+    }
+
+    setParentMode(true);
+    router.replace('/parent/add-child?first=1&onboarding=1');
+  }, [children.length, childrenHasHydrated, profileName, router, setParentMode, tutorialPromptPending]);
 
   const handleOpenRewards = () => {
     router.push('/child/rewards');

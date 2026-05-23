@@ -17,6 +17,7 @@ import {
   ArrowLeft,
   Baby,
   Books,
+  CalendarBlank,
   ChartBar,
   CloudSun,
   Gear,
@@ -61,6 +62,12 @@ export function AppTopNavigation({ title, onBack, style }: AppTopNavigationProps
   const navigateParent = () => {
     setMenuOpen(false);
     router.replace((isParentMode ? '/parent' : parentPinRoute('/parent')) as any);
+  };
+
+  const navigateChildRoute = (href: string) => {
+    setMenuOpen(false);
+    selectChild(null);
+    router.push(href as any);
   };
 
   const navigateParentRoute = (href: string) => {
@@ -145,6 +152,11 @@ export function AppTopNavigation({ title, onBack, style }: AppTopNavigationProps
                 }
               />
               <NavigationPill
+                label="Calendrier enfant"
+                onPress={() => navigateChildRoute('/child/calendar')}
+                icon={<CalendarBlank size={20} weight="bold" color={COLORS.textSecondary} />}
+              />
+              <NavigationPill
                 label="Espace parent"
                 onPress={navigateParent}
                 active={activeKey === 'parent'}
@@ -193,6 +205,11 @@ export function AppTopNavigation({ title, onBack, style }: AppTopNavigationProps
                 label="Statistiques"
                 onPress={() => navigateParentRoute('/parent/stats')}
                 icon={<ChartBar size={20} weight="bold" color={COLORS.textSecondary} />}
+              />
+              <NavigationPill
+                label="Calendrier"
+                onPress={() => navigateParentRoute('/parent/calendar')}
+                icon={<CalendarBlank size={20} weight="bold" color={COLORS.textSecondary} />}
               />
               <NavigationPill
                 label="Corbeille"

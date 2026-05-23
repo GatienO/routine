@@ -2,6 +2,11 @@ const { getDefaultConfig } = require('expo/metro-config');
 
 const config = getDefaultConfig(__dirname);
 
+config.transformer = {
+  ...config.transformer,
+  unstable_allowRequireContext: true,
+};
+
 // Fix: Metro's HMR server crashes when the web client sends the page URL
 // (empty path) instead of the bundle URL. Rewrite those URLs so
 // jsc-safe-url doesn't throw "empty path" errors.

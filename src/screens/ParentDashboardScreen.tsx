@@ -13,7 +13,7 @@ import {
   Modal,
   Pressable,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowsDownUp } from 'phosphor-react-native';
 import { useChildrenStore } from '../stores/childrenStore';
@@ -61,6 +61,7 @@ const CATEGORY_FILTER_OPTIONS: CategoryFilterValue[] = [
   'emotion',
   'custom',
 ];
+const SETUP_PIN_DIGITS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'];
 
 const DASHBOARD_GRADIENT: [string, string, string, string] = [
   '#A9CDD6',
@@ -71,6 +72,7 @@ const DASHBOARD_GRADIENT: [string, string, string, string] = [
 
 export function ParentDashboardScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ setupPin?: string }>();
   const children = useChildrenStore((state) => state.children);
   const childrenHasHydrated = useChildrenStore((state) => state.hasHydrated);
   const routines = useRoutineStore((state) => state.routines);
@@ -85,6 +87,9 @@ export function ParentDashboardScreen() {
   const useGeolocation = useAppStore((state) => state.useGeolocation);
   const setWeatherCity = useAppStore((state) => state.setWeatherCity);
   const setUseGeolocation = useAppStore((state) => state.setUseGeolocation);
+  const parentPin = useAppStore((state) => state.parentPin);
+  const setParentPin = useAppStore((state) => state.setParentPin);
+  const setParentMode = useAppStore((state) => state.setParentMode);
   const profileName = useLocalProfileStore((state) => state.profileName);
   const profileId = useLocalProfileStore((state) => state.profileId);
   const tutorialCompletedAt = useLocalProfileStore((state) => state.tutorialCompletedAt);
@@ -104,6 +109,7 @@ export function ParentDashboardScreen() {
   const [routinesExpanded, setRoutinesExpanded] = useState(true);
   const [sortMode, setSortMode] = useState<SortMode>('recent');
   const [routineToShare, setRoutineToShare] = useState<Routine | null>(null);
+  const showPinSetup = params.setupPin === '1' && !parentPin;
 
   const deferredSearch = useDeferredValue(searchQuery.trim().toLowerCase());
   const selectedChildIdSet = useMemo(() => new Set(selectedChildIds), [selectedChildIds]);
@@ -690,6 +696,15 @@ export function ParentDashboardScreen() {
         routine={routineToShare}
         onClose={() => setRoutineToShare(null)}
       />
+      <ParentPinSetupModal
+        visible={showPinSetup}
+        onComplete={(pin) => {
+          setParentPin(pin);
+          setParentMode(true);
+          completeTutorial();
+          router.replace('/parent');
+        }}
+      />
       <AppTutorialModal
         visible={showTutorial}
         onClose={() => setShowTutorial(false)}
@@ -697,6 +712,107 @@ export function ParentDashboardScreen() {
       />
       </SafeAreaView>
     </LinearGradient>
+  );
+}
+
+function ParentPinSetupModal({
+  visible,
+  onComplete,
+}: {
+  visible: boolean;
+  onComplete: (pin: string) => void;
+}) {
+  const [pin, setPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState<string | null>(null);
+  const [error, setError] = useState('');
+  const isConfirmStep = confirmPin !== null;
+
+  const handleDigit = (digit: string) => {
+    if (digit === '⌫') {
+      setPin((value) => value.slice(0, -1));
+      setError('');
+      return;
+    }
+
+    if (!digit || pin.length >= 4) {
+      return;
+    }
+
+    const nextPin = pin + digit;
+    setPin(nextPin);
+
+    if (nextPin.length !== 4) {
+      return;
+    }
+
+    if (!confirmPin) {
+      setConfirmPin(nextPin);
+      setPin('');
+      return;
+    }
+
+    if (nextPin === confirmPin) {
+      onComplete(nextPin);
+      setPin('');
+      setConfirmPin(null);
+      setError('');
+      return;
+    }
+
+    setError('Les codes ne correspondent pas');
+    setTimeout(() => {
+      setPin('');
+      setConfirmPin(null);
+      setError('');
+    }, 1000);
+  };
+
+  return (
+    <Modal transparent visible={visible} animationType="fade" onRequestClose={() => undefined}>
+      <Pressable style={styles.pinSetupBackdrop}>
+        <Pressable style={styles.pinSetupCard} onPress={(event) => event.stopPropagation()}>
+          <Text style={styles.pinSetupEyebrow}>Deuxieme etape</Text>
+          <Text style={styles.pinSetupTitle}>Choisis ton code parent</Text>
+          <Text style={styles.pinSetupText}>
+            Ce code protegera les reglages, les routines et les recompenses. L'enfant garde son
+            espace simple, et les parents gardent la main sur la preparation.
+          </Text>
+
+          <Text style={styles.pinSetupStep}>
+            {isConfirmStep ? 'Confirme le meme code' : 'Entre un code a 4 chiffres'}
+          </Text>
+
+          <View style={styles.pinDots}>
+            {[0, 1, 2, 3].map((index) => (
+              <View
+                key={index}
+                style={[
+                  styles.pinDot,
+                  pin.length > index && styles.pinDotFilled,
+                  error ? styles.pinDotError : null,
+                ]}
+              />
+            ))}
+          </View>
+
+          {error ? <Text style={styles.pinError}>{error}</Text> : null}
+
+          <View style={styles.pinKeypad}>
+            {SETUP_PIN_DIGITS.map((digit, index) => (
+              <TouchableOpacity
+                key={`${digit || 'empty'}-${index}`}
+                style={[styles.pinKey, digit === '' && styles.pinKeyEmpty]}
+                onPress={() => handleDigit(digit)}
+                disabled={digit === ''}
+                activeOpacity={0.72}
+              >
+                <Text style={styles.pinKeyText}>{digit}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </Pressable>
+      </Pressable>
+    </Modal>
   );
 }
 
@@ -961,6 +1077,104 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: SPACING.lg,
+  },
+  pinSetupBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(33, 39, 49, 0.56)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: SPACING.lg,
+  },
+  pinSetupCard: {
+    width: '100%',
+    maxWidth: 500,
+    borderRadius: RADIUS.xl + 4,
+    backgroundColor: COLORS.surface,
+    padding: SPACING.xl,
+    gap: SPACING.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    ...SHADOWS.lg,
+  },
+  pinSetupEyebrow: {
+    fontSize: FONT_SIZE.xs,
+    fontWeight: '900',
+    color: COLORS.secondaryDark,
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  pinSetupTitle: {
+    fontSize: FONT_SIZE.xl,
+    fontWeight: '900',
+    color: COLORS.text,
+    textAlign: 'center',
+  },
+  pinSetupText: {
+    fontSize: FONT_SIZE.sm,
+    lineHeight: 21,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+  },
+  pinSetupStep: {
+    fontSize: FONT_SIZE.md,
+    fontWeight: '800',
+    color: COLORS.text,
+    textAlign: 'center',
+  },
+  pinDots: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: SPACING.md,
+  },
+  pinDot: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2,
+    borderColor: COLORS.textLight,
+    backgroundColor: 'transparent',
+  },
+  pinDotFilled: {
+    backgroundColor: COLORS.secondary,
+    borderColor: COLORS.secondary,
+  },
+  pinDotError: {
+    backgroundColor: COLORS.error,
+    borderColor: COLORS.error,
+  },
+  pinError: {
+    color: COLORS.error,
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  pinKeypad: {
+    alignSelf: 'center',
+    maxWidth: 280,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: SPACING.sm,
+  },
+  pinKey: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  pinKeyEmpty: {
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+  },
+  pinKeyText: {
+    fontSize: FONT_SIZE.xl,
+    fontWeight: '900',
+    color: COLORS.primary,
   },
   weatherModalCard: {
     width: '100%',
