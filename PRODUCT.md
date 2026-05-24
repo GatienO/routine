@@ -1,201 +1,140 @@
-# Routine - Product & Technical Reference
+# Routine - Référence Produit et Technique
 
-## Vue d'ensemble
+## Vision
 
-**Routine** est une application mobile (iOS, Android, Web) qui transforme les tâches quotidiennes des enfants en expériences ludiques. Les parents créent des routines personnalisées, les organisent facilement, puis les enfants les lancent une par une ou en chaîne avec un système de récompenses positif.
+Routine aide les familles à transformer les routines quotidiennes en parcours simples, visuels et encourageants. L'utilisateur ne doit pas sentir trois applications séparées, mais une seule app organisée par intention :
 
-- **Offline-first** : 100% local, aucun backend, aucun compte requis
-- **Multi-enfants** : chaque enfant a son profil, ses routines et ses récompenses
-- **Gamification positive** : étoiles, badges, séries, récompenses réelles
-- **Parcours guidé** : écran récapitulatif, humeur, progression, célébration
+- choisir et lancer une routine
+- trouver une activité
+- gérer la configuration parent
 
----
+## Espaces UX
 
-## Fonctionnalités
+### Routines
 
-### Espace Parent
+Route principale : `/routines`
 
-| Fonction | Description |
-|---|---|
-| Profils enfants | Créer/modifier : nom, avatar, couleur, âge, doudou (7 animaux), passions |
-| Création de routine | Nom, description, icône, couleur, catégorie, assignation à un ou plusieurs enfants, favoris |
-| Étapes | Titre, icône, durée, consigne, obligatoire/facultatif, image, ordre |
-| Catalogue | 27 modèles regroupés par packs avec âge conseillé, durée estimée et détail complet |
-| Favoris | Marquer/demarquer routines favorites pour accès rapide |
-| Filtres avancés | Multi-sélection d'enfants, filtrage par statut et catégorie, pagination |
-| Réorganisation | Réordonner les routines d'un enfant par glisser-déposer |
-| Duplication | Dupliquer une routine pour le même enfant ou un autre |
-| Fusion | Sélectionner plusieurs routines d'un même enfant et les fusionner en une seule |
-| Activation/désactivation | Activer ou suspendre une routine |
-| Import/export | Partage par deep link avec prévisualisation avant import |
-| Récompenses réelles | Associer des étoiles à des récompenses physiques avec cycles de recharge configurables |
-| Statistiques | Étoiles, séries, exécutions par routine et activité récente |
-| Météo | Ville configurable ou géolocalisation automatique |
+La page reprend l'expérience enfant existante depuis `/child` et la rend centrale. Elle contient :
 
-### Espace Enfant
+- météo et conseils du moment
+- recherche et filtres
+- cartes routines avec étapes visibles
+- actions rapides : modifier, favori, ajouter à la session
+- bouton de création de routine
+- accès récompenses enfant
+- bouton de lancement de session
 
-| Fonction | Description |
-|---|---|
-| Sélection profil | Choix tactile du profil, sélection directe s'il n'y a qu'un enfant |
-| Dashboard | Routines actives (avec favoris en premier), météo, récompense en cours, humeur récente, série |
-| Récapitulatif | Aperçu d'une routine avant lancement : étapes, durée totale, heure de fin estimée |
-| Chaînage | Sélection de plusieurs routines pour les lancer à la suite |
-| Humeur | Choix d'humeur avant départ pour adapter l'expérience |
-| Exécution | Étape par étape avec timer circulaire, progression, heure de fin estimée |
-| Allègement automatique | Les étapes facultatives sont retirées si l'humeur choisie est négative |
-| Célébration | Confettis, étoiles gagnées, badges débloqués |
-| Récompenses | Total d'étoiles, badges, séries, récompenses en cours et déjà offertes |
-| Météo adaptative | Fond dynamique, conseils vestimentaires illustrés, messages jour/soir |
+Les cartes doivent rester lisibles : pas de longues explications, actions visibles, aperçu concret des étapes.
 
-### Gamification
+### Activités
 
-- **Étoiles** : 1 par étape obligatoire + bonus de routine complétée
-- **Séries** : jours consécutifs avec au moins une routine terminée
-- **7 badges** : première étoile, premières routines, séries et caps de progression
-- **Récompenses réelles** : visibles côté parent et côté enfant avec :
-  - Barre d'avancement
-  - Cycles de recharge configurables (minutes, heures, jours, semaines)
-  - Déduction d'étoiles à la réclamation
-  - Countdown en temps réel de disponibilité
+Route principale : `/activities`
 
-### Météo
+L'espace Activités reprend le fonctionnement de l'app MiniActivites :
 
-- API Open-Meteo sans clé
-- Ville manuelle ou géolocalisation via `expo-location`
-- Habillage visuel selon condition et jour/nuit
-- Tenue conseillée illustrée avec icônes de vêtements personnalisées
-- Variante spéciale soir/dodo avec accessoires de coucher
-- Cache local AsyncStorage
+- recherche libre
+- filtres rapides et avancés
+- liste de cartes activités
+- mode Surprise
+- favoris
+- historique
+- fiches détail
+- persistance locale
 
----
+Routes secondaires :
 
-## Architecture technique
+- `/activities/surprise`
+- `/activities/favorites`
+- `/activities/history`
+- `/activities/activity-form`
+- `/activities/result`
+- `/activities/activity/[id]`
 
-### Stack
+### Parent
 
-| Couche | Technologie | Version |
-|---|---|---|
-| Framework | Expo | 55.0.9 |
-| Langage | TypeScript strict | 5.9 |
-| Runtime | React / React Native | 19.2 / 0.83.2 |
-| Routing | Expo Router | 55.0.8 |
-| État | Zustand + AsyncStorage persist | 5.x |
-| Animations | Reanimated | 4.2.1 |
-| Gestes | react-native-gesture-handler | 2.30.0 |
-| Icônes & SVG | Phosphor, OpenMoji, react-native-svg | 3.x / 15.15 |
-| Médias | expo-image-picker | 55.0.16 |
-| Météo | Open-Meteo API | - |
-| Géolocalisation | expo-location | 55.1.6 |
-| Tests | Jest + ts-jest | 29.7 |
+Route principale : `/parent`
 
-### Structure du projet
+L'espace Parent regroupe la gestion :
+
+- enfants
+- routines
+- création et édition
+- catalogue de routines
+- import/export
+- calendrier avancé
+- récompenses
+- statistiques
+- météo
+- corbeille et paramètres
+
+Le catalogue de routines n'est plus une page d'import direct. `/parent/catalog` redirige vers `/parent/add-routine?catalog=1`, où le catalogue s'ouvre en superposition. Choisir un modèle remplit le formulaire, puis le parent peut adapter avant d'enregistrer.
+
+## Architecture
+
+Le routage unifie l'expérience, mais les features restent séparées.
 
 ```text
 app/
-  _layout.tsx
-  index.tsx
+  (tabs)/routines.tsx
+  (tabs)/activities.tsx
+  (tabs)/parent.tsx
+  activities/
   child/
-    index.tsx
-    home.tsx
-    summary.tsx
-    mood.tsx
-    run.tsx
-    celebration.tsx
-    rewards.tsx
   parent/
-    index.tsx
-    add-child.tsx
-    add-routine.tsx
-    edit-routine.tsx
-    catalog.tsx
-    import.tsx
-    stats.tsx
-    rewards.tsx
-src/
-  components/
-    avatar/
-    rewards/
-    routine/
-    ui/
-    weather/
-  constants/
-    avatar.ts
-    profileCustomization.ts
-    routineTemplates.ts
-  services/
-    sharing.ts
-  stores/
-    appStore.ts
-    childrenStore.ts
-    moodStore.ts
-    realRewardStore.ts
-    rewardStore.ts
-    routineStore.ts
-    weatherStore.ts
-  types/
-  utils/
+src/features/
+  activities/
+src/stores/
 ```
 
-### Stores Zustand
+### Routines
 
-| Store | Persistance | Rôle |
-|---|---|---|
-| `appStore` | Oui | PIN, mode parent, enfant sélectionné, réglages météo |
-| `childrenStore` | Oui | Profils enfants |
-| `routineStore` | Oui | Routines, exécutions, chaîne en cours |
-| `rewardStore` | Oui | Étoiles, streaks, badges |
-| `moodStore` | Oui | Humeur récente par enfant |
-| `realRewardStore` | Oui | Récompenses réelles |
-| `weatherStore` | Cache local | Données météo courantes et rafraîchissement |
+Les routines restent gérées par `src/stores/routineStore.ts`.
 
-### Modèle de données
+Les routes enfant historiques sont conservées pour ne pas casser les flux :
 
-```typescript
-Child {
-  id, name, avatar, avatarConfig?, color, age, companion?, passions?, createdAt
-}
+- `/child`
+- `/child/summary`
+- `/child/run`
+- `/child/rewards`
+- `/child/calendar`
 
-Routine {
-  id, childId, name, description?, icon, color, category, steps[],
-  isActive, createdAt, updatedAt
-}
+### Activités
 
-RoutineStep {
-  id, title, icon, color, durationMinutes, instruction,
-  isRequired, order, mediaUri?
-}
+La feature est dans `src/features/activities` :
 
-RoutineExecution {
-  id, routineId, childId, startedAt, completedAt?,
-  stepsCompleted[], earnedStars, mood?, stepDurations?
-}
+- `activities.ts` : catalogue
+- `activity-filter.ts` : recherche, filtres, tri
+- `activity-store.ts` : favoris, historique, filtres
+- `components/` : UI MiniActivites intégrée
+- `screens/` : écrans routés par Expo Router
+
+### Parent
+
+La création de routine est dans `app/parent/add-routine.tsx`.
+
+Logique de création actuelle :
+
+1. Le parent peut partir d'un formulaire vide.
+2. Il peut ouvrir le catalogue en modal.
+3. Les thèmes du catalogue apparaissent en tabs.
+4. Les routines du thème sont affichées en cartes.
+5. Cliquer une carte remplit le formulaire.
+6. Le parent ajuste puis enregistre.
+
+## Contraintes techniques
+
+- TypeScript strict
+- Zustand pour l'état global
+- AsyncStorage pour la persistance
+- pas de backend
+- pas de dépendance lourde sans nécessité
+- routes historiques conservées ou redirigées
+- UX mobile-first
+- éviter les doublons de logique métier
+
+## Commandes de vérification
+
+```bash
+npx tsc --noEmit
+npm test -- --runInBand
 ```
-
-### Doudous (Animaux compagnons)
-
-- 7 animaux en peluche au choix lors de la création d'enfant : ours, panda, lapin, chat, renard, girafe, éléphant
-- S'affiche avec l'enfant en pyjama
-- Inclus dans les recommandations de tenue "soir/dodo"
-- Élément de personnalisation du profil enfant
-
-### Favoris
-
-- Marquer/demarquer routines et les voir en premier dans le dashboard
-- Accessible côté parent et côté enfant
-- Persiste dans AsyncStorage
-
-### Sécurité
-
-- PIN parent local à 4 chiffres
-- Aucune donnée envoyée sur un serveur
-- Aucun compte ni analytics tiers
-- Les routines partagées ne contiennent pas d'identité enfant
-
----
-
-## Tests
-
-- **5 suites** Jest
-- Stores testés : enfants, routines, récompenses
-- Services testés : partage
-- Utilitaires testés : dates

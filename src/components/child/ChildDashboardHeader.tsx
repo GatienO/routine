@@ -10,7 +10,7 @@ import {
   Modal,
   Pressable,
 } from 'react-native';
-import { CaretDown, Check, MagnifyingGlass, SlidersHorizontal } from 'phosphor-react-native';
+import { CaretDown, Check, MagnifyingGlass, Plus, SlidersHorizontal } from 'phosphor-react-native';
 import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../../constants/theme';
 import { Child, RoutineCategory } from '../../types';
 import { formatChildName } from '../../utils/children';
@@ -53,6 +53,7 @@ export const ChildDashboardHeader = memo(function ChildDashboardHeader({
   selectedStatuses,
   onToggleStatus,
   onClearStatuses,
+  onCreateRoutine,
 }: {
   children: Child[];
   selectedChildIds: string[];
@@ -66,6 +67,7 @@ export const ChildDashboardHeader = memo(function ChildDashboardHeader({
   selectedStatuses: StatusFilterValue[];
   onToggleStatus: (value: StatusFilterValue) => void;
   onClearStatuses: () => void;
+  onCreateRoutine?: () => void;
 }) {
   const { width } = useWindowDimensions();
   const [showFilters, setShowFilters] = useState(false);
@@ -155,6 +157,17 @@ export const ChildDashboardHeader = memo(function ChildDashboardHeader({
             Filtres
           </Text>
         </TouchableOpacity>
+
+        {onCreateRoutine ? (
+          <TouchableOpacity
+            onPress={onCreateRoutine}
+            activeOpacity={0.84}
+            style={styles.createButton}
+          >
+            <Plus size={18} weight="bold" color="#FFFFFF" />
+            <Text style={styles.createButtonText}>Creer</Text>
+          </TouchableOpacity>
+        ) : null}
       </View>
 
       {showFilters ? (
@@ -451,6 +464,23 @@ const styles = StyleSheet.create({
     color: '#5E7B86',
   },
   filtersButtonTextActive: {
+    color: '#FFFFFF',
+  },
+  createButton: {
+    minHeight: 58,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.xs,
+    paddingHorizontal: SPACING.md + 2,
+    borderRadius: 22,
+    backgroundColor: COLORS.secondary,
+    borderWidth: 1,
+    borderColor: COLORS.secondary,
+  },
+  createButtonText: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '900',
     color: '#FFFFFF',
   },
   filtersPanel: {

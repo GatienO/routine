@@ -58,6 +58,8 @@ const HALO: string[] = [
   P.roseSoft, P.blueSoft, P.greenSoft, '#FFF6EE', '#F2F0FF', '#F0FFF5',
 ];
 
+const gradientColors: [string, string, string] = [P.blue, P.green, P.rose];
+
 type StatusFilter = 'all' | 'active' | 'inactive';
 type CategoryFilter = 'all' | RoutineCategory;
 
@@ -80,9 +82,7 @@ export default function ParentRoutinesScreen() {
   const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
-    const gradientColors: [string, string, string] = [P.blue, P.green, P.rose];
-
-  if (children.length === 0) {
+    if (children.length === 0) {
       setSelectedChildId(null);
       return;
     }
@@ -458,6 +458,7 @@ export default function ParentRoutinesScreen() {
           renderItem={({ item, index }) => (
             <RoutineCard
               routine={item}
+              index={index}
               selected={mergeSelection.includes(item.id)}
               selectable={mergeMode}
               onSelect={() => toggleMergeSelect(item.id)}

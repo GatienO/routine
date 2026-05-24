@@ -1,234 +1,129 @@
 # Guide Utilisateur - Routine
 
-## Premiers pas
+## Les 3 onglets
 
-Au lancement, l'écran d'accueil propose deux modes :
+### Routines
 
-- **Enfant** - accès direct aux routines
-- **Parent** - espace de gestion protégé par PIN
+C'est l'écran principal pour l'enfant.
 
----
+On y trouve :
 
-## Espace Parent
+- les routines disponibles
+- la météo
+- les filtres
+- la recherche
+- les favoris
+- l'ajout de routines à une session
+- le lancement de la session
 
-### Créer un PIN
+Chaque carte routine propose 3 actions rapides :
 
-Au premier accès parent, vous définissez un code PIN à 4 chiffres pour protéger la configuration.
+- **Modifier** : ouvre l'édition parent de la routine
+- **Favori** : met la routine en avant
+- **+** : ajoute la routine à la session à lancer
 
-### Ajouter un enfant
+Quand au moins une routine est choisie, le bouton en bas permet de commencer.
 
-1. Ouvrir **Espace Parent**
-2. Appuyer sur **+ Ajouter**
-3. Renseigner le prénom, l'âge, l'avatar et la couleur
-4. Choisir un **doudou** (animal en peluche compagnon parmi 7 options)
-5. Ajouter jusqu'à **5 passions** (intérêts favoris)
-6. Enregistrer
+### Activités
 
-Le profil peut ensuite être modifié à tout moment. Le doudou s'affichera avec l'enfant en pyjama et sera recommandé dans les tenues de nuit.
+Cet onglet sert à trouver une idée d'activité rapidement.
 
-### Créer une routine
+On peut :
 
-1. Appuyer sur **Créer une routine**
-2. Choisir un ou plusieurs enfants
-3. Donner un **nom**, une **description**, une **icône** et une **couleur**
-4. Choisir une catégorie : matin, soir, école, maison, week-end ou personnalisé
-5. Ajouter les étapes :
-   - **Titre**
-   - **Icône**
-   - **Durée**
-   - **Consigne**
-   - **Obligatoire ou facultatif**
-   - **Image optionnelle**
-6. Réordonner les étapes
-7. Enregistrer
+- chercher une activité
+- filtrer par durée, âge, énergie, météo, matériel, autonomie
+- ouvrir une activité en détail
+- garder des favoris
+- revoir l'historique
+- lancer une suggestion Surprise
 
-Les étapes facultatives seront automatiquement retirées côté enfant si l'humeur choisie est négative.
+### Parent
 
-### Utiliser le catalogue
+L'onglet Parent sert à gérer l'app.
 
-Le **Catalogue** contient **27 modèles** regroupés par univers. Chaque modèle affiche :
+On y retrouve :
 
-- une description courte
-- une durée estimée
-- une tranche d'âge conseillée
-- le détail des étapes avant import
+- enfants
+- routines
+- création
+- catalogue
+- import
+- récompenses
+- statistiques
+- calendrier
+- météo
+- corbeille
 
-Vous pouvez ensuite l'importer pour l'enfant de votre choix.
+L'accès parent peut être protégé par PIN.
 
-### Favoris et filtres avancés
+## Créer une routine
 
-Dans la gestion des routines :
+Depuis `/parent/add-routine` :
 
-- **Favoris** ❤️ : cliquer le cœur d'une routine pour la marquer préférée et la voir en premier
-- **Filtres** : sélectionner plusieurs enfants à la fois et filtrer par statut (actif/inactif) et catégorie
-- **Pagination** : les routines s'affichent par groupes de 10
+1. Choisir l'enfant ou les enfants.
+2. Donner un nom, une description, une icône, une couleur et un moment.
+3. Ajouter les étapes.
+4. Enregistrer.
 
-### Réorganiser, dupliquer et fusionner
+## Utiliser le catalogue de routines
 
-- **Réorganiser** : maintenir une routine et la déplacer dans la liste
-- **Dupliquer** : depuis une routine, créer une copie rapide
-- **Fusionner** : activer le mode fusion, sélectionner plusieurs routines d'un même enfant, puis créer une routine unique avec leurs étapes réunies
+Depuis l'écran de création, appuyer sur **Catalogue**.
 
-### Activer ou désactiver une routine
+Le catalogue s'ouvre par-dessus la création :
 
-Depuis le tableau parent, chaque routine possède un interrupteur. Une routine désactivée n'apparaît plus côté enfant.
+1. Choisir un thème avec les tabs : Essentiels, Autonomie, Sommeil, Émotions, etc.
+2. Choisir une carte routine.
+3. Le formulaire est rempli automatiquement.
+4. Adapter le nom, les étapes, la couleur ou l'enfant si besoin.
+5. Enregistrer.
 
-### Partager une routine
+Cela évite de créer directement une routine sans la relire.
 
-1. Ouvrir une routine
-2. Appuyer sur **Partager**
-3. Copier le lien généré
-4. Envoyer ce lien à un autre parent
+## Importer une routine
 
-### Importer une routine
+Depuis `/parent/add-routine`, appuyer sur **Importer**.
 
-1. Ouvrir **Importer**
-2. Coller le code ou le lien reçu
-3. Décoder la routine
-4. Vérifier l'aperçu affiché
-5. Choisir l'enfant cible
-6. Confirmer l'import
+L'import permet de coller un code ou un lien partagé. La routine est validée avant ajout.
 
-### Récompenses réelles
+## Ajouter des étapes
 
-Dans **Récompenses** :
+Dans le formulaire de création :
 
-1. Ajouter une récompense avec :
-   - une description
-   - un nombre d'étoiles requis
-   - un **cycle de recharge** (minutes, heures, jours ou semaines)
-2. Suivre la progression en temps réel avec countdown du cooldown
-3. Marquer la récompense comme **offerte** quand elle a été donnée
-4. L'enfant voit la barre d'avancement côté enfant avec temps restant avant recharge
-5. Retrouver l'historique des récompenses déjà offertes
+- **Ajouter une étape** crée une étape manuelle.
+- **Catalogue d'étapes** propose des étapes prêtes à l'emploi.
 
-### Statistiques
+Chaque étape peut avoir :
 
-La section **Statistiques** affiche par enfant :
+- un titre
+- une icône
+- une durée
+- un temps minimum
+- une consigne
+- une image
+- un statut obligatoire ou facultatif
 
-- le total d'étoiles
-- la série actuelle et la meilleure série
-- le nombre de routines terminées
-- les routines les plus exécutées
-- l'activité récente avec les étoiles gagnées
+## Lancer plusieurs routines
 
-### Réglages météo
+Dans l'onglet Routines :
 
-Dans **Météo** :
+1. Appuyer sur `+` sur les routines voulues.
+2. Vérifier le total dans le bouton du bas.
+3. Appuyer pour commencer.
 
-- activer la **géolocalisation automatique**
-- ou saisir une **ville manuelle**
+Les routines sélectionnées sont lancées à la suite.
 
-La météo enrichit ensuite l'espace enfant avec fond visuel, conseils vestimentaires et messages adaptés.
+## Activités
 
----
+L'onglet Activités garde son propre fonctionnement :
 
-## Espace Enfant
+- les favoris restent sauvegardés
+- l'historique garde les dernières activités ouvertes
+- les filtres restent en mémoire
+- les détails d'activité peuvent être ouverts depuis la liste ou l'historique
 
-### Choisir son profil
+## Conseils
 
-Si plusieurs enfants existent, chacun appuie sur son profil. S'il n'y a qu'un seul enfant, l'accès est direct.
-
-### Écran d'accueil
-
-L'accueil enfant affiche :
-
-- la météo du moment
-- le message d'accueil
-- la tenue conseillée
-- les routines actives
-- la récompense réelle en cours
-- la série actuelle et l'humeur récente
-
-### Voir le récapitulatif d'une routine
-
-Avant de démarrer, l'enfant voit un écran avec :
-
-- le nom et la description de la routine
-- le nombre d'étapes
-- la durée totale estimée
-- l'heure de fin prévue
-- la liste complète des étapes
-
-Puis il appuie sur **C'est parti !**
-
-### Choisir son humeur
-
-L'enfant choisit son humeur avant le départ. Cette humeur adapte les encouragements et peut alléger la routine en retirant les étapes facultatives.
-
-### Lancer plusieurs routines d'affilée
-
-S'il y a au moins deux routines actives :
-
-1. activer **Enchaîner**
-2. sélectionner plusieurs routines
-3. lancer l'enchaînement
-
-L'app garde le fil et passe automatiquement à la suivante à la fin de chaque routine.
-
-### Exécuter les étapes
-
-Pour chaque étape :
-
-- l'icône et le titre sont affichés en grand
-- un timer circulaire apparaît si une durée est définie
-- une estimation de fin reste visible
-- l'enfant valide avec **C'est fait !**
-- une étape facultative peut être passée
-
-Quand une chaîne est en cours, un indicateur montre combien de routines restent à faire.
-
-### Célébration
-
-À la fin :
-
-- confettis et animations
-- étoiles gagnées
-- badges débloqués
-- retour à l'accueil enfant
-
-### Voir ses récompenses
-
-L'écran **Récompenses** montre :
-
-- le total d'étoiles
-- la série actuelle et le record
-- les routines complétées
-- les badges débloqués et verrouillés
-- les récompenses réelles en cours
-- les récompenses déjà offertes
-
----
-
-## Badges
-
-| Badge | Déblocage |
-|---|---|
-| Première étoile | Compléter une étape |
-| Super départ | Compléter une routine |
-| En feu | Atteindre une première série courte |
-| Champion | Cumuler plusieurs routines |
-| Diamant | Atteindre un gros cap de routines |
-| Fusée | Garder une bonne série |
-| Légende | Tenir une très longue série |
-
----
-
-## Météo adaptative
-
-L'écran enfant adapte son ambiance automatiquement :
-
-- fond selon soleil, pluie, neige, nuit
-- message selon le moment de la journée
-- tenue conseillée illustrée avec vêtements et accessoires
-- version spéciale **soir/dodo** pour les fins de journée
-
----
-
-## Astuces
-
-- Commencez avec des routines courtes
-- Utilisez le catalogue pour gagner du temps
-- Réservez les chaînes de routines aux enfants déjà à l'aise
-- Ajoutez quelques étapes facultatives pour garder de la souplesse
-- Associez les étoiles à de petites récompenses concrètes
+- Garder les routines courtes pour les jeunes enfants.
+- Utiliser les favoris pour les routines quotidiennes.
+- Passer par le catalogue quand on ne sait pas par où commencer.
+- Adapter les étapes après import : le catalogue est un point de départ, pas une obligation.

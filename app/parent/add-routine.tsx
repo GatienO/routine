@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
-import { SquaresFour, X } from 'phosphor-react-native';
+import { SquaresFour, UploadSimple, X } from 'phosphor-react-native';
 import { useChildrenStore } from '../../src/stores/childrenStore';
 import { useRoutineStore } from '../../src/stores/routineStore';
 import { Avatar } from '../../src/components/ui/Avatar';
@@ -24,6 +24,7 @@ import { Card } from '../../src/components/ui/Card';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
 import { StepCatalogPicker } from '../../src/components/routine/StepCatalogPicker';
 import { ICON_PICKER_GROUPS, ROUTINE_ICONS, STEP_ICONS } from '../../src/constants/icons';
+import { ROUTINE_PACKS, RoutineTemplate } from '../../src/constants/routineTemplates';
 import { StepCatalogItem } from '../../src/constants/stepCatalog';
 import { CATEGORY_CONFIG, CHILD_COLORS, COLORS, FONT_SIZE, RADIUS, SHADOWS, SPACING } from '../../src/constants/theme';
 import { Routine, RoutineCategory, RoutineStep } from '../../src/types';
@@ -37,7 +38,7 @@ const CATEGORIES = Object.entries(CATEGORY_CONFIG) as [RoutineCategory, typeof C
 
 export default function AddRoutineScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ mergeIds?: string }>();
+  const params = useLocalSearchParams<{ mergeIds?: string; catalog?: string }>();
   const { children } = useChildrenStore();
   const { addRoutine, getRoutine: getRoutineById } = useRoutineStore();
 
@@ -92,6 +93,8 @@ export default function AddRoutineScreen() {
   const [stepRequired, setStepRequired] = useState(true);
   const [stepMediaUri, setStepMediaUri] = useState('');
   const [showStepCatalog, setShowStepCatalog] = useState(false);
+  const [showRoutineCatalog, setShowRoutineCatalog] = useState(params.catalog === '1');
+  const [selectedRoutinePackId, setSelectedRoutinePackId] = useState(ROUTINE_PACKS[0]?.id ?? '');
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [nameTouched, setNameTouched] = useState(false);
   const [stepTitleTouched, setStepTitleTouched] = useState(false);
@@ -169,6 +172,10 @@ export default function AddRoutineScreen() {
 
   const hasUnsavedChanges = currentSnapshot !== initialSnapshot;
   const canSave = name.trim().length > 0 && childIds.length > 0 && steps.length > 0;
+  const selectedRoutinePack = useMemo(
+    () => ROUTINE_PACKS.find((pack) => pack.id === selectedRoutinePackId) ?? ROUTINE_PACKS[0],
+    [selectedRoutinePackId],
+  );
 
   const toggleChild = (id: string) => {
     setChildIds((prev) => (prev.includes(id) ? prev.filter((childId) => childId !== id) : [...prev, id]));
@@ -285,6 +292,33 @@ export default function AddRoutineScreen() {
     setShowStepCatalog(false);
   };
 
+  const applyRoutineTemplate = (template: RoutineTemplate) => {
+    setName(template.name);
+    setDescription(template.description);
+    setIcon(template.icon);
+    setColor(template.color);
+    setCategory(template.category);
+    setSteps(
+      template.steps.map((step, index) => ({
+        id: generateId(),
+        title: step.title,
+        icon: step.icon,
+        color: template.color,
+        durationMinutes: step.durationMinutes,
+        minimumDurationMinutes: step.minimumDurationMinutes ?? 0,
+        instruction: step.instruction,
+        isRequired: step.isRequired,
+        order: index,
+      })),
+    );
+    resetStepForm();
+    setNameTouched(false);
+    setShowRoutineCatalog(false);
+  };
+
+  const totalTemplateDuration = (template: RoutineTemplate) =>
+    template.steps.reduce((sum, step) => sum + step.durationMinutes, 0);
+
   const handleSave = () => {
     childIds.forEach((childId) => {
       addRoutine({
@@ -337,6 +371,12 @@ export default function AddRoutineScreen() {
   }, [children.length, router]);
 
   useEffect(() => {
+    if (params.catalog === '1') {
+      setShowRoutineCatalog(true);
+    }
+  }, [params.catalog]);
+
+  useEffect(() => {
     if (Platform.OS !== 'web' || typeof window === 'undefined' || !hasUnsavedChanges) {
       return;
     }
@@ -357,6 +397,27 @@ export default function AddRoutineScreen() {
           title={isMerge ? 'Fusionner des routines' : 'Nouvelle routine'}
           onBack={handleBack}
         />
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            onPress={() => setShowRoutineCatalog(true)}
+            activeOpacity={0.85}
+            style={styles.headerActionButton}
+          >
+            <SquaresFour size={18} weight="fill" color="#A14D00" />
+            <Text style={styles.headerActionText}>Catalogue</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => router.push('/parent/import')}
+            activeOpacity={0.85}
+            style={[styles.headerActionButton, styles.headerActionButtonSecondary]}
+          >
+            <UploadSimple size={18} weight="bold" color={COLORS.secondaryDark} />
+            <Text style={[styles.headerActionText, styles.headerActionTextSecondary]}>
+              Importer
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll}>
@@ -644,6 +705,124 @@ export default function AddRoutineScreen() {
       </ScrollView>
 
       <Modal
+        visible={showRoutineCatalog}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowRoutineCatalog(false)}
+      >
+        <View style={styles.catalogOverlay}>
+          <SafeAreaView style={styles.catalogSafe}>
+            <View style={styles.catalogSheet}>
+              <View style={styles.catalogHeader}>
+                <View style={styles.catalogHeaderText}>
+                  <Text style={styles.catalogTitle}>Catalogue de routines</Text>
+                  <Text style={styles.catalogSubtitle}>
+                    Choisis un modèle. Il remplira ce formulaire, puis tu pourras l'adapter avant d'enregistrer.
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => setShowRoutineCatalog(false)}
+                  style={styles.catalogCloseButton}
+                  activeOpacity={0.85}
+                >
+                  <X size={18} weight="bold" color={COLORS.textSecondary} />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.routineCatalogTabsWrap}>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.routineCatalogTabs}>
+                  {ROUTINE_PACKS.map((pack) => {
+                    const selected = pack.id === selectedRoutinePack?.id;
+
+                    return (
+                      <TouchableOpacity
+                        key={pack.id}
+                        onPress={() => setSelectedRoutinePackId(pack.id)}
+                        activeOpacity={0.82}
+                        style={[styles.routineCatalogTab, selected && styles.routineCatalogTabActive]}
+                      >
+                        <OpenMoji emoji={pack.icon} size={22} />
+                        <Text style={[styles.routineCatalogTabText, selected && styles.routineCatalogTabTextActive]}>
+                          {pack.name}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+
+              <View style={styles.selectedPackIntro}>
+                <Text style={styles.selectedPackTitle}>{selectedRoutinePack?.name}</Text>
+                <Text style={styles.selectedPackDescription}>{selectedRoutinePack?.description}</Text>
+              </View>
+
+              <ScrollView contentContainerStyle={styles.catalogScroll} showsVerticalScrollIndicator={false}>
+                <View style={styles.routineTemplateGrid}>
+                  {selectedRoutinePack?.templates.map((template) => (
+                    <TouchableOpacity
+                      key={template.id}
+                      onPress={() => applyRoutineTemplate(template)}
+                      activeOpacity={0.86}
+                      style={[
+                        styles.routineTemplateCard,
+                        { borderColor: `${template.color}45` },
+                      ]}
+                    >
+                      <View style={styles.routineTemplateTopRow}>
+                        <View style={[styles.routineTemplateIcon, { backgroundColor: `${template.color}20` }]}>
+                          <OpenMoji emoji={template.icon} size={32} />
+                        </View>
+                        <View style={styles.routineTemplateInfo}>
+                          <Text style={styles.routineTemplateName} numberOfLines={1}>
+                            {template.name}
+                          </Text>
+                          <View style={styles.routineTemplateMetaRow}>
+                            <View style={styles.routineTemplatePill}>
+                              <Text style={styles.routineTemplatePillText}>
+                                {template.steps.length} étapes
+                              </Text>
+                            </View>
+                            <View style={styles.routineTemplatePill}>
+                              <Text style={styles.routineTemplatePillText}>
+                                ~{formatDuration(totalTemplateDuration(template))}
+                              </Text>
+                            </View>
+                            <View style={styles.routineTemplatePill}>
+                              <Text style={styles.routineTemplatePillText}>
+                                {template.ageRange[0]}-{template.ageRange[1]} ans
+                              </Text>
+                            </View>
+                          </View>
+                        </View>
+                        <View style={[styles.useTemplateRoundButton, { backgroundColor: template.color }]}>
+                          <Text style={styles.useTemplateRoundButtonText}>+</Text>
+                        </View>
+                      </View>
+
+                      <Text style={styles.routineTemplateDescription} numberOfLines={2}>
+                        {template.description}
+                      </Text>
+
+                      <View style={styles.routineTemplateStepsRow}>
+                        {template.steps.slice(0, 5).map((step, index) => (
+                          <View key={`${template.id}-${index}`} style={styles.routineTemplateStepPill}>
+                            <OpenMoji emoji={step.icon} size={14} />
+                            <Text style={styles.routineTemplateStepText} numberOfLines={1}>
+                              {step.title}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
+            </View>
+          </SafeAreaView>
+        </View>
+      </Modal>
+
+      <Modal
         visible={showStepCatalog}
         transparent
         animationType="fade"
@@ -727,6 +906,38 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.lg,
     paddingTop: SPACING.md,
     paddingBottom: SPACING.xs,
+    gap: SPACING.md,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    flexWrap: 'wrap',
+  },
+  headerActionButton: {
+    minHeight: 46,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.sm,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: RADIUS.full,
+    borderWidth: 1,
+    borderColor: 'rgba(161, 77, 0, 0.12)',
+    backgroundColor: '#FFF3E0',
+  },
+  headerActionButtonSecondary: {
+    borderColor: `${COLORS.secondary}30`,
+    backgroundColor: COLORS.secondarySoft,
+  },
+  headerActionText: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '800',
+    color: '#A14D00',
+  },
+  headerActionTextSecondary: {
+    color: COLORS.secondaryDark,
   },
   scroll: {
     paddingHorizontal: SPACING.lg,
@@ -1002,8 +1213,143 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
   },
+  routineCatalogTabsWrap: {
+    marginBottom: SPACING.md,
+  },
+  routineCatalogTabs: {
+    gap: SPACING.sm,
+    paddingRight: SPACING.lg,
+  },
+  routineCatalogTab: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+    minHeight: 44,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  routineCatalogTabActive: {
+    backgroundColor: COLORS.secondary,
+    borderColor: COLORS.secondary,
+  },
+  routineCatalogTabText: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '900',
+    color: COLORS.textSecondary,
+  },
+  routineCatalogTabTextActive: {
+    color: '#FFFFFF',
+  },
+  selectedPackIntro: {
+    marginBottom: SPACING.md,
+    gap: 4,
+  },
+  selectedPackTitle: {
+    fontSize: FONT_SIZE.md,
+    fontWeight: '900',
+    color: COLORS.text,
+  },
+  selectedPackDescription: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+  },
   catalogScroll: {
     paddingBottom: SPACING.xl,
+  },
+  routineTemplateGrid: {
+    gap: SPACING.md,
+  },
+  routineTemplateCard: {
+    borderRadius: 30,
+    backgroundColor: '#EFF7FB',
+    padding: SPACING.lg,
+    gap: SPACING.md,
+    borderWidth: 1,
+    ...SHADOWS.sm,
+  },
+  routineTemplateTopRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: SPACING.md,
+  },
+  routineTemplateIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  routineTemplateInfo: {
+    flex: 1,
+    minWidth: 0,
+    gap: 7,
+  },
+  routineTemplateName: {
+    fontSize: 26,
+    fontWeight: '800',
+    fontStyle: 'italic',
+    color: '#4F707B',
+  },
+  routineTemplateMetaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.sm,
+  },
+  routineTemplatePill: {
+    borderRadius: RADIUS.full,
+    paddingVertical: 6,
+    paddingHorizontal: SPACING.sm + 2,
+    backgroundColor: '#F3F9F6',
+  },
+  routineTemplatePillText: {
+    fontSize: FONT_SIZE.xs,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+  },
+  useTemplateRoundButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...SHADOWS.sm,
+  },
+  useTemplateRoundButtonText: {
+    color: '#FFFFFF',
+    fontSize: FONT_SIZE.xl,
+    fontWeight: '900',
+  },
+  routineTemplateDescription: {
+    fontSize: FONT_SIZE.md,
+    lineHeight: 22,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+  },
+  routineTemplateStepsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.sm,
+  },
+  routineTemplateStepPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    maxWidth: '48%',
+    backgroundColor: '#F8FCFA',
+    borderRadius: 18,
+    paddingVertical: 9,
+    paddingHorizontal: SPACING.sm + 2,
+  },
+  routineTemplateStepText: {
+    flexShrink: 1,
+    fontSize: FONT_SIZE.sm,
+    color: '#668089',
+    fontWeight: '600',
   },
   exitSheet: {
     marginTop: SPACING.xxl,

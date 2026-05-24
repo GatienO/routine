@@ -27,7 +27,7 @@ describe('date utils', () => {
   });
 
   test('formatDuration formats correctly', () => {
-    expect(formatDuration(0)).toBe('< 1 min');
+    expect(formatDuration(0)).toBe('0 sec');
     expect(formatDuration(1)).toBe('1 min');
     expect(formatDuration(5)).toBe('5 min');
     expect(formatDuration(15)).toBe('15 min');

@@ -6,6 +6,7 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
 
 import { useRewardStore } from '../../src/stores/rewardStore';
 import { RoutineExecution } from '../../src/types';
+import { BADGES } from '../../src/constants/badges';
 
 beforeEach(() => {
   useRewardStore.setState({ rewards: {} });
@@ -56,9 +57,9 @@ describe('rewardStore', () => {
       makeExecution({ earnedStars: 1 })
     );
 
-    expect(newBadges).toContain('first_star');
-    expect(newBadges).toContain('first_routine');
-    expect(useRewardStore.getState().getRewards('child-1').unlockedBadges).toContain('first_star');
+    expect(newBadges[0].unlockedBadgeIds).toContain('stars_1');
+    expect(newBadges[0].unlockedBadgeIds).toContain('first_step');
+    expect(useRewardStore.getState().getRewards('child-1').unlockedBadges).toContain('stars_1');
   });
 
   test('recordCompletion tracks streak correctly', () => {
@@ -134,7 +135,7 @@ describe('rewardStore', () => {
     const unlocked = useRewardStore.getState().getUnlockedBadges('child-1');
     const locked = useRewardStore.getState().getLockedBadges('child-1');
 
-    expect(unlocked.length + locked.length).toBe(8); // total badges
+    expect(unlocked.length + locked.length).toBe(BADGES.length);
     expect(unlocked.length).toBeGreaterThan(0);
   });
 

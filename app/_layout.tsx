@@ -2,15 +2,31 @@ import React, { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
+import { View } from 'react-native';
 import * as Linking from 'expo-linking';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { COLORS } from '../src/constants/theme';
 import { AppFeedbackProvider } from '../src/components/feedback/AppFeedbackProvider';
 import { LocalProfileGate } from '../src/components/profile/LocalProfileGate';
 import { WebInstallHint } from '../src/components/web/WebInstallHint';
+import {
+  AppBottomNavigation,
+  useBottomNavigationOffset,
+} from '../src/components/ui/AppBottomNavigation';
 
 export default function RootLayout() {
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <AppFeedbackProvider>
+        <RootShell />
+      </AppFeedbackProvider>
+    </GestureHandlerRootView>
+  );
+}
+
+function RootShell() {
   const router = useRouter();
+  const bottomOffset = useBottomNavigationOffset();
 
   useEffect(() => {
     // Handle deep links when app is already open
@@ -37,9 +53,9 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <AppFeedbackProvider>
-        <StatusBar style="dark" />
+    <>
+      <StatusBar style="dark" />
+      <View style={{ flex: 1, paddingBottom: bottomOffset }}>
         <Stack
           screenOptions={{
             headerShown: false,
@@ -47,9 +63,10 @@ export default function RootLayout() {
             animation: 'slide_from_right',
           }}
         />
-        <LocalProfileGate />
-        <WebInstallHint />
-      </AppFeedbackProvider>
-    </GestureHandlerRootView>
+      </View>
+      <AppBottomNavigation />
+      <LocalProfileGate />
+      <WebInstallHint />
+    </>
   );
 }

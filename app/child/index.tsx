@@ -15,7 +15,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { BounceIn, FadeInUp } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
-import { CaretDown, CaretUp, Check, ClipboardText, Gift, Rocket, Heart } from 'phosphor-react-native';
+import { CaretDown, Check, ClipboardText, Gift, Heart, PencilSimple, Plus, Rocket } from 'phosphor-react-native';
 import { useChildrenStore } from '../../src/stores/childrenStore';
 import { useAppStore } from '../../src/stores/appStore';
 import { useRoutineStore } from '../../src/stores/routineStore';
@@ -23,7 +23,6 @@ import { useWeatherStore } from '../../src/stores/weatherStore';
 import { useLocalProfileStore } from '../../src/stores/localProfileStore';
 import { Avatar } from '../../src/components/ui/Avatar';
 import { AnimatedPressable } from '../../src/components/ui/AnimatedPressable';
-import { AppPageHeader } from '../../src/components/ui/AppPageHeader';
 import { WeatherCard } from '../../src/components/weather/WeatherCard';
 import { ChildDashboardHeader, CategoryFilterValue } from '../../src/components/child/ChildDashboardHeader';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
@@ -187,6 +186,14 @@ export default function ChildLauncherScreen() {
     router.push('/child/rewards');
   };
 
+  const handleCreateRoutine = () => {
+    router.push('/parent/add-routine');
+  };
+
+  const handleEditRoutine = (routineId: string) => {
+    router.push(`/parent/edit-routine?id=${routineId}`);
+  };
+
   const toggleRoutine = (routineId: string) => {
     setSelectedRoutineIds((prev) =>
       prev.includes(routineId)
@@ -331,11 +338,7 @@ export default function ChildLauncherScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={[styles.content, { width: contentWidth, maxWidth: '100%' }]}>
-            <Animated.View entering={FadeInUp.duration(300)} style={styles.topBar}>
-                <AppPageHeader title="Espace Enfant" />
-              </Animated.View>
-
-              <Animated.View entering={FadeInUp.duration(300)} style={styles.topBarActions}>
+            <Animated.View entering={FadeInUp.duration(300)} style={styles.topBarActions}>
               <AnimatedPressable
                 onPress={handleOpenRewards}
                 style={[styles.topRewardsButton, isNight && styles.topRewardsButtonNight]}
@@ -361,6 +364,7 @@ export default function ChildLauncherScreen() {
               selectedStatuses={selectedStatuses}
               onToggleStatus={handleToggleStatus}
               onClearStatuses={handleClearStatuses}
+              onCreateRoutine={handleCreateRoutine}
             />
 
             {/* Liste des routines paginée */}
@@ -416,20 +420,63 @@ export default function ChildLauncherScreen() {
                               </View>
                             </View>
 
-                            <TouchableOpacity
-                              onPress={() => toggleFavorite(routine.id)}
-                              hitSlop={12}
-                              style={[
-                                styles.favoriteButton,
-                                routine.isFavorite && styles.favoriteButtonActive,
-                              ]}
-                            >
-                              <Heart
-                                size={18}
-                                weight={routine.isFavorite ? 'fill' : 'regular'}
-                                color={routine.isFavorite ? COLORS.error : COLORS.textSecondary}
-                              />
-                            </TouchableOpacity>
+                            <View style={styles.routineActions}>
+                              <TouchableOpacity
+                                onPress={(event) => {
+                                  event.stopPropagation();
+                                  handleEditRoutine(routine.id);
+                                }}
+                                hitSlop={12}
+                                activeOpacity={0.82}
+                                accessibilityRole="button"
+                                accessibilityLabel={`Modifier ${routine.name}`}
+                                style={styles.routineActionButton}
+                              >
+                                <PencilSimple size={18} weight="bold" color={COLORS.textSecondary} />
+                              </TouchableOpacity>
+
+                              <TouchableOpacity
+                                onPress={(event) => {
+                                  event.stopPropagation();
+                                  toggleFavorite(routine.id);
+                                }}
+                                hitSlop={12}
+                                activeOpacity={0.82}
+                                accessibilityRole="button"
+                                accessibilityLabel={`${routine.isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'} ${routine.name}`}
+                                style={[
+                                  styles.routineActionButton,
+                                  routine.isFavorite && styles.favoriteButtonActive,
+                                ]}
+                              >
+                                <Heart
+                                  size={18}
+                                  weight={routine.isFavorite ? 'fill' : 'regular'}
+                                  color={routine.isFavorite ? COLORS.error : COLORS.textSecondary}
+                                />
+                              </TouchableOpacity>
+
+                              <TouchableOpacity
+                                onPress={(event) => {
+                                  event.stopPropagation();
+                                  toggleRoutine(routine.id);
+                                }}
+                                hitSlop={12}
+                                activeOpacity={0.82}
+                                accessibilityRole="button"
+                                accessibilityLabel={`${isSelected ? 'Retirer de la session' : 'Ajouter à la session'} ${routine.name}`}
+                                style={[
+                                  styles.routineActionButton,
+                                  isSelected && styles.addRoutineButtonActive,
+                                ]}
+                              >
+                                {isSelected ? (
+                                  <Check size={18} weight="bold" color="#FFFFFF" />
+                                ) : (
+                                  <Plus size={19} weight="bold" color={COLORS.textSecondary} />
+                                )}
+                              </TouchableOpacity>
+                            </View>
                           </View>
 
                           {owner ? (
@@ -461,16 +508,6 @@ export default function ChildLauncherScreen() {
                         </View>
                       </View>
 
-                      <View style={[styles.routineFooter, isSelected && styles.routineFooterSelected]}>
-                        <Text style={[styles.routineFooterLabel, isSelected && styles.routineFooterLabelSelected]}>
-                          {isSelected ? 'Selectionnee pour ma session' : 'Ajouter a ma session'}
-                        </Text>
-                        <View style={[styles.orderBadge, isSelected && styles.orderBadgeActive]}>
-                          <Text style={[styles.orderBadgeText, isSelected && styles.orderBadgeTextActive]}>
-                            {isSelected ? selectedRoutineIds.indexOf(routine.id) + 1 : '+'}
-                          </Text>
-                        </View>
-                      </View>
                     </AnimatedPressable>
                   </Animated.View>
                 );
@@ -585,10 +622,6 @@ const styles = StyleSheet.create({
   content: {
     width: '100%',
     gap: SPACING.xs,
-  },
-  topBar: {
-    width: '100%',
-    marginBottom: SPACING.xs,
   },
   topBarActions: {
     flexDirection: 'row',
@@ -720,6 +753,11 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: SPACING.sm,
   },
+  routineActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
   routineCardInfo: {
     flex: 1,
     gap: 6,
@@ -747,7 +785,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.textSecondary,
   },
-  favoriteButton: {
+  routineActionButton: {
     width: 42,
     height: 42,
     borderRadius: 21,
@@ -760,6 +798,10 @@ const styles = StyleSheet.create({
   favoriteButtonActive: {
     backgroundColor: '#FFF1F1',
     borderColor: '#F7D3D3',
+  },
+  addRoutineButtonActive: {
+    backgroundColor: COLORS.secondary,
+    borderColor: COLORS.secondary,
   },
   childPill: {
     alignSelf: 'flex-start',
@@ -795,53 +837,6 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.sm,
     color: '#668089',
     fontWeight: '600',
-  },
-  routineFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: SPACING.md,
-    backgroundColor: 'rgba(255,255,255,0.7)',
-    borderRadius: 22,
-    paddingVertical: SPACING.sm + 2,
-    paddingHorizontal: SPACING.sm + 2,
-    borderWidth: 1,
-    borderColor: 'rgba(220,234,227,0.72)',
-  },
-  routineFooterSelected: {
-    backgroundColor: '#F3FBEF',
-    borderColor: '#A8D8BC',
-  },
-  routineFooterLabel: {
-    flex: 1,
-    fontSize: FONT_SIZE.sm,
-    fontWeight: '700',
-    color: '#68808A',
-  },
-  routineFooterLabelSelected: {
-    color: '#4C7C62',
-  },
-  orderBadge: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.94)',
-    borderWidth: 1,
-    borderColor: '#DCEAE3',
-  },
-  orderBadgeActive: {
-    backgroundColor: COLORS.secondary,
-    borderColor: COLORS.secondary,
-  },
-  orderBadgeText: {
-    color: COLORS.textSecondary,
-    fontSize: FONT_SIZE.sm,
-    fontWeight: '900',
-  },
-  orderBadgeTextActive: {
-    color: '#FFF',
   },
   footer: {
     position: 'absolute',
