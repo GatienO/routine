@@ -41,6 +41,7 @@ import { useAppTheme } from '../../src/hooks/useAppTheme';
 import { useWeatherStore } from '../../src/stores/weatherStore';
 import { GuidedWeatherStep } from '../../src/features/routines/components/guided-weather-step';
 import { getGuidedStepKind } from '../../src/features/routines/utils/guided-steps';
+import { selectActiveSteps } from '../../src/features/routines/select-active-steps';
 
 const STEP_START_LOCK_MS = 650;
 
@@ -248,6 +249,13 @@ export default function RunRoutineScreen() {
   const [stepConfirmationEnabled, setStepConfirmationEnabled] = useState(false);
   const [parentMenuVisible, setParentMenuVisible] = useState(false);
   const [now, setNow] = useState(() => Date.now());
+  const [routinesHydrated, setRoutinesHydrated] = useState(() => useRoutineStore.persist.hasHydrated());
+
+  useEffect(() => {
+    const unsubscribe = useRoutineStore.persist.onFinishHydration(() => setRoutinesHydrated(true));
+    setRoutinesHydrated(useRoutineStore.persist.hasHydrated());
+    return unsubscribe;
+  }, []);
 
   const currentMood =
     activeChildId && isMoodFresh(activeChildId) ? getMood(activeChildId)?.mood : undefined;
@@ -259,10 +267,7 @@ export default function RunRoutineScreen() {
     if (!routine) return [];
     const baseSteps =
       currentExecution?.customStepOrder?.length ? currentExecution.customStepOrder : routine.steps;
-    if (currentMood && isNegativeMood(currentMood)) {
-      return baseSteps.filter((step) => step.isRequired);
-    }
-    return baseSteps;
+    return selectActiveSteps(baseSteps, Boolean(currentMood && isNegativeMood(currentMood)));
   }, [routine, currentMood, currentExecution?.customStepOrder]);
 
   const participantChildren = useMemo(() => {
@@ -339,6 +344,7 @@ export default function RunRoutineScreen() {
   }, []);
 
   useEffect(() => {
+    if (!routinesHydrated) return;
     if (isLeavingFlowRef.current) return;
     if (!currentExecution) {
       router.replace('/routines');
@@ -346,7 +352,7 @@ export default function RunRoutineScreen() {
       cancelExecution();
       router.replace('/routines');
     }
-  }, [currentExecution, routine]);
+  }, [currentExecution, routine, routinesHydrated]);
 
   useEffect(() => {
     setConfirmedChildIds([]);
@@ -647,7 +653,7 @@ export default function RunRoutineScreen() {
                   ) : null}
                 </View>
               ) : null}
-              {!currentStep.isRequired ? (
+              {currentStep.isRequired === false ? (
                 <View style={[styles.optionalBadge, { backgroundColor: colors.transitionSoft }]}>
                   <Text style={[styles.optionalText, { color: colors.transition }]} selectable={false}>Facultatif</Text>
                 </View>
@@ -675,7 +681,7 @@ export default function RunRoutineScreen() {
             </View>
           </View>
 
-          {!currentStep.isRequired ? (
+          {currentStep.isRequired === false ? (
             <TouchableOpacity
               onPress={() => void handleComplete()}
               style={[styles.skipBtn, !canConfirmStep && styles.skipBtnDisabled]}

@@ -301,6 +301,8 @@ Suite G06 : un nom de routine long en thème sombre a été contrôlé à 390 et
 
 Suite G06 : l’enchaînement d’une routine à minuteur avec une routine sans durée a révélé un accès transitoire à `stepTimer` quand l’exécution précédente se ferme. Une garde sur l’exécution courante corrige cette erreur; le parcours fictif a ensuite été rejoué jusqu’à la célébration de la seconde routine, sans retour intempestif à Routines. TypeScript strict, 23 suites/160 tests et `git diff --check` passent. La validation visuelle finale de l’utilisateur reste ouverte; aucun essai sur appareil n’est revendiqué.
 
+Reprise G06 : l’utilisateur signale que `/child/run` n’affiche plus les étapes ni le minuteur. Analyse du code : la redirection pouvait partir avant la réhydratation du store, et le filtrage des étapes en humeur difficile pouvait produire une liste vide, notamment pour une routine entièrement facultative. Le correctif attend la réhydratation et garantit qu’une routine contenant des étapes conserve un déroulé affichable. Aucun changement de données familiales; contrôle visuel local limité par le refus de l’origine de test dans le navigateur automatisé. Voir [G06/REVIEW.md](./lots/G06/REVIEW.md).
+
 ## Protocole sur appareil écarté du périmètre (non testé)
 
 À exécuter sur installation isolée iOS et Android, sans données familiales :
