@@ -8,6 +8,9 @@ Suite du 25 septembre : URL Activités, guide, responsive web et navigation clav
 
 Suite du 27 septembre : G05, routine favorite groupée pour plusieurs enfants, a été vérifié sur installation fictive web et validé visuellement par l’utilisateur. La todo globale a ensuite été validée et clôturée explicitement par l’utilisateur. Les interactions natives et avec lecteur d’écran réel ont été retirées du périmètre de clôture à sa demande; elles restent non testées. La colonne historique ci-dessous n’est pas une nouvelle todo. Voir [GLOBAL-AUDIT.md](GLOBAL-AUDIT.md).
 
+Nouveau périmètre du 27 septembre : G06 examine le lancement, `/child/summary`, `/child/run`, la reprise et le minuteur. Son [diagnostic](./lots/G06/REVIEW.md) est partiel : lancement et rechargement observés sur famille fictive; pause, enchaînement, thèmes, tablette et cas longs restent à contrôler pour ce lot. Les colonnes de l’inventaire initial ne sont pas réécrites comme si ces parcours étaient désormais vérifiés.
+Après autorisation G06, minuteur, pause et reprise ont été rejoués sur origine fictive web, ainsi que l’affichage 320/390/768 px, thème sombre et titre long à 320/390 px, et les commandes Parent au clavier. L’enchaînement d’une routine minutée avec une routine sans durée a été vérifié jusqu’à la célébration finale. La validation visuelle finale de l’utilisateur reste ouverte. Détails dans [G06/REVIEW.md](./lots/G06/REVIEW.md).
+
 | Route | Surface | Nature | Source | Couverture actuelle |
 |---|---|---|---|---|
 | /activities | Activités | Écran / état | [app/(tabs)/activities.tsx](../../app/(tabs)/activities.tsx) | Code + écran observé; parcours partiel |

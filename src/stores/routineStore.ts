@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Routine, RoutineStep, RoutineExecution, TrashedRoutine } from '../types';
 import { generateId } from '../utils/id';
+import { createStepTimer, pauseStepTimer, resumeStepTimer } from '../utils/stepTimer';
 
 interface RoutineState {
   routines: Routine[];
@@ -32,6 +33,9 @@ interface RoutineState {
   startExecution: (routineId: string, participantChildIds?: string[], stepOrders?: Record<string, RoutineStep[]>) => RoutineExecution | null;
   startChain: (routineIds: string[], participantChildIds?: string[], stepOrders?: Record<string, RoutineStep[]>) => RoutineExecution | null;
   nextInChain: () => RoutineExecution | null;
+  ensureStepTimer: (stepId: string, durationSeconds: number) => void;
+  pauseCurrentStepTimer: () => void;
+  resumeCurrentStepTimer: () => void;
   completeStep: (stepId: string) => void;
   finishExecution: () => RoutineExecution | null;
   cancelExecution: () => void;
@@ -287,6 +291,28 @@ export const useRoutineStore = create<RoutineState>()(
         set({ currentExecution: execution, chainQueue: rest, pendingStepOrders: remainingOrders });
         return execution;
       },
+
+      ensureStepTimer: (stepId, durationSeconds) =>
+        set((state) => {
+          const execution = state.currentExecution;
+          if (!execution) return state;
+          if (execution.stepTimer?.stepId === stepId && execution.stepTimer.durationSeconds === durationSeconds) return state;
+          return { currentExecution: { ...execution, stepTimer: createStepTimer(stepId, durationSeconds, Date.now()) } };
+        }),
+
+      pauseCurrentStepTimer: () =>
+        set((state) => {
+          const execution = state.currentExecution;
+          if (!execution?.stepTimer || execution.stepTimer.isPaused) return state;
+          return { currentExecution: { ...execution, stepTimer: pauseStepTimer(execution.stepTimer, Date.now()) } };
+        }),
+
+      resumeCurrentStepTimer: () =>
+        set((state) => {
+          const execution = state.currentExecution;
+          if (!execution?.stepTimer?.isPaused) return state;
+          return { currentExecution: { ...execution, stepTimer: resumeStepTimer(execution.stepTimer, Date.now()) } };
+        }),
 
       completeStep: (stepId) =>
         set((state) => {

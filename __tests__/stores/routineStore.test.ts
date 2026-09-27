@@ -321,6 +321,8 @@ describe('routineStore', () => {
 
     useRoutineStore.getState().startExecution(routine.id, ['child-1']);
     useRoutineStore.getState().completeStep('step-1');
+    useRoutineStore.getState().ensureStepTimer('step-2', 60);
+    useRoutineStore.getState().pauseCurrentStepTimer();
 
     const partialize = useRoutineStore.persist.getOptions().partialize;
     const persisted = partialize?.(useRoutineStore.getState()) as ReturnType<typeof useRoutineStore.getState>;
@@ -330,6 +332,12 @@ describe('routineStore', () => {
       participantChildIds: ['child-1'],
       stepsCompleted: ['step-1'],
       earnedStars: 1,
+      stepTimer: {
+        stepId: 'step-2',
+        durationSeconds: 60,
+        isPaused: true,
+        deadlineAt: null,
+      },
     });
     expect(persisted).toHaveProperty('chainQueue');
     expect(persisted).toHaveProperty('pendingStepOrders');

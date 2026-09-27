@@ -9,6 +9,7 @@ import {
   useWindowDimensions,
   Modal,
   Pressable,
+  AppState,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Reanimated, {
@@ -30,7 +31,7 @@ import { X, ArrowRight, CheckCircle, Pause, Play, ShieldCheck, SkipForward } fro
 import { CircularTimer } from '../../src/components/ui/CircularTimer';
 import { AnimatedPressable } from '../../src/components/ui/AnimatedPressable';
 import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../../src/constants/theme';
-import { useTimer } from '../../src/hooks/useTimer';
+import { getStepTimerRemaining } from '../../src/utils/stepTimer';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
 import { Avatar } from '../../src/components/ui/Avatar';
 import { Child } from '../../src/types';
@@ -42,7 +43,6 @@ import { GuidedWeatherStep } from '../../src/features/routines/components/guided
 import { getGuidedStepKind } from '../../src/features/routines/utils/guided-steps';
 
 const STEP_START_LOCK_MS = 650;
-const PARENT_HOLD_MS = 3000;
 
 const DEFAULT_ENCOURAGEMENTS = [
   "C'est parti !",
@@ -129,30 +129,21 @@ function ParticipantValidationButton({
 }
 
 function ParentModeButton({
-  holdProgress,
-  onPressIn,
-  onPressOut,
+  onOpen,
   colors,
 }: {
-  holdProgress: number;
-  onPressIn: () => void;
-  onPressOut: () => void;
+  onOpen: () => void;
   colors: ReturnType<typeof useAppTheme>['colors'];
 }) {
   return (
     <TouchableOpacity
-      onPressIn={onPressIn}
-      onPressOut={onPressOut}
-      onPress={() => {}}
+      accessibilityRole="button"
+      accessibilityLabel="Actions parent"
+      accessibilityHint="Ouvre les commandes de pause et de passage d’étape"
+      onPress={onOpen}
       activeOpacity={0.9}
       style={[styles.parentModeButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
     >
-      <View
-        style={[
-          styles.parentModeFill,
-          { width: `${holdProgress * 100}%`, backgroundColor: colors.timeSoft },
-        ]}
-      />
       <ShieldCheck size={18} weight="bold" color={colors.time} />
       <Text style={[styles.parentModeText, { color: colors.time }]} selectable={false}>Parent</Text>
     </TouchableOpacity>
@@ -183,9 +174,14 @@ function ParentActionsModal({
           <View style={styles.parentActionHeader}>
             <ShieldCheck size={20} weight="fill" color={colors.time} />
             <Text style={[styles.parentActionTitle, { color: colors.text }]} selectable={false}>Mode parent</Text>
+            <Pressable accessibilityRole="button" accessibilityLabel="Fermer le mode parent" onPress={onClose} hitSlop={12}>
+              <X size={20} color={colors.text} />
+            </Pressable>
           </View>
 
           <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={isPaused ? 'Reprendre le minuteur' : 'Mettre le minuteur en pause'}
             onPress={onTogglePause}
             activeOpacity={0.86}
             disabled={pauseDisabled}
@@ -206,6 +202,8 @@ function ParentActionsModal({
           </TouchableOpacity>
 
           <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Passer cette étape"
             onPress={onSkipStep}
             activeOpacity={0.86}
             style={[styles.parentActionButton, { backgroundColor: colors.timeSoft, borderColor: colors.border }]}
@@ -224,7 +222,7 @@ function ParentActionsModal({
 export default function RunRoutineScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
-  const isMobile = width < 760;
+  const isMobile = width < 900;
   const { colors } = useAppTheme();
   const {
     currentExecution,
@@ -234,6 +232,9 @@ export default function RunRoutineScreen() {
     getRoutine,
     chainQueue,
     nextInChain,
+    ensureStepTimer,
+    pauseCurrentStepTimer,
+    resumeCurrentStepTimer,
   } = useRoutineStore();
   const { recordCompletion } = useRewardStore();
   const { getMood, isMoodFresh } = useMoodStore();
@@ -245,10 +246,8 @@ export default function RunRoutineScreen() {
   const completingStepIdRef = useRef<string | null>(null);
   const [confirmedChildIds, setConfirmedChildIds] = useState<string[]>([]);
   const [stepConfirmationEnabled, setStepConfirmationEnabled] = useState(false);
-  const [parentHoldProgress, setParentHoldProgress] = useState(0);
   const [parentMenuVisible, setParentMenuVisible] = useState(false);
-  const parentHoldIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const parentHoldTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [now, setNow] = useState(() => Date.now());
 
   const currentMood =
     activeChildId && isMoodFresh(activeChildId) ? getMood(activeChildId)?.mood : undefined;
@@ -313,7 +312,16 @@ export default function RunRoutineScreen() {
   const timerDuration = currentStep
     ? Math.max(currentStep.durationMinutes, currentStep.minimumDurationMinutes ?? 0) * 60
     : 0;
-  const timer = useTimer(timerDuration);
+  const stepTimer = currentExecution && currentStep && currentExecution.stepTimer?.stepId === currentStep.id
+    ? currentExecution.stepTimer
+    : undefined;
+  const remaining = stepTimer ? getStepTimerRemaining(stepTimer, now) : timerDuration;
+  const timer = {
+    remaining,
+    progress: timerDuration > 0 ? 1 - remaining / timerDuration : 1,
+    isFinished: timerDuration > 0 && remaining === 0,
+    isPaused: stepTimer?.isPaused ?? false,
+  };
   const elapsedStepSeconds = Math.max(0, timerDuration - timer.remaining);
   const minimumTimeRemaining = Math.max(0, minimumStepSeconds - elapsedStepSeconds);
   const isMinimumTimeReached = minimumStepSeconds === 0 || elapsedStepSeconds >= minimumStepSeconds;
@@ -321,21 +329,13 @@ export default function RunRoutineScreen() {
   const parentPauseDisabled = timerDuration <= 0 || timer.isFinished;
 
   useEffect(() => {
-    if (currentStep && timerDuration > 0) {
-      timer.start();
-    }
-    return () => timer.stop();
-  }, [currentStepIndex, timerDuration]);
+    if (currentStep && currentExecution) ensureStepTimer(currentStep.id, timerDuration);
+  }, [currentExecution?.id, currentStep?.id, ensureStepTimer, timerDuration]);
 
   useEffect(() => {
-    return () => {
-      if (parentHoldIntervalRef.current) {
-        clearInterval(parentHoldIntervalRef.current);
-      }
-      if (parentHoldTimeoutRef.current) {
-        clearTimeout(parentHoldTimeoutRef.current);
-      }
-    };
+    const interval = setInterval(() => setNow(Date.now()), 500);
+    const subscription = AppState.addEventListener('change', () => setNow(Date.now()));
+    return () => { clearInterval(interval); subscription.remove(); };
   }, []);
 
   useEffect(() => {
@@ -469,54 +469,19 @@ export default function RunRoutineScreen() {
     router.replace('/routines');
   };
 
-  const clearParentHold = useCallback(() => {
-    if (parentHoldIntervalRef.current) {
-      clearInterval(parentHoldIntervalRef.current);
-      parentHoldIntervalRef.current = null;
-    }
-    if (parentHoldTimeoutRef.current) {
-      clearTimeout(parentHoldTimeoutRef.current);
-      parentHoldTimeoutRef.current = null;
-    }
-    setParentHoldProgress(0);
-  }, []);
-
   const handlePauseToggle = useCallback(async () => {
     if (timerDuration <= 0 || timer.isFinished) return;
 
     if (timer.isPaused) {
-      timer.resume();
+      resumeCurrentStepTimer();
     } else {
-      timer.pause();
+      pauseCurrentStepTimer();
     }
 
     try {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     } catch {}
-  }, [timer, timerDuration]);
-
-  const handleParentPressIn = useCallback(() => {
-    clearParentHold();
-    const startedAt = Date.now();
-
-    setParentHoldProgress(0.02);
-    parentHoldIntervalRef.current = setInterval(() => {
-      const elapsed = Date.now() - startedAt;
-      setParentHoldProgress(Math.min(1, elapsed / PARENT_HOLD_MS));
-    }, 50);
-
-    parentHoldTimeoutRef.current = setTimeout(async () => {
-      clearParentHold();
-      setParentMenuVisible(true);
-      try {
-        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-      } catch {}
-    }, PARENT_HOLD_MS);
-  }, [clearParentHold]);
-
-  const handleParentPressOut = useCallback(() => {
-    clearParentHold();
-  }, [clearParentHold]);
+  }, [pauseCurrentStepTimer, resumeCurrentStepTimer, timer.isFinished, timer.isPaused, timerDuration]);
 
   const handleParentPause = useCallback(() => {
     setParentMenuVisible(false);
@@ -542,18 +507,6 @@ export default function RunRoutineScreen() {
 
   const orderedParticipants = isMobile ? participantChildren : [...leftParticipants, ...rightParticipants];
 
-  const remainingMinutes = activeSteps
-    .slice(currentStepIndex)
-    .reduce(
-      (sum, step) => sum + Math.max(step.durationMinutes, step.minimumDurationMinutes ?? 0),
-      0,
-    );
-  const endTime = (() => {
-    const date = new Date();
-    date.setMinutes(date.getMinutes() + remainingMinutes);
-    return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-  })();
-
   return (
     <LinearGradient colors={gradientColors} style={styles.gradient}>
       <SafeAreaView style={styles.safe}>
@@ -567,9 +520,7 @@ export default function RunRoutineScreen() {
                 <X size={22} weight="bold" color={colors.textLight} />
               </TouchableOpacity>
               <ParentModeButton
-                holdProgress={parentHoldProgress}
-                onPressIn={handleParentPressIn}
-                onPressOut={handleParentPressOut}
+                onOpen={() => setParentMenuVisible(true)}
                 colors={colors}
               />
             </View>
@@ -584,12 +535,12 @@ export default function RunRoutineScreen() {
                   {completedCount + 1} / {totalSteps}
                 </Text>
               </View>
-              <View style={[styles.endTimeBadge, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                <Text style={[styles.endTimeText, { color: colors.textSecondary }]} selectable={false}>Fin {endTime}</Text>
-              </View>
             </View>
           </Reanimated.View>
 
+          <Text style={[styles.runningRoutineName, { color: colors.textSecondary }]}>
+            {routine.icon} {routine.name}
+          </Text>
           <ProgressBar progress={progress} color={routine.color} height={10} />
 
           <View style={[styles.topCenterStatus, { maxWidth: centerColumnWidth }]}>
@@ -691,6 +642,8 @@ export default function RunRoutineScreen() {
                   />
                   {timer.isFinished ? (
                     <Text style={[styles.timerFinishedLabel, { color: colors.success }]} selectable={false}>Temps écoulé !</Text>
+                  ) : timer.isPaused ? (
+                    <Text style={[styles.timerFinishedLabel, { color: colors.time }]} selectable={false}>Minuteur en pause</Text>
                   ) : null}
                 </View>
               ) : null}
@@ -773,6 +726,11 @@ const styles = StyleSheet.create({
   topBarMobile: {
     alignItems: 'flex-start',
   },
+  runningRoutineName: {
+    fontSize: FONT_SIZE.md,
+    fontWeight: '800',
+    marginBottom: SPACING.sm,
+  },
   topBarBadges: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -817,13 +775,6 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
     ...SHADOWS.sm,
   },
-  parentModeFill: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    backgroundColor: `${COLORS.secondaryDark}66`,
-  },
   parentModeText: {
     fontSize: FONT_SIZE.xs,
     fontWeight: '900',
@@ -851,19 +802,6 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.full,
   },
   chainIndicatorText: {
-    fontSize: FONT_SIZE.xs,
-    fontWeight: '700',
-    color: COLORS.textSecondary,
-  },
-  endTimeBadge: {
-    backgroundColor: COLORS.surface,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    paddingVertical: SPACING.xs,
-    paddingHorizontal: SPACING.sm + 2,
-    borderRadius: RADIUS.full,
-  },
-  endTimeText: {
     fontSize: FONT_SIZE.xs,
     fontWeight: '700',
     color: COLORS.textSecondary,
@@ -1101,6 +1039,7 @@ const styles = StyleSheet.create({
     paddingBottom: SPACING.xs,
   },
   parentActionTitle: {
+    flex: 1,
     fontSize: FONT_SIZE.md,
     fontWeight: '900',
     color: COLORS.text,

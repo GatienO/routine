@@ -82,6 +82,13 @@ export interface RoutineExecution {
   earnedStars: number;
   mood?: ChildMoodType;
   stepDurations?: Record<string, number>;
+  stepTimer?: {
+    stepId: string;
+    durationSeconds: number;
+    remainingSeconds: number;
+    deadlineAt: number | null;
+    isPaused: boolean;
+  };
 }
 
 export interface Badge {
