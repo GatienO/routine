@@ -1,5 +1,7 @@
 # Chantier G06 — lancement et routine en cours
 
+Todo future **G07 — première création du profil familial** : bienvenue et nom de famille → code Parent → premier enfant → accueil `/routines`. [Fiche de reprise et critères](./lots/G07/REVIEW.md). Statut : à examiner; aucun code produit modifié pour ce lot.
+
 Extension visuelle demandée après G06 : le fond pastel à ronds de l’accueil est appliqué au cadre commun de toutes les routes. Le code et l’export web sont vérifiés; contrôle visuel final sur les pages en attente. Suivi dans [GLOBAL-AUDIT.md](./GLOBAL-AUDIT.md).
 
 État au 2026-09-27 : **todo globale validée et clôturée par l’utilisateur** (« valide tout et termine ») dans le périmètre web et code convenu. G01, G02 et G05 ont été intégrés, vérifiés sur web et validés visuellement; les parcours G03 ont été rejoués sur données fictives isolées. TypeScript, 158 tests et les exports de production web/Android/iOS ont réussi. Les essais sur appareil iOS/Android et avec lecteur d’écran réel ont été retirés du périmètre à la demande de l’utilisateur : ils restent non testés, et la validation finale ne les couvre pas. Détails et preuves : [bilan global](./GLOBAL-AUDIT.md) et [audit fonctionnel](./FUNCTIONAL-AUDIT.md).
