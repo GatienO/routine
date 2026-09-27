@@ -1,5 +1,7 @@
 # Matrice de couverture — 2026-09-20
 
+G08 ajoute un [inventaire ciblé des visuels](./lots/G08/REVIEW.md) sur les trois intentions : choix de pictogrammes dans le constructeur et le calendrier, avatars enfant, vignettes Activités, images de météo et récompenses, et composant partagé `OpenMoji`. Les constats sont issus du code; aucune vérification sur la tablette de l'utilisateur n'est revendiquée.
+
 Lot G07 terminé : le premier démarrage relie `/onboarding/family`, `/pin`, `/onboarding/child`, `/onboarding/complete` et `/routines`. Le parcours complet au clic, les retours, les reprises après rechargement et le rendu 320/390/768 px ont été vérifiés sur navigateur isolé. Voir [G07/REVIEW.md](./lots/G07/REVIEW.md).
 
 42 fichiers de route hors layouts, 4 layouts, 3 destinations principales après l'ajout des trois routes G07. Cette matrice garantit un rattachement, pas une validation de toutes les fonctions.

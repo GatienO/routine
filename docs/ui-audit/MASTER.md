@@ -1,5 +1,7 @@
 # Audit global — état des lots
 
+**G08 — inventaire des icônes, avatars et images, todo ouverte** à la demande du 2026-09-27. Le choix d'icône du constructeur est limité dans le code aux 18 premières valeurs; les autres emplacements, leurs sources visuelles et les contrôles à mener sont détaillés dans la [fiche G08](./lots/G08/REVIEW.md). Phase d'audit uniquement : aucune construction ou validation visuelle déduite.
+
 **G07 terminé et retiré de la todo active** le 2026-09-27 : bienvenue et nom de famille → code Parent → premier enfant → accueil `/routines`. Prototype validé, construction autorisée puis parcours complet vérifié sur installation web isolée, avec retours, rechargements, 320/390/768 px et thème sombre. [Fiche et preuves conservées](./lots/G07/REVIEW.md). Aucun lot actif ouvert ici.
 
 Extension visuelle demandée après G06 : le fond pastel à ronds de l’accueil est appliqué au cadre commun de toutes les routes. Le code et l’export web sont vérifiés; contrôle visuel final sur les pages en attente. Suivi dans [GLOBAL-AUDIT.md](./GLOBAL-AUDIT.md).

@@ -2,6 +2,8 @@
 
 ## État actuel — 2026-09-27
 
+Nouvelle demande G08 : inventaire des endroits avec choix ou affichage d'icônes, avatars et images, à partir du signalement « très peu d'icônes » dans le constructeur de routine sur tablette. Diagnostic confirmé par le code : 18 premiers émojis de la catégorie Hygiène seulement sont présentés pour routines et étapes, alors que huit groupes existent. La [todo G08 par emplacement](./lots/G08/REVIEW.md) couvre également avatars, calendrier, Activités, humeurs, météo, récompenses, image d'étape et rendu partagé `OpenMoji`. Le rendu sur la tablette de l'utilisateur n'a pas été testé ici; aucun code produit ni donnée familiale modifié.
+
 Clôture G06 à la demande « termine la todo et une fois terminé supprime » : le parcours `/child/run` a été rejoué sur un profil Edge temporaire avec routine fictive. Étape, nom et minuteur visibles; la pause garde son temps après rechargement, puis reprend avec une échéance persistée. Captures à 320/390/768 px sans débordement; `npm run test:web-run` réussit. Les trois maquettes comparatives disposent maintenant d'un PNG lisible. **Aucune tâche G06 ne reste dans la todo active**; les diagnostics précédents restent conservés ci-dessous comme journal historique. Pas d'essai iOS/Android, selon le périmètre demandé.
 
 Nouvelle demande initialement inscrite en **todo future G07** : refaire le parcours de première création du profil, dans l’ordre message de base/nom de famille/informations utiles → code Parent → premier enfant → accueil. La demande d’inscription seule n’autorisait pas la construction; voir [G07/REVIEW.md](./lots/G07/REVIEW.md). Aucun changement de produit ni de données pour cette demande.
