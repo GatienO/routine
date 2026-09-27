@@ -303,6 +303,8 @@ Suite G06 : l’enchaînement d’une routine à minuteur avec une routine sans 
 
 Reprise G06 : l’utilisateur signale que `/child/run` n’affiche plus les étapes ni le minuteur. Analyse du code : la redirection pouvait partir avant la réhydratation du store, et le filtrage des étapes en humeur difficile pouvait produire une liste vide, notamment pour une routine entièrement facultative. Le correctif attend la réhydratation et garantit qu’une routine contenant des étapes conserve un déroulé affichable. Aucun changement de données familiales; contrôle visuel local limité par le refus de l’origine de test dans le navigateur automatisé. Voir [G06/REVIEW.md](./lots/G06/REVIEW.md).
 
+Retour utilisateur : le problème persiste après ce premier correctif. Sur l’URL Vercel fournie, l’ouverture directe de `/child/run` reproduit `ReferenceError: process is not defined` dans `react-native-worklets/platformChecker`. L’écran de préparation reste sur `/child/summary`, donc l’erreur du bundle web est la cause confirmée à corriger. L’entrée de l’app fournit `process.env` au navigateur avant de charger Expo Router; build web, TypeScript et 163 tests réussissent. La création d’un enfant fictif directement sur l’origine Vercel a été refusée par la revue automatique; aucun autre essai d’écriture sur cette origine n’a été fait. La vérification de la version déployée est à poursuivre après publication, sans données familiales.
+
 ## Protocole sur appareil écarté du périmètre (non testé)
 
 À exécuter sur installation isolée iOS et Android, sans données familiales :
