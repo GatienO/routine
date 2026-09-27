@@ -20,16 +20,22 @@ interface TutorialStep {
 
 const TUTORIAL_STEPS: TutorialStep[] = [
   {
-    id: 'child-profile',
-    emoji: '👶',
-    title: 'On commence par un enfant',
-    text: 'Le premier profil enfant sert à attribuer les routines, personnaliser l’expérience et suivre les récompenses.',
+    id: 'family-profile',
+    emoji: '🌿',
+    title: 'Nommez votre famille',
+    text: 'Le profil familial reste sur cet appareil et rassemble vos repères.',
   },
   {
     id: 'pin',
     emoji: '🔒',
     title: 'Le code protège l’espace parent',
-    text: 'Le code parent se choisit après le premier enfant. Il protège les réglages, les routines et les récompenses.',
+    text: 'Choisissez votre code Parent avant d’ajouter le premier enfant. Il protège les réglages et les routines.',
+  },
+  {
+    id: 'child-profile',
+    emoji: '👶',
+    title: 'Ajoutez votre premier enfant',
+    text: 'Un prénom et un âge suffisent pour adapter les routines et le calendrier.',
   },
   {
     id: 'parent',

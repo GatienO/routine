@@ -18,10 +18,13 @@ interface LocalProfileState {
   profileId: string | null;
   profileName: string;
   createdAt: string | null;
+  onboardingActive: boolean;
+  onboardingCompletedAt: string | null;
   tutorialPromptPending: boolean;
   tutorialCompletedAt: string | null;
   hasHydrated: boolean;
-  initializeProfile: (name: string) => void;
+  initializeProfile: (name: string, beginOnboarding?: boolean) => void;
+  completeOnboarding: () => void;
   renameProfile: (name: string) => void;
   ensureProfileRecord: () => void;
   dismissTutorialPrompt: () => void;
@@ -35,11 +38,13 @@ export const useLocalProfileStore = create<LocalProfileState>()(
       profileId: null,
       profileName: '',
       createdAt: null,
+      onboardingActive: false,
+      onboardingCompletedAt: null,
       tutorialPromptPending: true,
       tutorialCompletedAt: null,
       hasHydrated: false,
 
-      initializeProfile: (name) =>
+      initializeProfile: (name, beginOnboarding = false) =>
         set((state) => {
           const profileName = sanitizeProfileName(name);
           if (!profileName) return state;
@@ -48,8 +53,14 @@ export const useLocalProfileStore = create<LocalProfileState>()(
             profileId: state.profileId ?? createLocalProfileId(),
             createdAt: state.createdAt ?? new Date().toISOString(),
             profileName,
+            onboardingActive: beginOnboarding,
           };
         }),
+
+      completeOnboarding: () => set({
+        onboardingActive: false,
+        onboardingCompletedAt: new Date().toISOString(),
+      }),
 
       renameProfile: (name) =>
         set((state) => {
@@ -87,6 +98,8 @@ export const useLocalProfileStore = create<LocalProfileState>()(
         profileId: state.profileId,
         profileName: state.profileName,
         createdAt: state.createdAt,
+        onboardingActive: state.onboardingActive,
+        onboardingCompletedAt: state.onboardingCompletedAt,
         tutorialPromptPending: state.tutorialPromptPending,
         tutorialCompletedAt: state.tutorialCompletedAt,
       }),

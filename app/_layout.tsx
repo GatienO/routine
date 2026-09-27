@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { Stack } from 'expo-router';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
@@ -7,7 +7,6 @@ import { View } from 'react-native';
 import * as Linking from 'expo-linking';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AppFeedbackProvider } from '../src/components/feedback/AppFeedbackProvider';
-import { LocalProfileGate } from '../src/components/profile/LocalProfileGate';
 import { WebInstallHint } from '../src/components/web/WebInstallHint';
 import {
   AppBottomNavigation,
@@ -17,7 +16,13 @@ import { useAppTheme } from '../src/hooks/useAppTheme';
 import { AppBrandHeader } from '../src/components/ui/AppBrandHeader';
 import { PastelOrbs } from '../src/components/ui/PastelOrbs';
 import { useAppStore } from '../src/stores/appStore';
+import { useChildrenStore } from '../src/stores/childrenStore';
+import { useLocalProfileStore } from '../src/stores/localProfileStore';
+import { onboardingDestination } from '../src/features/onboarding/route';
 import { consumePinOrigin } from '../src/utils/pinNavigation';
+
+const subscribeAppHydration = (notify: () => void) => useAppStore.persist.onFinishHydration(notify);
+const appHydratedSnapshot = () => useAppStore.persist.hasHydrated();
 
 export default function RootLayout() {
   return (
@@ -37,6 +42,19 @@ function RootShell() {
   const [measuredBottomHeight, setMeasuredBottomHeight] = useState(bottomOffset);
   const { colors, isDark } = useAppTheme();
   const showMainShell = bottomOffset > 0;
+  const appHydrated = useSyncExternalStore(subscribeAppHydration, appHydratedSnapshot, () => false);
+  const parentPin = useAppStore((state) => state.parentPin);
+  const childrenHydrated = useChildrenStore((state) => state.hasHydrated);
+  const childCount = useChildrenStore((state) => state.children.length);
+  const profileHydrated = useLocalProfileStore((state) => state.hasHydrated);
+  const profileName = useLocalProfileStore((state) => state.profileName);
+  const onboardingActive = useLocalProfileStore((state) => state.onboardingActive);
+
+  useEffect(() => {
+    if (!appHydrated || !childrenHydrated || !profileHydrated) return;
+    const destination = onboardingDestination({ pathname, profileName, onboardingActive, parentPin, childCount });
+    if (destination) router.replace(destination as '/routines');
+  }, [appHydrated, childCount, childrenHydrated, onboardingActive, parentPin, pathname, profileHydrated, profileName, router]);
 
   useEffect(() => {
     const isParent = pathname === '/parent' || pathname.startsWith('/parent/');
@@ -88,8 +106,7 @@ function RootShell() {
         </View>
       </View>
       <AppBottomNavigation onHeightChange={setMeasuredBottomHeight} />
-      <LocalProfileGate />
-      <WebInstallHint />
+      {profileName && !onboardingActive ? <WebInstallHint /> : null}
     </>
   );
 }

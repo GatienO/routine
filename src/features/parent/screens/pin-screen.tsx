@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, Backspace, LockSimple } from 'phosphor-react-native';
 import { useAppStore } from '../../../stores/appStore';
+import { useLocalProfileStore } from '../../../stores/localProfileStore';
 import { useAppTheme } from '../../../hooks/useAppTheme';
 import { useFocusRing } from '../../../hooks/useFocusRing';
 import { ThemeModeControl } from '../../../components/ui/ThemeModeControl';
@@ -30,6 +31,7 @@ function PinContent() {
   const router = useRouter();
   const params = useLocalSearchParams<{ redirect?: string | string[]; returnTo?: string | string[] }>();
   const { parentPin, isParentMode, setParentPin, setParentMode } = useAppStore();
+  const onboardingActive = useLocalProfileStore((state) => state.onboardingActive);
   const { colors } = useAppTheme();
   const { width } = useWindowDimensions();
   const [pin, setPin] = useState('');
@@ -40,8 +42,8 @@ function PinContent() {
   const completed = useRef(false);
   const backButton = useRef<React.ElementRef<typeof Pressable>>(null);
   const returnTo = pinReturnDestination(first(params.returnTo), isParentMode);
-  const destination = parentPinDestination(first(params.redirect));
-  const originLabel = returnTo.startsWith('/activities') || returnTo.startsWith('/explore') ? 'Activités' : returnTo.startsWith('/parent') ? 'Parent' : returnTo.startsWith('/child') ? 'l’écran précédent' : 'Routines';
+  const destination = onboardingActive ? '/onboarding/child' : parentPinDestination(first(params.redirect));
+  const originLabel = onboardingActive ? 'Famille' : returnTo.startsWith('/activities') || returnTo.startsWith('/explore') ? 'Activités' : returnTo.startsWith('/parent') ? 'Parent' : returnTo.startsWith('/child') ? 'l’écran précédent' : 'Routines';
 
   useEffect(() => {
     if (Platform.OS === 'web') backButton.current?.focus();
@@ -50,9 +52,10 @@ function PinContent() {
 
   const cancel = useCallback(() => {
     if (timer.current) clearTimeout(timer.current);
+    if (onboardingActive) { router.replace('/onboarding/family'); return; }
     if (consumePinOrigin() === returnTo && router.canGoBack()) router.back();
     else router.replace(returnTo as '/routines');
-  }, [returnTo, router]);
+  }, [onboardingActive, returnTo, router]);
 
   useFocusEffect(useCallback(() => {
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => { cancel(); return true; });
@@ -109,6 +112,7 @@ function PinContent() {
       </View>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <View style={[styles.card, width >= 720 && { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, padding: 32 }]}>
+          {onboardingActive ? <Text style={[styles.onboardingStep, { color: colors.action }]}>2 sur 3 · Parent</Text> : null}
           <View style={[styles.lock, { backgroundColor: colors.actionSoft }]}><LockSimple size={30} weight="regular" color={colors.action} /></View>
           <Text accessibilityRole="header" style={[styles.title, { color: colors.text }]}>{title}</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{isSetup ? (confirmPin === null ? 'Choisissez un code à 4 chiffres.' : 'Entrez le même code pour confirmer.') : 'Entrez votre code à 4 chiffres.'}</Text>
@@ -132,6 +136,7 @@ function PinContent() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
+  onboardingStep: { fontSize: 12, fontWeight: '800', letterSpacing: 0.8, marginBottom: 12 },
   header: { width: '100%', maxWidth: 1320, alignSelf: 'center', minHeight: 68, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 12 },
   back: { width: 44, height: 44, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { flex: 1, fontSize: 14, fontWeight: '600' },

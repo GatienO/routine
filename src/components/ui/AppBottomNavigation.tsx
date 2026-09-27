@@ -8,6 +8,7 @@ import { FONT_SIZE, RADIUS, SPACING } from '../../constants/theme';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { useAppStore } from '../../stores/appStore';
 import { useChildrenStore } from '../../stores/childrenStore';
+import { useLocalProfileStore } from '../../stores/localProfileStore';
 
 import { beginPinNavigation, routeWithParams } from '../../utils/pinNavigation';
 
@@ -23,7 +24,9 @@ const DESTINATION_ICONS = {
 
 export function useShouldShowBottomNavigation() {
   const pathname = usePathname();
-  return shouldShowBottomNavigation(pathname);
+  const profileName = useLocalProfileStore((state) => state.profileName);
+  const onboardingActive = useLocalProfileStore((state) => state.onboardingActive);
+  return Boolean(profileName) && !onboardingActive && shouldShowBottomNavigation(pathname);
 }
 
 export function useBottomNavigationOffset() {

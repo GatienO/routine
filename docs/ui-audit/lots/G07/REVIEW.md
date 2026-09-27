@@ -1,6 +1,6 @@
-# G07 — Première création du profil familial (todo future)
+# G07 — Première création du profil familial
 
-Statut au 2026-09-27 : **diagnostic et prototype préparés — décision visuelle en attente, produit non modifié**. Le lot est repris à la demande « Continue g07 ». Ce travail ne rouvre pas les lots clos.
+Statut au 2026-09-27 : **prototype validé, construction autorisée et intégrée; validation visuelle finale ouverte**. Après « Continue g07 », l'utilisateur a écrit « je valide go ». Cette autorisation porte sur le prototype G07 et le parcours décrit ici; elle ne vaut pas validation finale du produit.
 
 ## Parcours attendu
 
@@ -42,4 +42,9 @@ La séquence et la destination ont été définies par l’utilisateur; aucun no
 3. **Réaliser après autorisation explicite** : relier les écrans et la progression dans les stores existants, sans dupliquer le PIN, l’enfant ni le profil; préserver la reprise après interruption et les anciennes routes.
 4. **Vérifier** : les quatre étapes dans l’ordre, le code confirmé avant l’accès Parent, le premier enfant enregistré une seule fois, l’ouverture sur `/routines`, la reprise après fermeture à chaque étape et l’absence de retour au parcours pour une famille existante. Vérifier clavier/focus, 320/390/768 px, thèmes, TypeScript, tests et export web. Les essais iOS/Android restent hors périmètre tant que l’utilisateur ne les redemande pas.
 
-Prochaine action : compléter et présenter le prototype, puis attendre **« G07 — prototype validé — construction autorisée »** avant de modifier le produit. L’audit et le prototype ne valent pas cette autorisation.
+## Intégration et vérification
+
+- La première ouverture affiche une page dédiée pour le nom familial et l'information sur le stockage local; le menu principal est masqué pendant la création. [Capture de la première vue intégrée](./integration-family.png) sur navigateur isolé à 500 × 850 px.
+- Le PIN existant crée et confirme le code avant le profil enfant. Un nouvel écran enfant ne demande que prénom et âge; il utilise le store existant et bloque un double clic. Une page de fin ouvre explicitement `/routines`. Le guide suit le même ordre.
+- La progression est persistée dans `localProfileStore`. Le routage reconduit vers la première étape manquante après relance et laisse les familles existantes hors onboarding. Aucune donnée réelle n'a été modifiée.
+- TypeScript, 169 tests automatisés (dont les reprises à chaque étape), export web et `git diff --check` réussis. Le parcours complet au clic et le rendu des étapes 2 à 4 sur navigateur isolé restent à rejouer; aucune validation visuelle finale n'est inférée. Essais sur appareils iOS/Android hors périmètre demandé.

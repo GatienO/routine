@@ -1,258 +1,107 @@
-import React, { useEffect, useState } from 'react';
-import {
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  useWindowDimensions,
-  View,
-} from 'react-native';
+import React, { useEffect, useState, useSyncExternalStore } from 'react';
+import { SafeAreaView, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Button } from '../ui/Button';
-import { FONT_SIZE, RADIUS, SHADOWS, SPACING, ThemeColors } from '../../constants/theme';
+import { CONTENT_MAX_WIDTH, FONT_SIZE, SPACING } from '../../constants/theme';
 import { useAppTheme } from '../../hooks/useAppTheme';
+import { useAppStore } from '../../stores/appStore';
+import { useChildrenStore } from '../../stores/childrenStore';
 import { useLocalProfileStore } from '../../stores/localProfileStore';
 
+const subscribeAppHydration = (notify: () => void) => useAppStore.persist.onFinishHydration(notify);
+const appHydratedSnapshot = () => useAppStore.persist.hasHydrated();
+
 export function LocalProfileGate() {
+  const router = useRouter();
   const { width } = useWindowDimensions();
   const { colors, isDark } = useAppTheme();
-  const hasHydrated = useLocalProfileStore((state) => state.hasHydrated);
-  const profileId = useLocalProfileStore((state) => state.profileId);
+  const profileHydrated = useLocalProfileStore((state) => state.hasHydrated);
   const profileName = useLocalProfileStore((state) => state.profileName);
-  const ensureProfileRecord = useLocalProfileStore((state) => state.ensureProfileRecord);
+  const onboardingActive = useLocalProfileStore((state) => state.onboardingActive);
   const initializeProfile = useLocalProfileStore((state) => state.initializeProfile);
-  const [draftName, setDraftName] = useState('');
+  const renameProfile = useLocalProfileStore((state) => state.renameProfile);
+  const appHydrated = useSyncExternalStore(subscribeAppHydration, appHydratedSnapshot, () => false);
+  const parentPin = useAppStore((state) => state.parentPin);
+  const childrenHydrated = useChildrenStore((state) => state.hasHydrated);
+  const childCount = useChildrenStore((state) => state.children.length);
+  const [draftName, setDraftName] = useState(profileName);
 
-  useEffect(() => {
-    if (hasHydrated) {
-      ensureProfileRecord();
-    }
-  }, [ensureProfileRecord, hasHydrated]);
+  useEffect(() => setDraftName(profileName), [profileName]);
 
-  if (!hasHydrated) {
-    return (
-      <View style={[styles.loadingBackdrop, { backgroundColor: colors.navigationBackdrop }]}>
-        <View style={[styles.loadingCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <Text style={[styles.loadingTitle, { color: colors.text }]}>Chargement du profil local...</Text>
-          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-            Les données restent sur cet appareil, sans compte ni base de données.
-          </Text>
-        </View>
-      </View>
-    );
-  }
-
-  if (profileName) {
-    return null;
+  if (!profileHydrated || !appHydrated || !childrenHydrated) {
+    return <View style={styles.loading}><Text style={{ color: colors.text }}>Chargement du profil…</Text></View>;
   }
 
   const trimmedName = draftName.trim();
-  const shortProfileId = profileId ? profileId.slice(-6) : 'LOCAL';
-  const compact = width < 560;
-  const modalWidth = Math.min(Math.max(width - SPACING.lg * 2, 272), 720);
+  const canStart = !profileName && !parentPin && childCount === 0;
+  const continueToNextStep = () => {
+    if (!trimmedName) return;
+    if (profileName) renameProfile(trimmedName);
+    else initializeProfile(trimmedName, canStart);
 
+    if (canStart || (onboardingActive && !parentPin)) {
+      router.replace('/pin');
+    } else if (onboardingActive && childCount === 0) {
+      router.replace('/onboarding/child');
+    } else {
+      router.replace('/routines');
+    }
+  };
+
+  const contentWidth = Math.min(width - SPACING.lg * 2, CONTENT_MAX_WIDTH.sm);
   return (
-    <View accessibilityViewIsModal style={styles.gateLayer}>
-      <Pressable style={[styles.backdrop, { backgroundColor: colors.overlay }]}>
-        <ScrollView
-          style={styles.modalScroll}
-          contentContainerStyle={styles.modalScrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={[styles.modalCard, compact && styles.modalCardCompact, { width: modalWidth, backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <View style={styles.badgeRow}>
-              <View style={[styles.localBadge, { backgroundColor: colors.timeSoft }]}>
-                <Text style={[styles.localBadgeText, { color: colors.time }]}>Profil local</Text>
-              </View>
-              <Text style={[styles.profileId, { color: colors.textLight }]}>ID {shortProfileId}</Text>
-            </View>
-
-            <Text style={[styles.title, { color: colors.text }]}>Créez votre profil sur cet appareil</Text>
-            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-              Chaque utilisateur conserve ses enfants, routines et récompenses uniquement
-              dans son navigateur ou son appareil. Aucune connexion et aucun partage
-              automatique.
-            </Text>
-
-            <View style={[styles.infoGrid, compact && styles.infoGridCompact]}>
-              <InfoCard compact={compact} colors={colors} title="Pas de compte" text="Aucune inscription n'est nécessaire." />
-              <InfoCard compact={compact} colors={colors} title="Données locales" text="Tout reste stocké ici, sur cet appareil." />
-              <InfoCard compact={compact} colors={colors} title="Espace unique" text="Chaque appareil ou navigateur garde son propre espace." />
-            </View>
-
-            <Text style={[styles.label, { color: colors.textSecondary }]}>Nom du profil</Text>
+    <SafeAreaView style={styles.safe}>
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+        <View style={[styles.content, { width: contentWidth }]}>
+          <View style={[styles.brand, { backgroundColor: colors.actionSoft }]}><Text style={[styles.brandText, { color: colors.action }]}>R··</Text></View>
+          <View style={styles.progress} accessibilityLabel="Étape 1 sur 3, famille">
+            <View style={[styles.progressBar, { backgroundColor: colors.action }]} />
+            <View style={[styles.progressBar, { backgroundColor: colors.border }]} />
+            <View style={[styles.progressBar, { backgroundColor: colors.border }]} />
+          </View>
+          <Text style={[styles.eyebrow, { color: colors.action }]}>1 sur 3 · Famille</Text>
+          <Text accessibilityRole="header" style={[styles.title, { color: colors.text }]}>Bienvenue dans Routine</Text>
+          <Text style={[styles.intro, { color: colors.textSecondary }]}>Des repères simples pour votre famille. Vos données restent sur cet appareil.</Text>
+          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Text style={[styles.label, { color: colors.text }]}>Nom de votre famille</Text>
             <TextInput
+              accessibilityLabel="Nom de votre famille"
               style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
               value={draftName}
               onChangeText={setDraftName}
-              placeholder="Ex : Famille Martin"
+              placeholder="Ex. Famille Martin"
               placeholderTextColor={colors.textLight}
               maxLength={40}
-              autoFocus={Platform.OS !== 'web'}
               returnKeyType="done"
-              onSubmitEditing={() => {
-                if (trimmedName) {
-                  initializeProfile(trimmedName);
-                }
-              }}
+              onSubmitEditing={continueToNextStep}
             />
-            <Text style={[styles.hint, { color: colors.textLight }]}>
-              Ce nom sert uniquement à identifier ce profil local sur cet appareil.
-            </Text>
-
-            <Button
-              title="J'ai compris !"
-              onPress={() => initializeProfile(trimmedName)}
-              variant="primary"
-              size="lg"
-              color={isDark ? colors.actionSoft : colors.action}
-              disabled={!trimmedName}
-            />
+            <Text style={[styles.hint, { color: colors.textSecondary }]}>Ce nom sert à reconnaître votre espace local.</Text>
           </View>
-        </ScrollView>
-      </Pressable>
-    </View>
-  );
-}
-
-function InfoCard({ colors, title, text, compact }: { colors: ThemeColors; title: string; text: string; compact: boolean }) {
-  return (
-    <View style={[styles.infoCard, compact && styles.infoCardCompact, { backgroundColor: colors.background, borderColor: colors.border }]}>
-      <Text style={[styles.infoCardTitle, { color: colors.text }]}>{title}</Text>
-      <Text style={[styles.infoCardText, { color: colors.textSecondary }]}>{text}</Text>
-    </View>
+          <View style={styles.spacer} />
+          <Button title="Continuer" onPress={continueToNextStep} variant="primary" size="lg" color={isDark ? colors.actionSoft : colors.action} disabled={!trimmedName} />
+          <Text style={[styles.footer, { color: colors.textSecondary }]}>Aucun compte à créer</Text>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  gateLayer: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 2000,
-    elevation: 2000,
-  },
-  loadingBackdrop: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: SPACING.lg,
-    zIndex: 200,
-  },
-  loadingCard: {
-    width: '100%',
-    maxWidth: 420,
-    borderRadius: RADIUS.xl,
-    padding: SPACING.xl,
-    gap: SPACING.sm,
-    borderWidth: 1,
-    ...SHADOWS.md,
-  },
-  loadingTitle: {
-    fontSize: FONT_SIZE.lg,
-    fontWeight: '800',
-    textAlign: 'center',
-  },
-  loadingText: {
-    fontSize: FONT_SIZE.sm,
-    lineHeight: 20,
-    textAlign: 'center',
-  },
-  backdrop: {
-    flex: 1,
-  },
-  modalScroll: {
-    width: '100%',
-  },
-  modalScrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    paddingVertical: SPACING.lg,
-  },
-  modalCard: {
-    maxWidth: 720,
-    alignSelf: 'center',
-    borderRadius: RADIUS.xl,
-    padding: SPACING.xl,
-    gap: SPACING.md,
-    borderWidth: 1,
-    ...SHADOWS.lg,
-  },
-  modalCardCompact: {
-    padding: SPACING.md,
-  },
-  badgeRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: SPACING.sm,
-    flexWrap: 'wrap',
-  },
-  localBadge: {
-    paddingVertical: 6,
-    paddingHorizontal: SPACING.sm,
-    borderRadius: RADIUS.full,
-  },
-  localBadgeText: {
-    fontSize: FONT_SIZE.xs,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    letterSpacing: 0.4,
-  },
-  profileId: {
-    fontSize: FONT_SIZE.xs,
-    fontWeight: '700',
-  },
-  title: {
-    fontSize: FONT_SIZE.xl + 2,
-    fontWeight: '900',
-  },
-  subtitle: {
-    fontSize: FONT_SIZE.md,
-    lineHeight: 24,
-  },
-  infoGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: SPACING.sm,
-  },
-  infoGridCompact: {
-    flexDirection: 'column',
-  },
-  infoCard: {
-    flexGrow: 1,
-    flexBasis: 180,
-    borderRadius: RADIUS.lg,
-    padding: SPACING.md,
-    gap: SPACING.xs,
-    borderWidth: 1,
-    minWidth: 0,
-    flexShrink: 1,
-  },
-  infoCardCompact: {
-    width: '100%',
-    flexBasis: 'auto',
-  },
-  infoCardTitle: {
-    fontSize: FONT_SIZE.sm,
-    fontWeight: '800',
-  },
-  infoCardText: {
-    fontSize: FONT_SIZE.sm,
-    lineHeight: 20,
-  },
-  label: {
-    fontSize: FONT_SIZE.sm,
-    fontWeight: '700',
-  },
-  input: {
-    borderWidth: 1,
-    borderRadius: RADIUS.lg,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.md,
-    fontSize: FONT_SIZE.md,
-  },
-  hint: {
-    fontSize: FONT_SIZE.xs,
-    lineHeight: 18,
-  },
+  safe: { flex: 1 },
+  loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  scroll: { flexGrow: 1, alignItems: 'center', paddingVertical: SPACING.lg, paddingHorizontal: SPACING.lg },
+  content: { flexGrow: 1, minHeight: 560, maxWidth: '100%', gap: SPACING.sm },
+  brand: { width: 52, height: 52, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+  brandText: { fontSize: 21, fontWeight: '900' },
+  progress: { flexDirection: 'row', gap: 7, marginTop: SPACING.xl, marginBottom: SPACING.xs },
+  progressBar: { flex: 1, height: 6, borderRadius: 6 },
+  eyebrow: { fontSize: FONT_SIZE.xs, fontWeight: '800', letterSpacing: 0.8 },
+  title: { fontSize: FONT_SIZE.xxl, lineHeight: 37, fontWeight: '800', marginTop: 2 },
+  intro: { fontSize: FONT_SIZE.sm, lineHeight: 22, marginBottom: SPACING.md },
+  card: { borderWidth: 1, borderRadius: 20, padding: SPACING.lg, gap: SPACING.sm },
+  label: { fontSize: FONT_SIZE.sm, fontWeight: '800' },
+  input: { minHeight: 52, borderWidth: 1, borderRadius: 14, paddingHorizontal: SPACING.md, fontSize: FONT_SIZE.md },
+  hint: { fontSize: FONT_SIZE.xs, lineHeight: 18 },
+  spacer: { flexGrow: 1 },
+  footer: { textAlign: 'center', fontSize: FONT_SIZE.xs, marginTop: SPACING.sm },
 });
