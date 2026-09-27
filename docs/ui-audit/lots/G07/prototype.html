@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>G07 · Première installation · prototype</title>
+  <style>
+    :root { font-family: ui-rounded, system-ui, sans-serif; color:#303743; background:#e9e9e6; }
+    * { box-sizing:border-box; }
+    body { margin:0; padding:24px; }
+    h1 { margin:0 auto 8px; max-width:1240px; font-size:22px; }
+    .note { max-width:1240px; margin:0 auto 22px; color:#68707b; font-size:14px; line-height:1.5; }
+    .screens { max-width:1240px; margin:auto; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; }
+    .phone { position:relative; overflow:hidden; min-height:660px; border:1px solid #dedfdc; border-radius:26px; background:#f7f5ef; box-shadow:0 9px 30px #30374318; display:flex; flex-direction:column; }
+    .phone::before,.phone::after { content:""; position:absolute; border-radius:50%; pointer-events:none; }
+    .phone::before { width:170px; height:170px; top:-100px; right:-65px; background:#e6e1f7; opacity:.72; }
+    .phone::after { width:180px; height:180px; bottom:30px; left:-125px; background:#dceef0; opacity:.68; }
+    .inner { position:relative; z-index:1; flex:1; padding:22px 18px 20px; display:flex; flex-direction:column; }
+    .brand { align-self:flex-start; display:grid; place-items:center; width:44px; height:44px; border-radius:14px; background:#b8dfcf; color:#397862; font-weight:900; font-size:21px; }
+    .steps { margin:30px 0 10px; display:flex; gap:7px; }
+    .steps span { flex:1; height:6px; border-radius:9px; background:#dedfdc; }
+    .steps span.on { background:#397862; }
+    .eyebrow { margin:0 0 7px; font-size:11px; letter-spacing:.09em; font-weight:800; color:#397862; text-transform:uppercase; }
+    h2 { margin:0 0 10px; font-size:24px; line-height:1.15; letter-spacing:-.03em; }
+    p { font-size:13px; line-height:1.55; color:#68707b; margin:0 0 18px; }
+    .card { border:1px solid #dedfdc; border-radius:20px; background:#fff; padding:18px; box-shadow:0 5px 15px #3037430d; }
+    label { display:block; font-size:12px; font-weight:800; margin:0 0 8px; }
+    .field { min-height:49px; border:1px solid #dedfdc; border-radius:13px; display:flex; align-items:center; padding:0 13px; font-size:14px; color:#303743; background:#fff; }
+    .hint { font-size:11px; color:#68707b; margin-top:9px; }
+    .spacer { flex:1; min-height:18px; }
+    .action { display:grid; place-items:center; min-height:51px; border-radius:14px; background:#397862; color:#fff; font-weight:800; font-size:14px; }
+    .back { text-align:center; margin-top:12px; color:#68707b; font-size:12px; }
+    .shield { width:54px; height:54px; border-radius:18px; background:#b8dfcf; display:grid; place-items:center; color:#397862; font-size:26px; margin-bottom:15px; }
+    .pin { display:flex; justify-content:center; gap:13px; margin:19px 0 22px; }
+    .pin span { width:13px; height:13px; border:2px solid #397862; border-radius:50%; }
+    .keypad { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
+    .keypad span { height:45px; border:1px solid #dedfdc; border-radius:12px; display:grid; place-items:center; font-size:18px; font-weight:700; background:#f7f5ef; }
+    .avatar { width:78px; height:78px; border-radius:24px; background:#e6e1f7; display:grid; place-items:center; font-size:40px; margin:0 auto 14px; }
+    .fields { display:grid; gap:15px; }
+    .done { text-align:center; font-size:40px; margin:23px 0 12px; }
+    .mini-card { background:#fff; border:1px solid #dedfdc; border-radius:18px; padding:16px; margin-top:16px; }
+    .mini-card strong { display:block; font-size:16px; }
+    .mini-card small { display:block; margin-top:5px; color:#68707b; }
+    .footer { text-align:center; font-size:11px; color:#68707b; padding:12px 0 0; }
+    .error { display:none; padding:10px 12px; margin:12px 0 0; border-radius:12px; background:#f9e7e3; color:#8d3d38; font-size:12px; line-height:1.4; }
+    .pin-error .error { display:block; }
+    .dark { color:#f5f3ed; background:#11151d; }
+    .dark .note,.dark p,.dark .hint,.dark .back,.dark .footer,.dark .mini-card small { color:#b5bdc8; }
+    .dark .phone { background:#171b23; border-color:#394351; box-shadow:none; }
+    .dark .phone::before { background:#453e60; }
+    .dark .phone::after { background:#304f5e; }
+    .dark .brand,.dark .shield { background:#31594c; color:#a9ddc8; }
+    .dark .eyebrow { color:#a9ddc8; }
+    .dark .steps span { background:#394351; }
+    .dark .steps span.on,.dark .action { background:#a9ddc8; color:#171b23; }
+    .dark .card,.dark .mini-card { background:#222834; border-color:#394351; }
+    .dark .field { background:#2c3340; color:#f5f3ed; border-color:#394351; }
+    .dark .keypad span { background:#2c3340; border-color:#394351; }
+    .dark .pin span { border-color:#a9ddc8; }
+    .dark .error { background:#5b373b; color:#f5c4bd; }
+    @media (max-width:900px) { .screens { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+    @media (max-width:560px) { body { width:390px; max-width:100%; padding:14px; } .screens { display:block; } .phone { width:100%; margin:0 auto 18px; min-height:610px; } }
+  </style>
+</head>
+<body>
+  <h1>G07 · Première installation</h1>
+  <p class="note">Prototype de parcours, sans données enregistrées. Les quatre vues utilisent le fond et les couleurs de l’app ; les textes et les étapes restent courts.</p>
+  <main class="screens">
+    <section class="phone"><div class="inner"><div class="brand">R··</div><div class="steps"><span class="on"></span><span></span><span></span></div><div class="eyebrow">1 sur 3 · Famille</div><h2>Bienvenue dans Routine</h2><p>Des repères simples pour votre famille. Vos données restent sur cet appareil.</p><div class="card"><label>Nom de votre famille</label><div class="field">Famille Martin</div><div class="hint">Ce nom sert à reconnaître votre espace local.</div></div><div class="spacer"></div><div class="action">Continuer</div><div class="footer">Aucun compte à créer</div></div></section>
+    <section class="phone"><div class="inner"><div class="brand">R··</div><div class="steps"><span class="on"></span><span class="on"></span><span></span></div><div class="eyebrow">2 sur 3 · Parent</div><div class="shield">🔒</div><h2>Protégez l’espace parent</h2><p>Choisissez un code à 4 chiffres, puis confirmez-le. Il protège les réglages de votre famille.</p><div class="card"><label>Votre code Parent</label><div class="pin"><span></span><span></span><span></span><span></span></div><div class="keypad"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span></span><span>0</span><span>⌫</span></div><div class="error" role="alert">Les codes ne correspondent pas. Réessayez.</div></div><div class="spacer"></div><div class="hint">La confirmation suit la saisie du premier code.</div><div class="back">Retour</div></div></section>
+    <section class="phone"><div class="inner"><div class="brand">R··</div><div class="steps"><span class="on"></span><span class="on"></span><span class="on"></span></div><div class="eyebrow">3 sur 3 · Enfant</div><h2>Ajoutez votre premier enfant</h2><p>Un prénom et un âge suffisent pour adapter les routines et le calendrier.</p><div class="card"><div class="avatar">😊</div><div class="fields"><div><label>Prénom</label><div class="field">Emma</div></div><div><label>Âge</label><div class="field">6 ans</div></div></div><div class="hint">L’illustration et la couleur peuvent être changées plus tard.</div></div><div class="spacer"></div><div class="action">Créer le profil enfant</div><div class="back">Retour</div></div></section>
+    <section class="phone"><div class="inner"><div class="brand">R··</div><div class="done">🌿</div><h2>Votre espace est prêt</h2><p>Famille Martin et Emma peuvent maintenant retrouver leurs repères sur l’accueil.</p><div class="mini-card"><strong>Famille Martin</strong><small>1 enfant · Code Parent activé</small></div><div class="spacer"></div><div class="action">Ouvrir l’accueil</div><div class="footer">Destination : Routines</div></div></section>
+  </main>
+</body>
+<script>
+  const flags = new URLSearchParams(location.search);
+  document.body.classList.toggle('dark', flags.has('dark'));
+  document.body.classList.toggle('pin-error', flags.has('pin-error'));
+</script>
+</html>

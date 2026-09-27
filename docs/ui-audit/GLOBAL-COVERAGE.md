@@ -1,6 +1,6 @@
 # Matrice de couverture — 2026-09-20
 
-Todo future G07 : le premier démarrage reliera le profil local, `/pin`, `/parent/add-child` et `/routines` dans cet ordre. L’enchaînement reste à auditer et à prototyper; voir [G07/REVIEW.md](./lots/G07/REVIEW.md).
+Lot G07 actif en phase de décision : le premier démarrage devra relier le profil local, `/pin`, `/parent/add-child` et `/routines` dans cet ordre. Code et premier écran isolé audités, prototype préparé; l’enchaînement réel reste à construire et vérifier. Voir [G07/REVIEW.md](./lots/G07/REVIEW.md).
 
 39 fichiers de route hors layouts, 4 layouts, 3 destinations principales. Relevé depuis le dépôt courant. Cette matrice garantit un rattachement, pas une validation de toutes les fonctions.
 
