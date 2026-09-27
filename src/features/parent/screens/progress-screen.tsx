@@ -18,7 +18,6 @@ import {
   Trash,
   TrendUp,
 } from "phosphor-react-native";
-import { PastelOrbs } from "../../../components/ui/PastelOrbs";
 import { ResponsiveOverlay } from "../../../components/ui/ResponsiveOverlay";
 import { Avatar } from "../../../components/ui/Avatar";
 import { OpenMoji } from "../../../components/ui/OpenMoji";
@@ -163,8 +162,8 @@ export function ProgressScreen({
   };
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
-      <PastelOrbs quiet />
+    <SafeAreaView style={styles.safe}>
+
       <ScrollView
         contentContainerStyle={[styles.scroll, { alignItems: "center" }]}
         showsVerticalScrollIndicator={false}

@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, useWindowDimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { BounceIn, FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { CheckCircle, Coffee, Rocket } from 'phosphor-react-native';
@@ -10,7 +9,7 @@ import { Avatar } from '../../src/components/ui/Avatar';
 import { AnimatedPressable } from '../../src/components/ui/AnimatedPressable';
 import { AppPageHeader } from '../../src/components/ui/AppPageHeader';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
-import { COLORS, FONT_SIZE, GRADIENTS, RADIUS, SHADOWS, SPACING } from '../../src/constants/theme';
+import { COLORS, FONT_SIZE, RADIUS, SHADOWS, SPACING } from '../../src/constants/theme';
 import { formatChildName } from '../../src/utils/children';
 import { formatDuration } from '../../src/utils/date';
 import { getGridItemWidth, getResponsiveColumns } from '../../src/utils/responsive';
@@ -68,7 +67,7 @@ export default function ChildRoutinePauseScreen() {
   };
 
   return (
-    <LinearGradient colors={GRADIENTS.warmBackground} style={styles.gradient}>
+    <View style={styles.gradient}>
       <SafeAreaView style={styles.safe}>
         <View style={styles.container}>
           <AppPageHeader
@@ -144,7 +143,7 @@ export default function ChildRoutinePauseScreen() {
           </Animated.View>
         </View>
       </SafeAreaView>
-    </LinearGradient>
+    </View>
   );
 }
 

@@ -11,7 +11,6 @@ import {
   Pressable,
   AppState,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import Reanimated, {
   FadeInRight,
   FadeOutLeft,
@@ -501,7 +500,6 @@ export default function RunRoutineScreen() {
   }, [handleComplete]);
 
   const encouragements = moodConfig?.encouragements ?? DEFAULT_ENCOURAGEMENTS;
-  const gradientColors = [colors.background, colors.surface] as const;
   const animSpeed =
     moodConfig?.animationIntensity === 'calm'
       ? 600
@@ -514,7 +512,7 @@ export default function RunRoutineScreen() {
   const orderedParticipants = isMobile ? participantChildren : [...leftParticipants, ...rightParticipants];
 
   return (
-    <LinearGradient colors={gradientColors} style={styles.gradient}>
+    <View style={styles.gradient}>
       <SafeAreaView style={styles.safe}>
         <View style={styles.container}>
           <Reanimated.View
@@ -714,7 +712,7 @@ export default function RunRoutineScreen() {
           />
         </View>
       </SafeAreaView>
-    </LinearGradient>
+    </View>
   );
 }
 

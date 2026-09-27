@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, SafeAreaView, ScrollView, StyleSheet, Switch, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, CloudSun, Crosshair, MapPin, Minus, Plus } from 'phosphor-react-native';
-import { PastelOrbs } from '../../../components/ui/PastelOrbs';
 import { showAppToast } from '../../../components/feedback/AppFeedbackProvider';
 import { useAppTheme } from '../../../hooks/useAppTheme';
 import { useAppStore } from '../../../stores/appStore';
@@ -72,8 +71,8 @@ export function ParentWeatherScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
-      <PastelOrbs quiet />
+    <SafeAreaView style={styles.safe}>
+
       <ScrollView contentContainerStyle={[styles.scroll, { alignItems: 'center' }]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <View style={[styles.content, { width: contentWidth, maxWidth: '100%' }]}>
           <View style={styles.headingRow}>

@@ -18,7 +18,7 @@ export function AppScaffold({ title, subtitle, icon = "\u{1F9F1}", screenTitle, 
   return (
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
-      style={{ backgroundColor: colors.background }}
+      style={{ backgroundColor: "transparent" }}
       contentContainerStyle={{ paddingBottom: 48 }}
     >
       <Stack.Screen options={{ title: screenTitle ?? title, headerShown: false }} />
@@ -29,7 +29,7 @@ export function AppScaffold({ title, subtitle, icon = "\u{1F9F1}", screenTitle, 
           paddingTop: width >= 720 ? 34 : 28,
           paddingBottom: width >= 720 ? 18 : 14,
           paddingHorizontal: horizontalPadding,
-          backgroundColor: colors.background
+          backgroundColor: "transparent"
         }}
       >
         <View style={{ width: "100%", maxWidth: 1240, alignSelf: "center", gap: 8 }}>

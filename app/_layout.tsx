@@ -73,7 +73,7 @@ function RootShell() {
     <>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <View style={{ flex: 1, paddingBottom: showMainShell ? Math.max(bottomOffset, measuredBottomHeight) : 0, backgroundColor: colors.background }}>
-        {showMainShell ? <PastelOrbs quiet /> : null}
+        <PastelOrbs quiet />
         {showMainShell ? <AppBrandHeader /> : null}
         <View style={{ flex: 1 }}>
           <ThemeProvider value={{ ...(isDark ? DarkTheme : DefaultTheme), colors: { ...(isDark ? DarkTheme.colors : DefaultTheme.colors), background: 'transparent' } }}>

@@ -6,7 +6,6 @@ import { ArrowLeft, Backspace, LockSimple } from 'phosphor-react-native';
 import { useAppStore } from '../../../stores/appStore';
 import { useAppTheme } from '../../../hooks/useAppTheme';
 import { useFocusRing } from '../../../hooks/useFocusRing';
-import { PastelOrbs } from '../../../components/ui/PastelOrbs';
 import { ThemeModeControl } from '../../../components/ui/ThemeModeControl';
 import { consumePinOrigin, parentPinDestination, pinReturnDestination } from '../../../utils/pinNavigation';
 
@@ -20,7 +19,7 @@ export default function PinScreen() {
   const hydrated = useSyncExternalStore(subscribeHydration, isHydrated, () => false);
   const { colors } = useAppTheme();
   // A direct link must wait for the saved PIN before choosing creation vs entry.
-  if (!hydrated) return <View style={[styles.safe, { backgroundColor: colors.background }]}><Text accessibilityLiveRegion="polite" style={{ color: colors.text }}>Chargement…</Text></View>;
+  if (!hydrated) return <View style={styles.safe}><Text accessibilityLiveRegion="polite" style={{ color: colors.text }}>Chargement…</Text></View>;
   return <PinContent />;
 }
 
@@ -99,8 +98,8 @@ function PinContent() {
 
   const title = isSetup ? (confirmPin === null ? 'Créez votre code' : 'Confirmez votre code') : 'Espace parent';
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
-      <PastelOrbs quiet />
+    <SafeAreaView style={styles.safe}>
+
       <View style={styles.header}>
         <Pressable {...backFocusProps} ref={backButton} onPress={cancel} accessibilityRole="button" accessibilityLabel={`Annuler et revenir à ${originLabel}`} style={[styles.back, backFocus, { backgroundColor: colors.surface }]}>
           <ArrowLeft size={22} color={colors.text} />

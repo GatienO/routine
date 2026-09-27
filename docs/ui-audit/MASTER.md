@@ -1,5 +1,7 @@
 # Chantier G06 — lancement et routine en cours
 
+Extension visuelle demandée après G06 : le fond pastel à ronds de l’accueil est appliqué au cadre commun de toutes les routes. Le code et l’export web sont vérifiés; contrôle visuel final sur les pages en attente. Suivi dans [GLOBAL-AUDIT.md](./GLOBAL-AUDIT.md).
+
 État au 2026-09-27 : **todo globale validée et clôturée par l’utilisateur** (« valide tout et termine ») dans le périmètre web et code convenu. G01, G02 et G05 ont été intégrés, vérifiés sur web et validés visuellement; les parcours G03 ont été rejoués sur données fictives isolées. TypeScript, 158 tests et les exports de production web/Android/iOS ont réussi. Les essais sur appareil iOS/Android et avec lecteur d’écran réel ont été retirés du périmètre à la demande de l’utilisateur : ils restent non testés, et la validation finale ne les couvre pas. Détails et preuves : [bilan global](./GLOBAL-AUDIT.md) et [audit fonctionnel](./FUNCTIONAL-AUDIT.md).
 
 Nouveau chantier demandé le 2026-09-27 : **G06 — lancement et routine en cours**, routes `/routines`, `/child/summary`, `/child/run` et reprise. [Diagnostic, autorisation et intégration](./lots/G06/REVIEW.md) : minuteur persistant, pause conservée, nom de routine visible et actions Parent accessibles. Construction autorisée par « j'autorise continue », contrôlée sur installation fictive web; validation visuelle finale encore ouverte. Les lots G01–G05 restent clos.

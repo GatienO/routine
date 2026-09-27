@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import { Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Copy, MagnifyingGlass, PencilSimple, Plus, Star, Trash } from 'phosphor-react-native';
-import { PastelOrbs } from '../../../components/ui/PastelOrbs';
 import { ResponsiveOverlay } from '../../../components/ui/ResponsiveOverlay';
 import { RoutineShareModal } from '../../../components/routine/RoutineShareModal';
 import { OpenMoji } from '../../../components/ui/OpenMoji';
@@ -78,8 +77,8 @@ export function ParentRoutinesScreen() {
     if (confirmed) { trashRoutine(routine.id); setSelected(null); }
   };
 
-  return <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
-    <PastelOrbs quiet />
+  return <SafeAreaView style={styles.safe}>
+
     <ScrollView contentContainerStyle={[styles.scroll, { alignItems: 'center' }]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
       <View style={[styles.content, { width: contentWidth, maxWidth: '100%' }]}>
         <View style={styles.headingRow}>

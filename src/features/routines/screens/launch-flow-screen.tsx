@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, ArrowRight, CaretDown, CaretUp, Check, CheckCircle, Clock, PencilSimple, Play, UsersThree } from 'phosphor-react-native';
 import { Avatar } from '../../../components/ui/Avatar';
@@ -147,11 +146,11 @@ export function LaunchFlowScreen() {
   const primaryLabel = stage === 'prepare' ? 'Confirmer les participants' : stage === 'presence' ? 'Choisir les humeurs' : moodChild ? 'Passer cette humeur' : 'Commencer la routine';
   const primaryAction = () => stage === 'prepare' ? setStage('presence') : stage === 'presence' ? setStage('mood') : moodChild ? setMoods((current) => ({ ...current, [moodChild.id]: 'motivated' })) : start();
 
-  return <LinearGradient colors={[colors.background, colors.surface, colors.background]} style={styles.gradient}><SafeAreaView style={styles.safe}><View style={[styles.shell, { width: contentWidth, maxWidth: '100%' }]}>
+  return <View style={styles.gradient}><SafeAreaView style={styles.safe}><View style={[styles.shell, { width: contentWidth, maxWidth: '100%' }]}>
     <View style={styles.topBar}><TouchableOpacity accessibilityRole="button" accessibilityLabel="Retour" onPress={goBack} style={[styles.backButton, { backgroundColor: colors.surface, borderColor: colors.border }]}><ArrowLeft size={21} weight="bold" color={colors.text} /></TouchableOpacity><View style={styles.progressSteps}>{STAGES.map((item, index) => { const activeIndex = STAGES.findIndex((candidate) => candidate.id === stage); const active = index === activeIndex; const done = index < activeIndex; return <View key={item.id} style={styles.progressItem}><View style={[styles.progressDot, { backgroundColor: done || active ? colors.action : colors.surfaceSecondary, borderColor: done || active ? colors.action : colors.border }]}>{done ? <Check size={12} weight="bold" color={colors.background} /> : <Text style={[styles.progressNumber, { color: active ? colors.background : colors.textSecondary }]}>{index + 1}</Text>}</View>{!compact ? <Text style={[styles.progressLabel, { color: active ? colors.text : colors.textSecondary }]}>{item.label}</Text> : null}</View>; })}</View></View>
     <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">{stage === 'prepare' ? prepare : stage === 'presence' ? presence : mood}</ScrollView>
     <View style={[styles.footer, { backgroundColor: colors.navigationBackdrop, borderColor: colors.border }]}><TouchableOpacity accessibilityRole="button" onPress={goBack} style={[styles.secondaryButton, { borderColor: colors.border }]}><Text style={[styles.secondaryButtonText, { color: colors.text }]}>Retour</Text></TouchableOpacity><TouchableOpacity aria-disabled={disabled} accessibilityRole="button" accessibilityState={{ disabled }} disabled={disabled} onPress={primaryAction} activeOpacity={0.84} style={[styles.primaryButton, { backgroundColor: disabled ? colors.surfaceSecondary : colors.action }]}><Text style={[styles.primaryButtonText, { color: disabled ? colors.textLight : colors.background }]}>{primaryLabel}</Text><ArrowRight size={19} weight="bold" color={disabled ? colors.textLight : colors.background} /></TouchableOpacity></View>
-  </View></SafeAreaView></LinearGradient>;
+  </View></SafeAreaView></View>;
 }
 
 const styles = StyleSheet.create({

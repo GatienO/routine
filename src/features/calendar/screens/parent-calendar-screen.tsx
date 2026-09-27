@@ -5,7 +5,6 @@ import { fr } from 'date-fns/locale';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, CalendarPlus, CaretRight, PencilSimple, Plus, Repeat, Trash } from 'phosphor-react-native';
 import { ResponsiveOverlay } from '../../../components/ui/ResponsiveOverlay';
-import { PastelOrbs } from '../../../components/ui/PastelOrbs';
 import { CalendarLinkPicker } from '../../../components/calendar/CalendarLinkPicker';
 import { showAppConfirm, showAppToast } from '../../../components/feedback/AppFeedbackProvider';
 import { activities } from '../../activities/activities';
@@ -62,8 +61,8 @@ export function ParentCalendarScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
-      <PastelOrbs quiet />
+    <SafeAreaView style={styles.safe}>
+
       <ScrollView contentContainerStyle={[styles.scroll, { alignItems: 'center' }]} showsVerticalScrollIndicator={false}>
         <View style={[styles.content, { width: contentWidth, maxWidth: '100%' }]}>
           <View style={styles.headingRow}>

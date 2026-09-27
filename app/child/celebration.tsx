@@ -7,7 +7,6 @@ import {
   Dimensions,
   ScrollView,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import Animated, {
   useSharedValue,
@@ -150,10 +149,7 @@ export default function CelebrationScreen() {
   }));
 
   return (
-    <LinearGradient
-      colors={[colors.background, colors.surface, colors.background]}
-      style={styles.gradient}
-    >
+    <View style={styles.gradient}>
       <SafeAreaView style={styles.safe}>
         {Array.from({ length: 10 }).map((_, i) => (
           <FallingParticle key={i} index={i} />
@@ -265,7 +261,7 @@ export default function CelebrationScreen() {
           </Animated.View>
         </ScrollView>
       </SafeAreaView>
-    </LinearGradient>
+    </View>
   );
 }
 

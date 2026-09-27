@@ -73,7 +73,7 @@ export function AccompaniedCalendarExperience({ initialMode = 'today' }: { initi
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={styles.safe}>
       <PastelOrbs quiet />
       <ScrollView contentContainerStyle={[styles.scroll, { alignItems: 'center' }]} showsVerticalScrollIndicator={false}>
         <View style={[styles.content, { width: contentWidth, maxWidth: '100%' }]}>
@@ -193,7 +193,7 @@ function DodosPreview({ countdowns, colors }: { countdowns: CountdownEvent[]; co
 }
 
 function EmptyCalendar({ colors, onClose }: { colors: ThemeColors; onClose: () => void }) {
-  return <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}><View style={styles.emptyPage}><View style={[styles.emptyIcon, { backgroundColor: colors.timeSoft }]}><CalendarBlank size={34} color={colors.time} /></View><Text style={[styles.emptyTitle, { color: colors.text }]}>Aucun repère pour le moment</Text><Text style={[styles.emptyText, { color: colors.textSecondary }]}>Un parent peut d’abord ajouter un enfant et quelques repères.</Text><Pressable accessibilityRole="button" onPress={onClose} style={[styles.secondaryAction, { backgroundColor: colors.surface, borderColor: colors.border }]}><Text style={[styles.secondaryActionText, { color: colors.text }]}>Retour aux routines</Text></Pressable></View></SafeAreaView>;
+  return <SafeAreaView style={styles.safe}><View style={styles.emptyPage}><View style={[styles.emptyIcon, { backgroundColor: colors.timeSoft }]}><CalendarBlank size={34} color={colors.time} /></View><Text style={[styles.emptyTitle, { color: colors.text }]}>Aucun repère pour le moment</Text><Text style={[styles.emptyText, { color: colors.textSecondary }]}>Un parent peut d’abord ajouter un enfant et quelques repères.</Text><Pressable accessibilityRole="button" onPress={onClose} style={[styles.secondaryAction, { backgroundColor: colors.surface, borderColor: colors.border }]}><Text style={[styles.secondaryActionText, { color: colors.text }]}>Retour aux routines</Text></Pressable></View></SafeAreaView>;
 }
 
 function getNowAndAfter(items: DayTimelineItem[]) {

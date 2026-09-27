@@ -6,7 +6,6 @@ import {
   SafeAreaView,
   TouchableOpacity,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import Reanimated, {
   FadeIn,
   FadeInDown,
@@ -23,7 +22,7 @@ import { ProgressBar } from '../../src/components/ui/ProgressBar';
 import { AnimatedPressable } from '../../src/components/ui/AnimatedPressable';
 import { useRewardStore } from '../../src/stores/rewardStore';
 import { useRoutineStore } from '../../src/stores/routineStore';
-import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS, GRADIENTS } from '../../src/constants/theme';
+import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../../src/constants/theme';
 
 type Phase = 'intro' | 'breathing' | 'stretching' | 'done';
 
@@ -112,7 +111,7 @@ export default function WellnessScreen() {
   };
 
   return (
-    <LinearGradient colors={[...GRADIENTS.wellness]} style={styles.gradient}>
+    <View style={styles.gradient}>
       <SafeAreaView style={styles.safe}>
         <View style={styles.container}>
           {/* Top bar */}
@@ -218,7 +217,7 @@ export default function WellnessScreen() {
           </View>
         </View>
       </SafeAreaView>
-    </LinearGradient>
+    </View>
   );
 }
 
