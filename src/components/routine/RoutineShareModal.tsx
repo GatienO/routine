@@ -119,8 +119,8 @@ export function RoutineShareModal({
 
   return (
     <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
-      <Pressable style={styles.backdrop} onPress={onClose}>
-        <Pressable style={styles.modalCard} onPress={(event) => event.stopPropagation()}>
+      <Pressable accessible={false} style={styles.backdrop} onPress={onClose}>
+        <Pressable accessible={false} style={styles.modalCard} onPress={(event) => event.stopPropagation()}>
           {routine && artifacts ? (
             <>
               <View style={styles.header}>
@@ -175,7 +175,7 @@ export function RoutineShareModal({
                   size="md"
                   color={COLORS.secondaryDark}
                 />
-                <TouchableOpacity onPress={onClose} style={styles.closeButton} activeOpacity={0.85}>
+                <TouchableOpacity accessibilityRole="button" onPress={onClose} style={styles.closeButton} activeOpacity={0.85}>
                   <Text style={styles.closeButtonText}>Fermer</Text>
                 </TouchableOpacity>
               </View>
@@ -200,7 +200,7 @@ function ShareValueCard({
     <Card style={styles.valueCard}>
       <View style={styles.valueHeader}>
         <Text style={styles.valueTitle}>{title}</Text>
-        <TouchableOpacity onPress={onCopy} style={styles.copyButton} activeOpacity={0.85}>
+        <TouchableOpacity accessibilityRole="button" onPress={onCopy} style={styles.copyButton} activeOpacity={0.85}>
           <Text style={styles.copyButtonText}>Copier</Text>
         </TouchableOpacity>
       </View>

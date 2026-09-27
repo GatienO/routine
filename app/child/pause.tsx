@@ -37,13 +37,13 @@ export default function ChildRoutinePauseScreen() {
 
   React.useEffect(() => {
     if (!currentExecution) {
-      router.replace('/child');
+      router.replace('/routines');
       return;
     }
 
     if (!routine) {
       cancelExecution();
-      router.replace('/child');
+      router.replace('/routines');
     }
   }, [cancelExecution, currentExecution, routine, router]);
 
@@ -64,7 +64,7 @@ export default function ChildRoutinePauseScreen() {
 
   const handleStop = () => {
     cancelExecution();
-    router.replace('/child');
+    router.replace('/routines');
   };
 
   return (

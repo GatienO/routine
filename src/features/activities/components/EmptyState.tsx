@@ -17,10 +17,10 @@ export function EmptyState({ title, message }: EmptyStateProps) {
         borderWidth: 1,
         borderColor: colors.border,
         gap: 8,
-        boxShadow: "0 10px 24px rgba(15, 23, 42, 0.08)"
+        boxShadow: "0 10px 24px rgba(74, 63, 50, 0.08)"
       }}
     >
-      <Text selectable style={{ color: colors.text, fontSize: 19, fontWeight: "900" }}>
+      <Text selectable style={{ color: colors.text, fontSize: 19, fontWeight: "700" }}>
         {title}
       </Text>
       <Text selectable style={{ color: colors.muted, fontSize: 15, lineHeight: 22 }}>

@@ -8,7 +8,8 @@ import {
   View,
 } from 'react-native';
 import { Button } from '../ui/Button';
-import { COLORS, FONT_SIZE, RADIUS, SHADOWS, SPACING } from '../../constants/theme';
+import { FONT_SIZE, RADIUS, SHADOWS, SPACING } from '../../constants/theme';
+import { useAppTheme } from '../../hooks/useAppTheme';
 
 interface TutorialStep {
   id: string;
@@ -22,25 +23,25 @@ const TUTORIAL_STEPS: TutorialStep[] = [
     id: 'child-profile',
     emoji: '👶',
     title: 'On commence par un enfant',
-    text: 'Le premier profil enfant sert de base pour attribuer les routines, personnaliser l experience et suivre les recompenses.',
+    text: 'Le premier profil enfant sert à attribuer les routines, personnaliser l’expérience et suivre les récompenses.',
   },
   {
     id: 'pin',
     emoji: '🔒',
-    title: 'Le code protege l espace parent',
-    text: 'Le code parent se choisit apres le premier enfant. Il protege les reglages, les routines et les recompenses.',
+    title: 'Le code protège l’espace parent',
+    text: 'Le code parent se choisit après le premier enfant. Il protège les réglages, les routines et les récompenses.',
   },
   {
     id: 'parent',
     emoji: '👨‍👩‍👧',
     title: 'Les parents preparent les routines',
-    text: 'Depuis l espace parent, on cree les routines, les profils, les recompenses et les reglages utiles.',
+    text: 'Depuis l’espace parent, on crée les routines, les profils, les récompenses et les réglages utiles.',
   },
   {
     id: 'child',
     emoji: '✨',
-    title: 'L enfant suit son espace',
-    text: 'L espace enfant reste simple : choisir une routine, avancer et gagner des etoiles au fil des etapes.',
+    title: 'L’enfant suit son espace',
+    text: 'L’espace enfant reste simple : choisir une routine, avancer et gagner des étoiles au fil des étapes.',
   },
 ];
 
@@ -54,6 +55,7 @@ export function AppTutorialModal({
   onComplete?: () => void;
 }) {
   const [stepIndex, setStepIndex] = useState(0);
+  const { colors, isDark } = useAppTheme();
   const currentStep = useMemo(() => TUTORIAL_STEPS[stepIndex] ?? TUTORIAL_STEPS[0], [stepIndex]);
   const isLastStep = stepIndex === TUTORIAL_STEPS.length - 1;
 
@@ -70,39 +72,39 @@ export function AppTutorialModal({
 
   return (
     <Modal transparent visible={visible} animationType="fade" onRequestClose={handleClose}>
-      <Pressable style={styles.backdrop} onPress={handleClose}>
-        <Pressable style={styles.card} onPress={(event) => event.stopPropagation()}>
-          <View style={styles.hero}>
+      <Pressable accessible={false} style={[styles.backdrop, { backgroundColor: colors.overlay }]} onPress={handleClose}>
+        <Pressable accessible={false} style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]} onPress={(event) => event.stopPropagation()}>
+          <View style={[styles.hero, { backgroundColor: colors.transitionSoft }]}>
             <Text style={styles.heroEmoji}>{currentStep.emoji}</Text>
           </View>
 
-          <Text style={styles.eyebrow}>
+          <Text style={[styles.eyebrow, { color: colors.transition }]}>
             Guide de démarrage {stepIndex + 1}/{TUTORIAL_STEPS.length}
           </Text>
-          <Text style={styles.title}>{currentStep.title}</Text>
-          <Text style={styles.text}>{currentStep.text}</Text>
+          <Text style={[styles.title, { color: colors.text }]}>{currentStep.title}</Text>
+          <Text style={[styles.text, { color: colors.textSecondary }]}>{currentStep.text}</Text>
 
           <View style={styles.dotsRow}>
             {TUTORIAL_STEPS.map((step, index) => (
               <View
                 key={step.id}
-                style={[styles.dot, index === stepIndex && styles.dotActive]}
+                style={[styles.dot, { backgroundColor: index === stepIndex ? colors.transition : colors.border }, index === stepIndex && styles.dotActive]}
               />
             ))}
           </View>
 
           <View style={styles.actions}>
-            <TouchableOpacity onPress={handleClose} style={styles.secondaryAction} activeOpacity={0.85}>
-              <Text style={styles.secondaryActionText}>Fermer</Text>
+            <TouchableOpacity accessibilityRole="button" onPress={handleClose} style={[styles.secondaryAction, { backgroundColor: colors.surfaceSecondary }]} activeOpacity={0.85}>
+              <Text style={[styles.secondaryActionText, { color: colors.textSecondary }]}>Fermer</Text>
             </TouchableOpacity>
 
             {stepIndex > 0 ? (
-              <TouchableOpacity
+              <TouchableOpacity accessibilityRole="button"
                 onPress={() => setStepIndex((previous) => Math.max(0, previous - 1))}
-                style={styles.secondaryAction}
+                style={[styles.secondaryAction, { backgroundColor: colors.surfaceSecondary }]}
                 activeOpacity={0.85}
               >
-                <Text style={styles.secondaryActionText}>Précédent</Text>
+                <Text style={[styles.secondaryActionText, { color: colors.textSecondary }]}>Précédent</Text>
               </TouchableOpacity>
             ) : null}
 
@@ -117,7 +119,7 @@ export function AppTutorialModal({
               }}
               variant="primary"
               size="md"
-              color={COLORS.secondary}
+              color={isDark ? colors.actionSoft : colors.action}
             />
           </View>
         </Pressable>
@@ -129,7 +131,6 @@ export function AppTutorialModal({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: COLORS.overlay,
     alignItems: 'center',
     justifyContent: 'center',
     padding: SPACING.lg,
@@ -137,12 +138,10 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 560,
-    backgroundColor: COLORS.surface,
     borderRadius: RADIUS.xl,
     padding: SPACING.xl,
     gap: SPACING.md,
     borderWidth: 1,
-    borderColor: COLORS.border,
     ...SHADOWS.lg,
   },
   hero: {
@@ -152,7 +151,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'center',
-    backgroundColor: '#FFF4E8',
   },
   heroEmoji: {
     fontSize: 42,
@@ -160,7 +158,6 @@ const styles = StyleSheet.create({
   eyebrow: {
     fontSize: FONT_SIZE.xs,
     fontWeight: '800',
-    color: COLORS.secondaryDark,
     textTransform: 'uppercase',
     letterSpacing: 0.4,
     textAlign: 'center',
@@ -168,13 +165,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FONT_SIZE.xl,
     fontWeight: '900',
-    color: COLORS.text,
     textAlign: 'center',
   },
   text: {
     fontSize: FONT_SIZE.md,
     lineHeight: 24,
-    color: COLORS.textSecondary,
     textAlign: 'center',
   },
   dotsRow: {
@@ -186,11 +181,9 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: COLORS.border,
   },
   dotActive: {
     width: 24,
-    backgroundColor: COLORS.secondary,
   },
   actions: {
     flexDirection: 'row',
@@ -203,13 +196,11 @@ const styles = StyleSheet.create({
     minHeight: 44,
     paddingHorizontal: SPACING.md,
     borderRadius: RADIUS.full,
-    backgroundColor: `${COLORS.textLight}14`,
     alignItems: 'center',
     justifyContent: 'center',
   },
   secondaryActionText: {
     fontSize: FONT_SIZE.sm,
     fontWeight: '800',
-    color: COLORS.textSecondary,
   },
 });

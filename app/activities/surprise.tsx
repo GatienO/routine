@@ -1,3 +1,2 @@
-import ActivitySurpriseScreen from '../../src/features/activities/screens/activity-surprise-screen';
-
-export default ActivitySurpriseScreen;
+import { Redirect } from 'expo-router';
+export default function SurpriseAlias() { return <Redirect href="/activities?surprise=1" />; }

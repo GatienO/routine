@@ -26,13 +26,13 @@ export const AGE_RANGES: Array<{ id: AgeRangeId; label: string; min: number; max
 
 export const ENERGY_OPTIONS: Array<{ id: ParentEnergy; label: string; helper: string }> = [
   { id: "ko", label: "KO", helper: "Minimum d'effort" },
-  { id: "medium", label: "Moyenne", helper: "Un peu present" },
-  { id: "motivated", label: "Motive", helper: "On bouge" }
+  { id: "medium", label: "Moyenne", helper: "Un peu présent" },
+  { id: "motivated", label: "Motivé", helper: "On bouge" }
 ];
 
 export const WEATHER_OPTIONS: Array<{ id: ActivityWeather; label: string }> = [
-  { id: "indoor", label: "Interieur" },
-  { id: "outdoor", label: "Exterieur" },
+  { id: "indoor", label: "Intérieur" },
+  { id: "outdoor", label: "Extérieur" },
   { id: "rainy", label: "Pluie" },
   { id: "sunny", label: "Soleil" },
   { id: "any", label: "Peu importe" }
@@ -43,15 +43,15 @@ export const DURATION_OPTIONS: DurationOption[] = [5, 10, 15, 30, 45];
 export const PLAYER_COUNT_OPTIONS = [1, 2, 3, 4, 5, 6, 8];
 
 export const ACTIVITY_TYPE_OPTIONS: Array<{ id: ActivityType; label: string; helper: string }> = [
-  { id: "creative", label: "Creatif", helper: "Inventer, dessiner, fabriquer" },
-  { id: "motor", label: "Moteur", helper: "Bouger et se defouler" },
+  { id: "creative", label: "Créatif", helper: "Inventer, dessiner, fabriquer" },
+  { id: "motor", label: "Moteur", helper: "Bouger et se défouler" },
   { id: "calm", label: "Calme", helper: "Redescendre doucement" },
   { id: "social", label: "Social", helper: "Jouer ensemble" },
-  { id: "investigation", label: "Enquete", helper: "Indices et mysteres" },
-  { id: "challenge", label: "Defi", helper: "Mission ou points" },
+  { id: "investigation", label: "Enquête", helper: "Indices et mystères" },
+  { id: "challenge", label: "Défi", helper: "Mission ou points" },
   { id: "story", label: "Histoire", helper: "Role-play et narration" },
-  { id: "construction", label: "Construction", helper: "Batir un monde" },
-  { id: "outdoor", label: "Exterieur", helper: "Dehors ou nature" },
+  { id: "construction", label: "Construction", helper: "Bâtir un monde" },
+  { id: "outdoor", label: "Extérieur", helper: "Dehors ou nature" },
   { id: "sensory", label: "Sensoriel", helper: "Toucher, eau, sons" }
 ];
 
@@ -64,31 +64,31 @@ export const MESS_OPTIONS: Array<{ id: MessLevel; label: string }> = [
 export const NOISE_OPTIONS: Array<{ id: NoiseLevel; label: string }> = [
   { id: "low", label: "Calme" },
   { id: "medium", label: "Bruit ok" },
-  { id: "high", label: "Ca bouge" }
+  { id: "high", label: "Ça bouge" }
 ];
 
 export const PARENT_MOOD_OPTIONS: Array<{ id: ParentMood; label: string }> = [
-  { id: "epuise", label: "Parent epuise" },
+  { id: "epuise", label: "Parent épuisé" },
   { id: "besoin-calme", label: "Besoin de calme" },
-  { id: "besoin-defoulement", label: "Besoin de defouler" },
+  { id: "besoin-defoulement", label: "Besoin de se défouler" },
   { id: "patient", label: "Parent dispo" }
 ];
 
 export const SMART_FILTER_OPTIONS: Array<{ id: ActivityNeed; label: string; helper: string }> = [
   { id: "urgence", label: "Urgence", helper: "Occuper maintenant" },
   { id: "calme", label: "Retour au calme", helper: "Bruit bas" },
-  { id: "autonomie", label: "Autonomie", helper: "Cafe possible" },
-  { id: "sans-bazar", label: "Sans bazar", helper: "Peu a ranger" },
-  { id: "defoulement", label: "Defouler", helper: "Besoin de bouger" },
+  { id: "autonomie", label: "Autonomie", helper: "Café possible" },
+  { id: "sans-bazar", label: "Sans bazar", helper: "Peu à ranger" },
+  { id: "defoulement", label: "Se défouler", helper: "Besoin de bouger" },
   { id: "pluie", label: "Jour de pluie", helper: "Dedans" },
   { id: "avant-bain", label: "Avant bain", helper: "On peut salir" }
 ];
 
 export const SETUP_TIME_OPTIONS = [
-  { value: 0, label: "Instantane" },
-  { value: 1, label: "1 min prep" },
-  { value: 2, label: "2 min prep" },
-  { value: 3, label: "3 min prep" }
+  { value: 0, label: "Instantané" },
+  { value: 1, label: "1 min prépa" },
+  { value: 2, label: "2 min prépa" },
+  { value: 3, label: "3 min prépa" }
 ];
 
 export const CLEANUP_TIME_OPTIONS = [
@@ -100,7 +100,7 @@ export const CLEANUP_TIME_OPTIONS = [
 
 export const SEASON_OPTIONS: Array<{ id: Season; label: string }> = [
   { id: "spring", label: "Printemps" },
-  { id: "summer", label: "Ete" },
+  { id: "summer", label: "Été" },
   { id: "autumn", label: "Automne" },
   { id: "winter", label: "Hiver" }
 ];
@@ -109,7 +109,7 @@ export const MATERIAL_GROUP_OPTIONS: Array<{ id: MaterialGroup; label: string; m
   { id: "rien", label: "Rien", materials: [] },
   { id: "doudous", label: "Doudous", materials: ["doudous", "figurines", "jouets"] },
   { id: "cuisine", label: "Cuisine", materials: ["bols", "cuillere", "eau", "pates", "riz"] },
-  { id: "creation", label: "Creation", materials: ["feuilles", "crayons", "pinces a linge"] },
+  { id: "creation", label: "Création", materials: ["feuilles", "crayons", "pinces a linge"] },
   { id: "construction", label: "Construction", materials: ["cartons", "scotch", "rouleaux papier toilette"] },
   { id: "mouvement", label: "Mouvement", materials: ["coussins", "chaussettes"] },
   { id: "voitures-livres", label: "Voitures & livres", materials: ["voitures", "livres"] }
@@ -121,9 +121,9 @@ export const DEVELOPMENT_GOAL_GROUP_OPTIONS: Array<{
   goals: DevelopmentGoal[];
 }> = [
   { id: "bouger", label: "Bouger", goals: ["motricite-globale", "coordination", "equilibre", "controle-mouvement", "adresse", "expression-corporelle"] },
-  { id: "motricite-fine", label: "Motricite fine", goals: ["motricite-fine", "precision", "formes"] },
+  { id: "motricite-fine", label: "Motricité fine", goals: ["motricite-fine", "precision", "formes"] },
   { id: "langage", label: "Langage", goals: ["langage", "narration", "expression", "socialisation", "vocabulaire"] },
-  { id: "calme-emotions", label: "Calme & emotions", goals: ["gestion-emotions", "apaisement", "self-control", "respiration"] },
+  { id: "calme-emotions", label: "Calme et émotions", goals: ["gestion-emotions", "apaisement", "self-control", "respiration"] },
   { id: "observer-trier", label: "Observer / trier", goals: ["attention", "observation", "memoire", "tri", "organisation", "nature", "curiosite"] },
   { id: "imaginer", label: "Imaginer", goals: ["imagination", "jeu-symbolique", "rythme", "creativite", "cooperation"] }
 ];

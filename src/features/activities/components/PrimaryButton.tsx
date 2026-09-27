@@ -23,13 +23,13 @@ export function PrimaryButton({
       : colors.primarySoft;
 
   const color = variant === "primary"
-    ? "#FFFFFF"
+    ? colors.primaryDark
     : variant === "danger"
       ? colors.danger
       : colors.primaryDark;
 
   return (
-    <Pressable
+    <Pressable aria-disabled={disabled}
       accessibilityRole="button"
       accessibilityState={{ disabled }}
       onPress={onPress}
@@ -43,7 +43,7 @@ export function PrimaryButton({
           justifyContent: "center",
         paddingHorizontal: 22,
         backgroundColor,
-        boxShadow: variant === "primary" ? "0 10px 22px rgba(124, 58, 237, 0.2)" : undefined,
+        boxShadow: variant === "primary" ? "0 10px 22px rgba(74, 63, 50, 0.10)" : undefined,
         opacity: disabled ? 0.5 : pressed ? 0.82 : 1
       },
         style
@@ -54,7 +54,7 @@ export function PrimaryButton({
         style={{
           color,
           fontSize: 17,
-          fontWeight: "800"
+          fontWeight: "700"
         }}
       >
         {title}

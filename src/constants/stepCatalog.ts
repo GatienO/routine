@@ -22,6 +22,7 @@ export interface StepCatalogItem {
   instruction: string;
   isRequired: boolean;
   categoryId: StepCatalogCategoryId;
+  guidedKind?: 'weather-look' | 'outfit-choice';
 }
 
 const sec = (value: number) => value / 60;
@@ -35,6 +36,7 @@ function item(
   instruction: string,
   isRequired: boolean,
   categoryId: StepCatalogCategoryId,
+  guidedKind?: StepCatalogItem['guidedKind'],
 ): StepCatalogItem {
   return {
     id,
@@ -45,6 +47,7 @@ function item(
     instruction,
     isRequired,
     categoryId,
+    guidedKind,
   };
 }
 
@@ -59,6 +62,28 @@ export const STEP_CATALOG_CATEGORIES: StepCatalogCategory[] = [
 ];
 
 export const STEP_CATALOG_ITEMS: StepCatalogItem[] = [
+  item(
+    'step-regarder-meteo',
+    'Je regarde la météo',
+    '🌤️',
+    1,
+    sec(20),
+    'On regarde le ciel et la température ensemble.',
+    false,
+    'sortie',
+    'weather-look',
+  ),
+  item(
+    'step-choisir-tenue-meteo',
+    'Je choisis ma tenue',
+    '👕',
+    3,
+    1,
+    'On choisit des vêtements confortables pour le temps prévu.',
+    true,
+    'habillage',
+    'outfit-choice',
+  ),
   item(
     'step-toilettes',
     'Je vais aux toilettes',

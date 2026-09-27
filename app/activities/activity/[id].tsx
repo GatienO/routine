@@ -1,3 +1,2 @@
-import ActivityDetailScreen from '../../../src/features/activities/screens/activity-detail-screen';
-
-export default ActivityDetailScreen;
+import { Redirect, useLocalSearchParams } from 'expo-router';
+export default function ActivityDetailAlias() { const { id } = useLocalSearchParams<{ id?: string }>(); return <Redirect href={id ? `/activities?activity=${id}` : '/activities'} />; }

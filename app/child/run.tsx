@@ -19,6 +19,7 @@ import Reanimated, {
   BounceIn,
 } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
+import { completionDurationMinutes } from '../../src/utils/routineExecution';
 import { useRoutineStore } from '../../src/stores/routineStore';
 import { useRewardStore } from '../../src/stores/rewardStore';
 import { useMoodStore } from '../../src/stores/moodStore';
@@ -35,6 +36,10 @@ import { Avatar } from '../../src/components/ui/Avatar';
 import { Child } from '../../src/types';
 import * as Haptics from 'expo-haptics';
 import { formatChildName } from '../../src/utils/children';
+import { useAppTheme } from '../../src/hooks/useAppTheme';
+import { useWeatherStore } from '../../src/stores/weatherStore';
+import { GuidedWeatherStep } from '../../src/features/routines/components/guided-weather-step';
+import { getGuidedStepKind } from '../../src/features/routines/utils/guided-steps';
 
 const STEP_START_LOCK_MS = 650;
 const PARENT_HOLD_MS = 3000;
@@ -59,12 +64,14 @@ function ParticipantValidationButton({
   disabled,
   onPress,
   compact,
+  colors,
 }: {
   child: Child;
   confirmed: boolean;
   disabled: boolean;
   onPress: () => void;
   compact: boolean;
+  colors: ReturnType<typeof useAppTheme>['colors'];
 }) {
   const isDisabled = disabled && !confirmed;
 
@@ -77,12 +84,15 @@ function ParticipantValidationButton({
         compact ? styles.participantButtonCompact : styles.participantButtonWide,
         confirmed
           ? { backgroundColor: child.color + '22', borderColor: child.color }
-          : styles.participantButtonPending,
+          : { backgroundColor: colors.surface, borderColor: colors.border },
         isDisabled ? styles.participantButtonDisabled : null,
       ]}
       scaleDown={0.96}
       disabled={confirmed || isDisabled}
       hitSlop={16}
+      accessibilityRole="checkbox"
+      accessibilityLabel={`Valider l'étape pour ${formatChildName(child.name)}`}
+      accessibilityState={{ checked: confirmed, disabled: isDisabled }}
     >
       <View style={[styles.participantButtonInner, compact && styles.participantButtonInnerCompact]}>
         <Avatar
@@ -92,19 +102,19 @@ function ParticipantValidationButton({
           avatarConfig={child.avatarConfig}
         />
         <View style={styles.participantButtonTextWrap}>
-          <Text style={styles.participantButtonName} numberOfLines={1} selectable={false}>
+          <Text style={[styles.participantButtonName, { color: colors.text }]} numberOfLines={1} selectable={false}>
             {formatChildName(child.name)}
           </Text>
           {!compact ? (
-            <Text style={styles.participantButtonLabel} selectable={false}>
-              {confirmed ? 'Valide' : isDisabled ? 'Attends...' : "C'est fait"}
+            <Text style={[styles.participantButtonLabel, { color: colors.textSecondary }]} selectable={false}>
+              {confirmed ? 'Validé' : isDisabled ? 'Attends…' : "C'est fait"}
             </Text>
           ) : null}
         </View>
         <View
           style={[
             styles.participantButtonBadge,
-            confirmed && { backgroundColor: child.color, borderColor: child.color },
+            { backgroundColor: confirmed ? child.color : colors.surface, borderColor: confirmed ? child.color : colors.border },
           ]}
         >
           <CheckCircle
@@ -122,10 +132,12 @@ function ParentModeButton({
   holdProgress,
   onPressIn,
   onPressOut,
+  colors,
 }: {
   holdProgress: number;
   onPressIn: () => void;
   onPressOut: () => void;
+  colors: ReturnType<typeof useAppTheme>['colors'];
 }) {
   return (
     <TouchableOpacity
@@ -133,16 +145,16 @@ function ParentModeButton({
       onPressOut={onPressOut}
       onPress={() => {}}
       activeOpacity={0.9}
-      style={styles.parentModeButton}
+      style={[styles.parentModeButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
     >
       <View
         style={[
           styles.parentModeFill,
-          { width: `${holdProgress * 100}%` },
+          { width: `${holdProgress * 100}%`, backgroundColor: colors.timeSoft },
         ]}
       />
-      <ShieldCheck size={18} weight="bold" color={COLORS.secondaryDark} />
-      <Text style={styles.parentModeText} selectable={false}>Parent</Text>
+      <ShieldCheck size={18} weight="bold" color={colors.time} />
+      <Text style={[styles.parentModeText, { color: colors.time }]} selectable={false}>Parent</Text>
     </TouchableOpacity>
   );
 }
@@ -154,6 +166,7 @@ function ParentActionsModal({
   onClose,
   onTogglePause,
   onSkipStep,
+  colors,
 }: {
   visible: boolean;
   isPaused: boolean;
@@ -161,14 +174,15 @@ function ParentActionsModal({
   onClose: () => void;
   onTogglePause: () => void;
   onSkipStep: () => void;
+  colors: ReturnType<typeof useAppTheme>['colors'];
 }) {
   return (
     <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.parentModalBackdrop} onPress={onClose}>
-        <Pressable style={styles.parentActionCard} onPress={(event) => event.stopPropagation()}>
+        <Pressable style={[styles.parentActionCard, { backgroundColor: colors.surface, borderColor: colors.border }]} onPress={(event) => event.stopPropagation()}>
           <View style={styles.parentActionHeader}>
-            <ShieldCheck size={20} weight="fill" color={COLORS.secondaryDark} />
-            <Text style={styles.parentActionTitle} selectable={false}>Mode parent</Text>
+            <ShieldCheck size={20} weight="fill" color={colors.time} />
+            <Text style={[styles.parentActionTitle, { color: colors.text }]} selectable={false}>Mode parent</Text>
           </View>
 
           <TouchableOpacity
@@ -177,15 +191,16 @@ function ParentActionsModal({
             disabled={pauseDisabled}
             style={[
               styles.parentActionButton,
+              { backgroundColor: colors.timeSoft, borderColor: colors.border },
               pauseDisabled && styles.parentActionButtonDisabled,
             ]}
           >
             {isPaused ? (
-              <Play size={18} weight="bold" color={COLORS.text} />
+              <Play size={18} weight="bold" color={colors.text} />
             ) : (
-              <Pause size={18} weight="bold" color={COLORS.text} />
+              <Pause size={18} weight="bold" color={colors.text} />
             )}
-            <Text style={styles.parentActionButtonText} selectable={false}>
+            <Text style={[styles.parentActionButtonText, { color: colors.text }]} selectable={false}>
               {isPaused ? 'Reprendre' : 'Mettre en pause'}
             </Text>
           </TouchableOpacity>
@@ -193,11 +208,11 @@ function ParentActionsModal({
           <TouchableOpacity
             onPress={onSkipStep}
             activeOpacity={0.86}
-            style={styles.parentActionButton}
+            style={[styles.parentActionButton, { backgroundColor: colors.timeSoft, borderColor: colors.border }]}
           >
-            <SkipForward size={18} weight="bold" color={COLORS.text} />
-            <Text style={styles.parentActionButtonText} selectable={false}>
-              Passer l'etape
+            <SkipForward size={18} weight="bold" color={colors.text} />
+            <Text style={[styles.parentActionButtonText, { color: colors.text }]} selectable={false}>
+              Passer l’étape
             </Text>
           </TouchableOpacity>
         </Pressable>
@@ -210,6 +225,7 @@ export default function RunRoutineScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const isMobile = width < 760;
+  const { colors } = useAppTheme();
   const {
     currentExecution,
     completeStep,
@@ -222,6 +238,7 @@ export default function RunRoutineScreen() {
   const { recordCompletion } = useRewardStore();
   const { getMood, isMoodFresh } = useMoodStore();
   const { getChild } = useChildrenStore();
+  const weather = useWeatherStore((state) => state.weather);
   const activeChildId = currentExecution?.childId;
   const isLeavingFlowRef = useRef(false);
   const isAdvancingStepRef = useRef(false);
@@ -283,11 +300,13 @@ export default function RunRoutineScreen() {
   const timerSize = width >= 1280 ? 220 : width >= 1024 ? 204 : width >= 768 ? 186 : 156;
   const stepIconSize = width >= 1024 ? 82 : isMobile ? 62 : 70;
 
-  const completedCount = currentExecution?.stepsCompleted.length ?? 0;
+  const completedStepIds = currentExecution?.stepsCompleted ?? [];
+  const completedCount = activeSteps.filter((step) => completedStepIds.includes(step.id)).length;
   const totalSteps = activeSteps.length;
-  const currentStepIndex = completedCount;
-  const isAllDone = currentStepIndex >= totalSteps;
+  const currentStepIndex = activeSteps.findIndex((step) => !completedStepIds.includes(step.id));
+  const isAllDone = totalSteps === 0 || currentStepIndex === -1;
   const currentStep = activeSteps[currentStepIndex];
+  const guidedKind = currentStep ? getGuidedStepKind(currentStep) : undefined;
   const progress = totalSteps > 0 ? completedCount / totalSteps : 0;
 
   const minimumStepSeconds = currentStep ? (currentStep.minimumDurationMinutes ?? 0) * 60 : 0;
@@ -322,10 +341,10 @@ export default function RunRoutineScreen() {
   useEffect(() => {
     if (isLeavingFlowRef.current) return;
     if (!currentExecution) {
-      router.replace('/child');
+      router.replace('/routines');
     } else if (!routine) {
       cancelExecution();
-      router.replace('/child');
+      router.replace('/routines');
     }
   }, [currentExecution, routine]);
 
@@ -386,10 +405,7 @@ export default function RunRoutineScreen() {
             rewardSummary: JSON.stringify(rewardSummary),
             routineName: routine.name,
             routineIcon: routine.icon,
-            duration: Math.round(
-              (new Date(execution.completedAt!).getTime() - new Date(execution.startedAt).getTime()) /
-                60000,
-            ).toString(),
+            duration: completionDurationMinutes(execution.startedAt, execution.completedAt!).toString(),
           },
         });
       }
@@ -450,7 +466,7 @@ export default function RunRoutineScreen() {
   const handleQuit = () => {
     isLeavingFlowRef.current = true;
     cancelExecution();
-    router.replace('/child');
+    router.replace('/routines');
   };
 
   const clearParentHold = useCallback(() => {
@@ -514,7 +530,7 @@ export default function RunRoutineScreen() {
   }, [handleComplete]);
 
   const encouragements = moodConfig?.encouragements ?? DEFAULT_ENCOURAGEMENTS;
-  const gradientColors = moodConfig?.gradientColors ?? ['#FFF8F0', '#FFE8D6'];
+  const gradientColors = [colors.background, colors.surface] as const;
   const animSpeed =
     moodConfig?.animationIntensity === 'calm'
       ? 600
@@ -547,28 +563,29 @@ export default function RunRoutineScreen() {
             style={[styles.topBar, isMobile && styles.topBarMobile]}
           >
             <View style={styles.topLeftActions}>
-              <TouchableOpacity onPress={handleQuit} style={styles.quitBtn}>
-                <X size={22} weight="bold" color={COLORS.textLight} />
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Quitter la routine" onPress={handleQuit} style={[styles.quitBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <X size={22} weight="bold" color={colors.textLight} />
               </TouchableOpacity>
               <ParentModeButton
                 holdProgress={parentHoldProgress}
                 onPressIn={handleParentPressIn}
                 onPressOut={handleParentPressOut}
+                colors={colors}
               />
             </View>
             <View style={[styles.topBarBadges, isMobile && styles.topBarBadgesMobile]}>
               {chainQueue.length > 0 ? (
-                <View style={styles.chainIndicator}>
-                  <Text style={styles.chainIndicatorText} selectable={false}>+{chainQueue.length} a suivre</Text>
+                <View style={[styles.chainIndicator, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                  <Text style={[styles.chainIndicatorText, { color: colors.textSecondary }]} selectable={false}>+{chainQueue.length} à suivre</Text>
                 </View>
               ) : null}
-              <View style={styles.counterBadge}>
-                <Text style={styles.counter} selectable={false}>
+              <View style={[styles.counterBadge, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <Text style={[styles.counter, { color: colors.text }]} selectable={false}>
                   {completedCount + 1} / {totalSteps}
                 </Text>
               </View>
-              <View style={styles.endTimeBadge}>
-                <Text style={styles.endTimeText} selectable={false}>Fin {endTime}</Text>
+              <View style={[styles.endTimeBadge, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <Text style={[styles.endTimeText, { color: colors.textSecondary }]} selectable={false}>Fin {endTime}</Text>
               </View>
             </View>
           </Reanimated.View>
@@ -579,15 +596,15 @@ export default function RunRoutineScreen() {
             <Reanimated.Text
               key={`enc-${currentStepIndex}`}
               entering={FadeInDown.delay(240).duration(300)}
-              style={styles.encouragementTop}
+              style={[styles.encouragementTop, { color: colors.textSecondary }]}
               selectable={false}
             >
               {completedCount === totalSteps - 1
-                ? 'Derniere etape !'
+                ? 'Dernière étape !'
                 : encouragements[completedCount % encouragements.length]}
             </Reanimated.Text>
 
-            <Text style={styles.validationHintTop} selectable={false}>
+            <Text style={[styles.validationHintTop, { color: colors.textLight }]} selectable={false}>
               {confirmedChildIds.length} / {participantChildren.length} validation
               {participantChildren.length > 1 ? 's' : ''}
             </Text>
@@ -596,7 +613,7 @@ export default function RunRoutineScreen() {
                 style={[
                   styles.validationHintTop,
                   styles.minimumTimeHint,
-                  isMinimumTimeReached && styles.minimumTimeHintReady,
+                  { color: isMinimumTimeReached ? colors.success : colors.warning },
                 ]}
                 selectable={false}
               >
@@ -618,6 +635,7 @@ export default function RunRoutineScreen() {
                     disabled={!canConfirmStep}
                     onPress={() => handleParticipantComplete(child.id)}
                     compact={compactParticipants}
+                    colors={colors}
                   />
                 ))}
               </View>
@@ -634,27 +652,31 @@ export default function RunRoutineScreen() {
               ]}
             >
               <View style={styles.stepHeaderBlock}>
-                <Reanimated.View
-                  entering={BounceIn.delay(animSpeed / 2).duration(animSpeed)}
-                  style={styles.stepIcon}
-                >
-                  <OpenMoji emoji={currentStep.icon} size={stepIconSize} />
-                </Reanimated.View>
-                <Text style={[styles.stepTitle, isMobile && styles.stepTitleMobile]} selectable={false}>
+                {!guidedKind ? (
+                  <Reanimated.View
+                    entering={BounceIn.delay(animSpeed / 2).duration(animSpeed)}
+                    style={styles.stepIcon}
+                  >
+                    <OpenMoji emoji={currentStep.icon} size={stepIconSize} />
+                  </Reanimated.View>
+                ) : null}
+                <Text style={[styles.stepTitle, isMobile && styles.stepTitleMobile, { color: colors.text }]} selectable={false}>
                   {currentStep.title}
                 </Text>
                 {currentStep.mediaUri ? (
                   <Image source={{ uri: currentStep.mediaUri }} style={[styles.stepMedia, isMobile && styles.stepMediaMobile]} />
                 ) : null}
-                {currentStep.instruction ? (
+                {currentStep.instruction && !guidedKind ? (
                   <Text
-                    style={[styles.stepInstruction, isMobile && styles.stepInstructionMobile]}
+                    style={[styles.stepInstruction, isMobile && styles.stepInstructionMobile, { color: colors.textSecondary }]}
                     selectable={false}
                   >
                     {currentStep.instruction}
                   </Text>
                 ) : null}
               </View>
+
+              {guidedKind ? <GuidedWeatherStep kind={guidedKind} weather={weather} /> : null}
 
               {timerDuration > 0 ? (
                 <View style={styles.timerContainer}>
@@ -663,17 +685,18 @@ export default function RunRoutineScreen() {
                     label={formatTime(timer.remaining)}
                     color={routine.color}
                     isFinished={timer.isFinished}
-                    size={timerSize}
+                    size={guidedKind && isMobile ? 112 : timerSize}
                     strokeWidth={14}
+                    trackColor={colors.surfaceSecondary}
                   />
                   {timer.isFinished ? (
-                    <Text style={styles.timerFinishedLabel} selectable={false}>Temps ecoule !</Text>
+                    <Text style={[styles.timerFinishedLabel, { color: colors.success }]} selectable={false}>Temps écoulé !</Text>
                   ) : null}
                 </View>
               ) : null}
               {!currentStep.isRequired ? (
-                <View style={styles.optionalBadge}>
-                  <Text style={styles.optionalText} selectable={false}>Facultatif</Text>
+                <View style={[styles.optionalBadge, { backgroundColor: colors.transitionSoft }]}>
+                  <Text style={[styles.optionalText, { color: colors.transition }]} selectable={false}>Facultatif</Text>
                 </View>
               ) : null}
             </Reanimated.View>
@@ -693,6 +716,7 @@ export default function RunRoutineScreen() {
                   disabled={!canConfirmStep}
                   onPress={() => handleParticipantComplete(child.id)}
                   compact={compactParticipants || isMobile}
+                  colors={colors}
                 />
               ))}
             </View>
@@ -709,12 +733,12 @@ export default function RunRoutineScreen() {
                   style={[styles.skipText, !canConfirmStep && styles.skipTextDisabled]}
                   selectable={false}
                 >
-                  Passer cette etape
+                  Passer cette étape
                 </Text>
                 <ArrowRight
                   size={18}
                   weight="bold"
-                  color={!canConfirmStep ? COLORS.textLight : COLORS.textSecondary}
+                  color={!canConfirmStep ? colors.textLight : colors.textSecondary}
                 />
               </View>
             </TouchableOpacity>
@@ -727,6 +751,7 @@ export default function RunRoutineScreen() {
             onClose={() => setParentMenuVisible(false)}
             onTogglePause={handleParentPause}
             onSkipStep={handleParentSkipStep}
+            colors={colors}
           />
         </View>
       </SafeAreaView>
@@ -962,7 +987,7 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     textAlign: 'center',
     lineHeight: 42,
-    letterSpacing: -0.3,
+    letterSpacing: 0,
   },
   stepTitleMobile: {
     fontSize: FONT_SIZE.xxl - 2,

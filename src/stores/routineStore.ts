@@ -17,6 +17,7 @@ interface RoutineState {
   removeRoutine: (id: string) => void;
   trashRoutine: (id: string) => void;
   restoreRoutine: (id: string) => void;
+  deleteTrashedRoutine: (id: string) => void;
   cleanupExpiredTrash: () => void;
   duplicateRoutine: (id: string, childId: string) => Routine | null;
   toggleRoutine: (id: string) => void;
@@ -112,6 +113,11 @@ export const useRoutineStore = create<RoutineState>()(
             trashedRoutines: state.trashedRoutines.filter((item) => item.id !== id),
           };
         }),
+
+      deleteTrashedRoutine: (id) =>
+        set((state) => ({
+          trashedRoutines: state.trashedRoutines.filter((item) => item.id !== id),
+        })),
 
       cleanupExpiredTrash: () =>
         set((state) => {
@@ -285,6 +291,7 @@ export const useRoutineStore = create<RoutineState>()(
       completeStep: (stepId) =>
         set((state) => {
           if (!state.currentExecution) return state;
+          if (state.currentExecution.stepsCompleted.includes(stepId)) return state;
           const routine = state.routines.find(
             (r) => r.id === state.currentExecution!.routineId
           );
@@ -326,6 +333,9 @@ export const useRoutineStore = create<RoutineState>()(
         routines: state.routines,
         trashedRoutines: state.trashedRoutines,
         executions: state.executions,
+        currentExecution: state.currentExecution,
+        chainQueue: state.chainQueue,
+        pendingStepOrders: state.pendingStepOrders,
       }),
     }
   )

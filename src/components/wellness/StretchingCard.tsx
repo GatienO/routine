@@ -10,6 +10,7 @@ import Reanimated, {
   Easing,
 } from 'react-native-reanimated';
 import { COLORS, FONT_SIZE, SPACING } from '../../constants/theme';
+import { useReducedMotionPreference } from '../../hooks/useReducedMotionPreference';
 
 export interface Stretch {
   id: string;
@@ -72,9 +73,14 @@ interface StretchingCardProps {
 }
 
 export function StretchingCard({ stretch, remaining, current, total }: StretchingCardProps) {
+  const reducedMotion = useReducedMotionPreference();
   const bounce = useSharedValue(1);
 
   useEffect(() => {
+    if (reducedMotion) {
+      bounce.value = 1;
+      return;
+    }
     bounce.value = withRepeat(
       withSequence(
         withTiming(1.08, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
@@ -83,14 +89,14 @@ export function StretchingCard({ stretch, remaining, current, total }: Stretchin
       -1,
       true
     );
-  }, []);
+  }, [bounce, reducedMotion]);
 
   const emojiStyle = useAnimatedStyle(() => ({
     transform: [{ scale: bounce.value }],
   }));
 
   return (
-    <Reanimated.View entering={FadeInDown.duration(500).springify()} style={styles.container}>
+    <Reanimated.View entering={reducedMotion ? undefined : FadeInDown.duration(500).springify()} style={styles.container}>
       <Reanimated.Text style={[styles.emoji, emojiStyle]}>
         {stretch.emoji}
       </Reanimated.Text>

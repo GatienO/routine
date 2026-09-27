@@ -1,5 +1,6 @@
 import { router } from "expo-router";
-import { useWindowDimensions, View } from "react-native";
+import { View, useWindowDimensions } from "react-native";
+import { useState } from "react";
 import { ActivityCard } from "./ActivityCard";
 import { EmptyState } from "./EmptyState";
 import { Activity } from "../types";
@@ -13,13 +14,15 @@ type ActivityListProps = {
 
 export function ActivityList({ activities, favoriteIds, onToggleFavorite, onOpenActivity }: ActivityListProps) {
   const { width } = useWindowDimensions();
-  const useTwoColumns = width >= 720;
+  const columns = width >= 1100 ? 3 : width >= 720 ? 2 : 1;
+  const [containerWidth, setContainerWidth] = useState(0);
+  const cardWidth = containerWidth ? (containerWidth - (columns - 1) * 14) / columns : undefined;
 
   if (activities.length === 0) {
     return (
       <EmptyState
-        title="Aucune activite parfaite"
-        message="Essaie d'enlever un filtre. Une idee simple peut suffire."
+        title="Aucune activité parfaite"
+        message="Essaie d’enlever un filtre. Une idée simple peut suffire."
       />
     );
   }
@@ -33,14 +36,12 @@ export function ActivityList({ activities, favoriteIds, onToggleFavorite, onOpen
   };
 
   return (
-    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: useTwoColumns ? 28 : 18 }}>
+    <View onLayout={(event) => setContainerWidth(event.nativeEvent.layout.width)} style={{ flexDirection: "row", flexWrap: "wrap", gap: 14, alignItems: "stretch" }}>
       {activities.map((activity) => (
         <View
           key={activity.id}
           style={{
-            flexBasis: useTwoColumns ? "46%" : "100%",
-            flexGrow: 1,
-            maxWidth: useTwoColumns ? "49%" : "100%"
+            width: cardWidth ?? "100%"
           }}
         >
           <ActivityCard

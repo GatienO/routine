@@ -39,7 +39,7 @@ export function CompactRoutineRow({
       ]}
     >
       {selectable ? (
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           style={[styles.selectBadge, selected && styles.selectBadgeActive]}
           onPress={onSelect}
           activeOpacity={0.7}
@@ -50,7 +50,7 @@ export function CompactRoutineRow({
         </TouchableOpacity>
       ) : null}
 
-      <TouchableOpacity style={styles.main} onPress={onPress} activeOpacity={0.75}>
+      <TouchableOpacity accessibilityRole="button" style={styles.main} onPress={onPress} activeOpacity={0.75}>
         <View style={[styles.iconWrap, { backgroundColor: routine.color + '18' }]}>
           <OpenMoji emoji={routine.icon} size={28} />
         </View>
@@ -73,7 +73,7 @@ export function CompactRoutineRow({
       </TouchableOpacity>
 
       <View style={styles.actions}>
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           style={[styles.toggleBtn, routine.isActive ? styles.toggleBtnOn : styles.toggleBtnOff]}
           onPress={onToggle}
           activeOpacity={0.7}
@@ -82,13 +82,13 @@ export function CompactRoutineRow({
             {routine.isActive ? 'ON' : 'OFF'}
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionBtn} onPress={onPress} activeOpacity={0.7}>
+        <TouchableOpacity accessibilityRole="button" style={styles.actionBtn} onPress={onPress} activeOpacity={0.7}>
           <EditIcon size={16} color={COLORS.textSecondary} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionBtn} onPress={onDuplicate} activeOpacity={0.7}>
+        <TouchableOpacity accessibilityRole="button" style={styles.actionBtn} onPress={onDuplicate} activeOpacity={0.7}>
           <DuplicateIcon size={16} color={COLORS.textSecondary} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionBtn} onPress={onDelete} activeOpacity={0.7}>
+        <TouchableOpacity accessibilityRole="button" style={styles.actionBtn} onPress={onDelete} activeOpacity={0.7}>
           <DeleteIcon size={16} color={COLORS.error} />
         </TouchableOpacity>
       </View>

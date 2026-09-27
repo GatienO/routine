@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useCalendarStore } from '../stores/calendarStore';
 import { useChildrenStore } from '../stores/childrenStore';
 import { useRoutineStore } from '../stores/routineStore';
+import { activities } from '../features/activities/activities';
 import {
   buildDayTimeline,
   getChildCalendarProfile,
@@ -55,6 +56,7 @@ export function useCalendarView({
       buildDayTimeline({
         events,
         routines: visibleRoutines,
+        activities,
         day: date,
         childId,
       }),

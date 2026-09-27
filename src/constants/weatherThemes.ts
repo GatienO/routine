@@ -1,162 +1,166 @@
 import { WeatherCondition } from '../services/weather';
+import type { WeatherTimeMode } from '../utils/weatherTimeConfig';
 
 export interface WeatherTheme {
   gradient: [string, string];
   emoji: string;
   label: string;
-  particles: string[];      // floating emojis
-  overlayOpacity: number;   // subtle overlay intensity
-  kidMessage: string;       // fun message for children
-  tip: string;              // practical tip for the day
+  particles: string[];
+  overlayOpacity: number;
+  kidMessage: string;
+  tip: string;
 }
 
 const DAY_THEMES: Record<WeatherCondition, WeatherTheme> = {
   clear: {
-    gradient: ['#C5EBC0', '#EEF9E8'],
-    emoji: '☀️',
+    gradient: ['#FAF6EE', '#FFFDF8'],
+    emoji: '\u2600\uFE0F',
     label: 'Ensoleillé',
-    particles: ['☀️', '🌻', '🦋'],
+    particles: ['\u2600\uFE0F', '\u{1F33F}', '\u2728'],
     overlayOpacity: 0,
-    kidMessage: 'Le soleil brille fort aujourd\'hui !',
-    tip: 'Pense à mettre de la crème solaire ☀️',
+    kidMessage: "Soleil aujourd'hui.",
+    tip: 'Casquette + eau.',
   },
   partly_cloudy: {
-    gradient: ['#D4EED0', '#F1FAEA'],
-    emoji: '⛅',
+    gradient: ['#FAF6EE', '#EAF3E8'],
+    emoji: '\u26C5',
     label: 'Nuageux',
-    particles: ['⛅', '☁️', '🌤️'],
-    overlayOpacity: 0.03,
-    kidMessage: 'Les nuages jouent à cache-cache avec le soleil !',
-    tip: 'Prends une petite veste au cas où 🧥',
+    particles: ['\u26C5', '\u2601\uFE0F', '\u{1F33F}'],
+    overlayOpacity: 0.02,
+    kidMessage: 'Quelques nuages.',
+    tip: 'Petite veste utile.',
   },
   cloudy: {
-    gradient: ['#CDE5C7', '#E7F4E0'],
-    emoji: '☁️',
+    gradient: ['#FAF6EE', '#EFE7D7'],
+    emoji: '\u2601\uFE0F',
     label: 'Couvert',
-    particles: ['☁️', '🌥️'],
-    overlayOpacity: 0.05,
-    kidMessage: 'Les nuages font un gros câlin au ciel !',
-    tip: 'Une veste, c\'est plus prudent 🧥',
+    particles: ['\u2601\uFE0F', '\u{1F33F}'],
+    overlayOpacity: 0.03,
+    kidMessage: 'Ciel couvert.',
+    tip: 'Veste utile.',
   },
   fog: {
-    gradient: ['#D9ECD4', '#F0F8EA'],
-    emoji: '🌫️',
+    gradient: ['#FAF6EE', '#EDE5D5'],
+    emoji: '\u{1F32B}\uFE0F',
     label: 'Brouillard',
-    particles: ['🌫️', '💨'],
-    overlayOpacity: 0.06,
-    kidMessage: 'On dirait que les nuages sont tombés par terre !',
-    tip: 'Fais attention en marchant dehors 👀',
+    particles: ['\u{1F32B}\uFE0F', '\u{1F4A8}'],
+    overlayOpacity: 0.04,
+    kidMessage: 'Brouillard dehors.',
+    tip: 'On y va doucement.',
   },
   rain: {
-    gradient: ['#BFE3C4', '#DDF1DA'],
-    emoji: '🌧️',
+    gradient: ['#FAF6EE', '#E6E1F7'],
+    emoji: '\u{1F327}\uFE0F',
     label: 'Pluie',
-    particles: ['💧', '🌧️', '☔'],
-    overlayOpacity: 0.05,
-    kidMessage: 'Plic ploc ! Il pleut des gouttes !',
-    tip: 'N\'oublie pas ton parapluie et tes bottes ☔',
+    particles: ['\u{1F4A7}', '\u{1F327}\uFE0F', '\u2614'],
+    overlayOpacity: 0.04,
+    kidMessage: 'Pluie prévue.',
+    tip: 'Imperméable utile.',
   },
   snow: {
-    gradient: ['#E4F5DE', '#F6FCF0'],
-    emoji: '❄️',
+    gradient: ['#FFFDF8', '#E6E1F7'],
+    emoji: '\u2744\uFE0F',
     label: 'Neige',
-    particles: ['❄️', '⛄', '🌨️'],
+    particles: ['\u2744\uFE0F', '\u26C4', '\u2728'],
     overlayOpacity: 0.03,
-    kidMessage: 'Il neige ! Dehors c\'est tout blanc !',
-    tip: 'Habille-toi bien chaud : bonnet et gants ! 🧤',
+    kidMessage: 'Neige prévue.',
+    tip: 'Bonnet + gants.',
   },
   thunderstorm: {
-    gradient: ['#B5D7B2', '#D3E9CD'],
-    emoji: '⛈️',
+    gradient: ['#EDE5D5', '#E6E1F7'],
+    emoji: '\u26C8\uFE0F',
     label: 'Orage',
-    particles: ['⚡', '🌩️', '💨'],
-    overlayOpacity: 0.08,
-    kidMessage: 'Boum ! Les nuages font du bruit !',
-    tip: 'On reste bien au chaud à l\'intérieur 🏠',
+    particles: ['\u26A1', '\u26C8\uFE0F', '\u{1F4A8}'],
+    overlayOpacity: 0.06,
+    kidMessage: 'Orage prévu.',
+    tip: "À l'intérieur.",
   },
 };
 
 const NIGHT_THEMES: Record<WeatherCondition, WeatherTheme> = {
   clear: {
-    gradient: ['#2F5F45', '#6E956E'],
-    emoji: '🌙',
+    gradient: ['#6F6A93', '#B8AEDF'],
+    emoji: '\u{1F319}',
     label: 'Nuit claire',
-    particles: ['🌙', '⭐', '✨'],
+    particles: ['\u{1F319}', '\u2B50', '\u2728'],
     overlayOpacity: 0,
-    kidMessage: 'Les étoiles brillent dans le ciel !',
-    tip: 'C\'est l\'heure de se préparer pour le dodo 🛏️',
+    kidMessage: 'Nuit claire.',
+    tip: 'On ralentit.',
   },
   partly_cloudy: {
-    gradient: ['#365F47', '#789B72'],
-    emoji: '🌙',
+    gradient: ['#746F93', '#C7DDBF'],
+    emoji: '\u{1F319}',
     label: 'Nuit nuageuse',
-    particles: ['🌙', '☁️', '✨'],
+    particles: ['\u{1F319}', '\u2601\uFE0F', '\u2728'],
     overlayOpacity: 0.03,
-    kidMessage: 'La lune joue à cache-cache avec les nuages !',
-    tip: 'Bientôt au lit, demain sera super 🌟',
+    kidMessage: 'Nuit nuageuse.',
+    tip: 'Bientôt au lit.',
   },
   cloudy: {
-    gradient: ['#3E664D', '#7F9F78'],
-    emoji: '☁️',
+    gradient: ['#766F68', '#B8AEDF'],
+    emoji: '\u2601\uFE0F',
     label: 'Nuit couverte',
-    particles: ['☁️', '🌙'],
-    overlayOpacity: 0.05,
-    kidMessage: 'Les nuages font une couverture au ciel !',
-    tip: 'Bien au chaud sous ta couette 🛌',
+    particles: ['\u2601\uFE0F', '\u{1F319}'],
+    overlayOpacity: 0.04,
+    kidMessage: 'Nuit couverte.',
+    tip: 'Au chaud.',
   },
   fog: {
-    gradient: ['#486C54', '#8AA783'],
-    emoji: '🌫️',
+    gradient: ['#7B746D', '#B8AEDF'],
+    emoji: '\u{1F32B}\uFE0F',
     label: 'Nuit brumeuse',
-    particles: ['🌫️', '🌙'],
-    overlayOpacity: 0.06,
-    kidMessage: 'La brume fait un voile magique dehors !',
-    tip: 'Reste au chaud ce soir 🏡',
+    particles: ['\u{1F32B}\uFE0F', '\u{1F319}'],
+    overlayOpacity: 0.05,
+    kidMessage: 'Soir brumeux.',
+    tip: 'On reste au calme.',
   },
   rain: {
-    gradient: ['#2F5945', '#6F8F6C'],
-    emoji: '🌧️',
+    gradient: ['#6F6A93', '#A8C79D'],
+    emoji: '\u{1F327}\uFE0F',
     label: 'Pluie nocturne',
-    particles: ['💧', '🌧️', '🌙'],
-    overlayOpacity: 0.05,
-    kidMessage: 'La pluie chante une berceuse !',
-    tip: 'Écoute la pluie tomber… bonne nuit 💤',
+    particles: ['\u{1F4A7}', '\u{1F327}\uFE0F', '\u{1F319}'],
+    overlayOpacity: 0.04,
+    kidMessage: 'Pluie ce soir.',
+    tip: 'Bonne nuit.',
   },
   snow: {
-    gradient: ['#57775F', '#95AD8A'],
-    emoji: '❄️',
+    gradient: ['#756FB0', '#E6E1F7'],
+    emoji: '\u2744\uFE0F',
     label: 'Neige nocturne',
-    particles: ['❄️', '🌙', '✨'],
+    particles: ['\u2744\uFE0F', '\u{1F319}', '\u2728'],
     overlayOpacity: 0.03,
-    kidMessage: 'La neige tombe tout doucement dans la nuit !',
-    tip: 'Demain matin, tout sera blanc dehors ⛄',
+    kidMessage: 'Neige ce soir.',
+    tip: 'Prévoir chaud.',
   },
   thunderstorm: {
-    gradient: ['#284836', '#627E5C'],
-    emoji: '⛈️',
+    gradient: ['#625C7B', '#A79AD6'],
+    emoji: '\u26C8\uFE0F',
     label: 'Orage nocturne',
-    particles: ['⚡', '🌩️', '🌙'],
-    overlayOpacity: 0.08,
-    kidMessage: 'L\'orage gronde mais tu es en sécurité !',
-    tip: 'Pas de peur, tu es bien à l\'abri 🏠💪',
+    particles: ['\u26A1', '\u26C8\uFE0F', '\u{1F319}'],
+    overlayOpacity: 0.06,
+    kidMessage: 'Orage dehors.',
+    tip: "À l'abri.",
   },
 };
 
 export function getWeatherTheme(
   condition: WeatherCondition,
-  isDay: boolean,
+  isDayOrMode: boolean | WeatherTimeMode,
 ): WeatherTheme {
+  const isDay = typeof isDayOrMode === 'boolean' ? isDayOrMode : isDayOrMode === 'day';
   return isDay ? DAY_THEMES[condition] : NIGHT_THEMES[condition];
 }
 
-/** Default fallback (sunny day) */
+export function getWeatherAsset(condition: WeatherCondition, mode: WeatherTimeMode): string {
+  return getWeatherTheme(condition, mode).emoji;
+}
+
 export const DEFAULT_WEATHER_THEME = DAY_THEMES.clear;
 
-/** Text color for night mode */
 export function getWeatherTextColor(isDay: boolean) {
-  return isDay ? '#486A50' : '#F5FBF0';
+  return isDay ? '#3F3A36' : '#FFFDF8';
 }
 
 export function getWeatherSecondaryTextColor(isDay: boolean) {
-  return isDay ? '#668766' : '#DDEED8';
+  return isDay ? '#857B72' : '#F5EDE2';
 }

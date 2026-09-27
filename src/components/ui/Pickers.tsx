@@ -16,7 +16,7 @@ export function EmojiPicker({ emojis, selected, onSelect, size = 48 }: EmojiPick
     <ScrollView horizontal={false} style={styles.container}>
       <View style={styles.grid}>
         {emojis.map((emoji) => (
-          <TouchableOpacity
+          <TouchableOpacity accessibilityRole="button"
             key={emoji}
             style={[
               styles.item,
@@ -81,7 +81,7 @@ export function IconSelectionField({
 
   return (
     <>
-      <TouchableOpacity style={styles.iconField} onPress={() => setVisible(true)} activeOpacity={0.8}>
+      <TouchableOpacity accessibilityRole="button" style={styles.iconField} onPress={() => setVisible(true)} activeOpacity={0.8}>
         <View style={styles.fieldPreviewBox}>
           <View style={[styles.iconFieldPreview, { width: previewSize, height: previewSize, borderRadius: previewSize / 2.4 }]}>
           <OpenMoji emoji={currentIcon} size={previewSize * 0.62} />
@@ -91,12 +91,12 @@ export function IconSelectionField({
       </TouchableOpacity>
 
       <Modal visible={visible} transparent animationType="fade" onRequestClose={() => setVisible(false)}>
-        <Pressable style={styles.overlay} onPress={() => setVisible(false)}>
+        <Pressable accessibilityRole="button" style={styles.overlay} onPress={() => setVisible(false)}>
           <SafeAreaView style={styles.overlaySafe}>
-            <Pressable style={styles.sheet} onPress={(event) => event.stopPropagation()}>
+            <Pressable accessibilityRole="button" style={styles.sheet} onPress={(event) => event.stopPropagation()}>
               <View style={styles.sheetHeader}>
                 <Text style={styles.sheetTitle}>{title}</Text>
-                <TouchableOpacity onPress={() => setVisible(false)} style={styles.closeButton} activeOpacity={0.85}>
+                <TouchableOpacity accessibilityRole="button" onPress={() => setVisible(false)} style={styles.closeButton} activeOpacity={0.85}>
                   <X size={18} weight="bold" color={COLORS.textSecondary} />
                 </TouchableOpacity>
               </View>
@@ -109,7 +109,7 @@ export function IconSelectionField({
                 {resolvedGroups.map((group) => {
                   const isActive = group.key === activeGroup.key;
                   return (
-                    <TouchableOpacity
+                    <TouchableOpacity accessibilityRole="button"
                       key={group.key}
                       style={[styles.tabChip, isActive && styles.tabChipActive]}
                       onPress={() => setActiveGroupKey(group.key)}
@@ -166,7 +166,7 @@ export function CategorySelectionField({
 
   return (
     <>
-      <TouchableOpacity style={styles.iconField} onPress={() => setVisible(true)} activeOpacity={0.8}>
+      <TouchableOpacity accessibilityRole="button" style={styles.iconField} onPress={() => setVisible(true)} activeOpacity={0.8}>
         <View style={styles.fieldPreviewBox}>
           <View
             style={[
@@ -187,18 +187,18 @@ export function CategorySelectionField({
       </TouchableOpacity>
 
       <Modal visible={visible} transparent animationType="fade" onRequestClose={() => setVisible(false)}>
-        <Pressable style={styles.overlay} onPress={() => setVisible(false)}>
+        <Pressable accessibilityRole="button" style={styles.overlay} onPress={() => setVisible(false)}>
           <SafeAreaView style={styles.overlaySafe}>
-            <Pressable style={styles.sheet} onPress={(event) => event.stopPropagation()}>
+            <Pressable accessibilityRole="button" style={styles.sheet} onPress={(event) => event.stopPropagation()}>
               <View style={styles.sheetHeader}>
                 <Text style={styles.sheetTitle}>{title}</Text>
-                <TouchableOpacity onPress={() => setVisible(false)} style={styles.closeButton} activeOpacity={0.85}>
+                <TouchableOpacity accessibilityRole="button" onPress={() => setVisible(false)} style={styles.closeButton} activeOpacity={0.85}>
                   <X size={18} weight="bold" color={COLORS.textSecondary} />
                 </TouchableOpacity>
               </View>
               <View style={styles.grid}>
                 {options.map((option) => (
-                  <TouchableOpacity
+                  <TouchableOpacity accessibilityRole="button"
                     key={option.key}
                     style={[
                       styles.categoryOption,
@@ -237,7 +237,7 @@ export function ColorPicker({ colors, selected, onSelect, size = 40 }: ColorPick
   return (
     <View style={styles.grid}>
       {colors.map((color) => (
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           key={color}
           style={[
             styles.colorItem,
@@ -277,7 +277,7 @@ export function ColorSelectionField({
 
   return (
     <>
-      <TouchableOpacity style={styles.iconField} onPress={() => setVisible(true)} activeOpacity={0.8}>
+      <TouchableOpacity accessibilityRole="button" style={styles.iconField} onPress={() => setVisible(true)} activeOpacity={0.8}>
         <View style={styles.fieldPreviewBox}>
           <View style={[styles.colorPreview, { backgroundColor: currentColor }]} />
         </View>
@@ -285,12 +285,12 @@ export function ColorSelectionField({
       </TouchableOpacity>
 
       <Modal visible={visible} transparent animationType="fade" onRequestClose={() => setVisible(false)}>
-        <Pressable style={styles.overlay} onPress={() => setVisible(false)}>
+        <Pressable accessibilityRole="button" style={styles.overlay} onPress={() => setVisible(false)}>
           <SafeAreaView style={styles.overlaySafe}>
-            <Pressable style={styles.sheet} onPress={(event) => event.stopPropagation()}>
+            <Pressable accessibilityRole="button" style={styles.sheet} onPress={(event) => event.stopPropagation()}>
               <View style={styles.sheetHeader}>
                 <Text style={styles.sheetTitle}>{title}</Text>
-                <TouchableOpacity onPress={() => setVisible(false)} style={styles.closeButton} activeOpacity={0.85}>
+                <TouchableOpacity accessibilityRole="button" onPress={() => setVisible(false)} style={styles.closeButton} activeOpacity={0.85}>
                   <X size={18} weight="bold" color={COLORS.textSecondary} />
                 </TouchableOpacity>
               </View>

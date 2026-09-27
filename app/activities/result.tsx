@@ -1,3 +1,3 @@
-import ActivityResultScreen from '../../src/features/activities/screens/activity-result-screen';
-
-export default ActivityResultScreen;
+import { Redirect } from 'expo-router';
+import { useActivityStore } from '../../src/features/activities/activity-store';
+export default function ResultAlias() { const id = useActivityStore((state) => state.currentActivityId); return <Redirect href={id ? `/activities?activity=${id}` : '/activities'} />; }

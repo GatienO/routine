@@ -1,14 +1,15 @@
 import React from 'react';
 import { Stack } from 'expo-router';
-import { COLORS } from '../../src/constants/theme';
 
 export default function MainTabsLayout() {
   return (
     <Stack
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: COLORS.background },
+        contentStyle: { backgroundColor: 'transparent' },
       }}
-    />
+    >
+      <Stack.Screen name="index" />
+    </Stack>
   );
 }

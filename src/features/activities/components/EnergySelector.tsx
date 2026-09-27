@@ -14,7 +14,7 @@ export function EnergySelector({ value, onChange }: EnergySelectorProps) {
       {ENERGY_OPTIONS.map((option) => {
         const selected = option.id === value;
         return (
-          <Pressable
+          <Pressable aria-checked={selected}
             key={option.id}
             accessibilityRole="radio"
             accessibilityState={{ checked: selected }}

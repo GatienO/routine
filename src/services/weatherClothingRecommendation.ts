@@ -1,4 +1,14 @@
-import { OutfitPlan, OutfitVisualId, buildOutfitExtras, buildOutfitTiles } from '../constants/weatherOutfits';
+import {
+  OutfitPlan,
+  StructuredOutfit,
+  OutfitTile,
+  OutfitVisualId,
+  buildStructuredOutfit,
+  buildOutfitExtras,
+  buildOutfitTile,
+  buildOutfitTiles,
+  structuredOutfitToPlan,
+} from '../constants/weatherOutfits';
 import { DayForecastSummary, WeatherCondition, WeatherData } from './weather';
 
 export type Season = 'winter' | 'spring' | 'summer' | 'autumn';
@@ -10,13 +20,16 @@ export type ClothingRecommendationItem =
   | 'vesteLegere'
   | 'manteau'
   | 'impermeable'
+  | 'sandales'
   | 'casquette'
   | 'lunettes'
   | 'chaussures'
   | 'bottes'
+  | 'chaussettes'
   | 'tenueMatin'
   | 'pantalon'
   | 'short'
+  | 'robe'
   | 'bonnet'
   | 'gants'
   | 'echarpe'
@@ -39,10 +52,12 @@ export interface ParentWeatherSummary {
 export interface ClothingRecommendation {
   childMessage: string;
   parentSummary: ParentWeatherSummary;
+  structuredOutfit: StructuredOutfit;
   outfitPlan: OutfitPlan;
   items: ClothingRecommendationItem[];
   isLayered: boolean;
   reasons: string[];
+  outfitReasons: Partial<Record<OutfitVisualId, string>>;
 }
 
 interface WeatherClothingContext {
@@ -141,11 +156,15 @@ function resolveContext(
 
 function chooseMainClothes(ctx: WeatherClothingContext): ClothingRecommendationItem[] {
   if (ctx.forecast.hasSnow || ctx.effectiveMin <= 1 || ctx.effectiveCurrent <= 3) {
-    return ['tshirt', 'pull', 'manteau', 'pantalon', 'bonnet', 'gants', 'echarpe', 'bottes'];
+    return ['tshirt', 'pull', 'manteau', 'pantalon', 'chaussettes', 'bonnet', 'gants', 'echarpe', 'bottes'];
   }
 
   if (isFreshStartWarmerLater(ctx)) {
-    return ['tshirt', 'vesteLegere', 'tenueMatin', ctx.effectiveMax >= 25 ? 'short' : 'pantalon', 'chaussures'];
+    const warmOptions: ClothingRecommendationItem[] =
+      ctx.effectiveMax >= 25 ? ['short', 'robe'] : ['pantalon'];
+    const shoes: ClothingRecommendationItem[] =
+      ctx.effectiveMax > 26 && !hasRainRisk(ctx) ? ['sandales'] : ['chaussettes', 'chaussures'];
+    return ['tshirt', 'vesteLegere', 'tenueMatin', ...warmOptions, ...shoes];
   }
 
   if (
@@ -153,24 +172,26 @@ function chooseMainClothes(ctx: WeatherClothingContext): ClothingRecommendationI
     ctx.effectiveCurrent <= 8 ||
     (ctx.season === 'winter' && ctx.effectiveMax <= 15)
   ) {
-    return ['tshirt', 'pull', 'manteau', 'pantalon', 'chaussures'];
+    return ['tshirt', 'pull', 'manteau', 'pantalon', 'chaussettes', 'chaussures'];
   }
 
   if (ctx.effectiveCurrent <= 15 || ctx.effectiveMin <= 11) {
     const outerLayer: ClothingRecommendationItem =
       ctx.season === 'summer' || ctx.effectiveMax >= 21 ? 'vesteLegere' : 'pull';
-    return ['tshirt', outerLayer, 'pantalon', 'chaussures'];
+    return ['tshirt', outerLayer, 'pantalon', 'chaussettes', 'chaussures'];
   }
 
   if (ctx.effectiveMax >= 29) {
-    return ['tshirt', 'short', 'chaussures', 'casquette', 'eau'];
+    return ['tshirt', 'short', 'robe', hasRainRisk(ctx) ? 'chaussures' : 'sandales', 'casquette', 'eau'];
   }
 
   if (ctx.effectiveMax >= 24) {
-    return ['tshirt', 'short', 'chaussures'];
+    const shoes: ClothingRecommendationItem[] =
+      ctx.effectiveMax > 26 && !hasRainRisk(ctx) ? ['sandales'] : ['chaussettes', 'chaussures'];
+    return ['tshirt', 'short', 'robe', ...shoes];
   }
 
-  return ['tshirt', ctx.season === 'winter' ? 'pull' : 'vesteLegere', 'pantalon', 'chaussures'];
+  return ['tshirt', ctx.season === 'winter' ? 'pull' : 'vesteLegere', 'pantalon', 'chaussettes', 'chaussures'];
 }
 
 function withWeatherItems(
@@ -182,6 +203,8 @@ function withWeatherItems(
   if (hasRainRisk(ctx)) {
     next.push('impermeable');
     if (ctx.effectiveMax <= 20 || ctx.effectiveMin <= 12) next.push('bottes');
+    const sandalIndex = next.indexOf('sandales');
+    if (sandalIndex >= 0) next.splice(sandalIndex, 1, 'chaussures');
   }
 
   if (hasStrongWind(ctx) && !next.includes('manteau')) {
@@ -207,6 +230,8 @@ function itemToVisualId(item: ClothingRecommendationItem): OutfitVisualId | null
       return 'manteau';
     case 'impermeable':
       return 'impermeable';
+    case 'sandales':
+      return 'sandales';
     case 'casquette':
       return 'casquette';
     case 'lunettes':
@@ -215,10 +240,14 @@ function itemToVisualId(item: ClothingRecommendationItem): OutfitVisualId | null
       return 'chaussures';
     case 'bottes':
       return 'bottes';
+    case 'chaussettes':
+      return 'chaussettes';
     case 'pantalon':
       return 'pantalon';
     case 'short':
       return 'short';
+    case 'robe':
+      return 'robe';
     case 'bonnet':
       return 'bonnet';
     case 'gants':
@@ -226,50 +255,50 @@ function itemToVisualId(item: ClothingRecommendationItem): OutfitVisualId | null
     case 'echarpe':
       return 'echarpe';
     case 'eau':
-      return 'bouteille_eau';
+      return 'bouteille';
     default:
       return null;
   }
 }
 
 function buildHeadline(ctx: WeatherClothingContext, items: ClothingRecommendationItem[]): string {
-  if (isFreshStartWarmerLater(ctx)) return 'Tenue facile a enlever';
-  if (ctx.forecast.hasSnow || ctx.effectiveMin <= 1) return 'On se couvre bien';
-  if (items.includes('manteau')) return 'On prend une tenue chaude';
-  if (ctx.effectiveMax >= 29) return 'On s habille leger pour la chaleur';
-  if (hasRainRisk(ctx)) return 'On prevoit la pluie';
-  if (hasStrongWind(ctx)) return 'On garde une couche contre le vent';
-  return 'On choisit une tenue confortable';
+  if (isFreshStartWarmerLater(ctx)) return 'Veste à enlever';
+  if (ctx.forecast.hasSnow || ctx.effectiveMin <= 1) return 'Bien couvert';
+  if (items.includes('manteau')) return 'Tenue chaude';
+  if (ctx.effectiveMax >= 29) return 'Tenue légère';
+  if (hasRainRisk(ctx)) return 'Prévoir la pluie';
+  if (hasStrongWind(ctx)) return 'Coupe-vent utile';
+  return 'Tenue confortable';
 }
 
 function buildChildMessage(ctx: WeatherClothingContext, items: ClothingRecommendationItem[]): string {
   if (isFreshStartWarmerLater(ctx)) {
-    return 'Ce matin il fait frais, mais il fera chaud plus tard. Mets une veste legere que tu pourras enlever.';
+    return 'Frais ce matin. Veste légère.';
   }
 
   if (hasRainRisk(ctx)) {
-    return 'Il risque de pleuvoir, prends ton impermeable.';
+    return 'Pluie possible. Imperméable.';
   }
 
   if (hasStrongWind(ctx)) {
-    return 'Il y a du vent aujourd hui, garde une veste avec toi.';
+    return 'Vent fort. Veste utile.';
   }
 
   if (ctx.effectiveMax >= 29) {
-    return 'Il va faire chaud aujourd hui, pense a une casquette et a boire de l eau.';
+    return "Chaud aujourd'hui. Casquette + eau.";
   }
 
   if (items.includes('manteau')) {
-    return 'Il fait froid aujourd hui, mets ton manteau pour rester bien au chaud.';
+    return "Froid aujourd'hui. Manteau.";
   }
 
   if (ctx.effectiveCurrent <= 15 || ctx.effectiveMin <= 11) {
     return ctx.season === 'summer'
-      ? 'Il fait frais pour le moment, prends une petite veste.'
-      : 'Il fait frais aujourd hui, prends un pull ou une veste.';
+      ? 'Frais maintenant. Petite veste.'
+      : 'Frais. Pull ou veste.';
   }
 
-  return 'La meteo est douce aujourd hui, choisis une tenue confortable.';
+  return 'Météo douce. Tenue confortable.';
 }
 
 function buildReasons(ctx: WeatherClothingContext): string[] {
@@ -298,45 +327,84 @@ function buildReasons(ctx: WeatherClothingContext): string[] {
 
 function buildParentReason(ctx: WeatherClothingContext): string {
   if (isFreshStartWarmerLater(ctx)) {
-    return `Le debut de journee est frais (${ctx.effectiveCurrent} deg ressentis) mais la journee monte jusqu a ${ctx.effectiveMax} deg. Une couche amovible evite le manteau trop chaud.`;
+    return `Matin frais (${ctx.effectiveCurrent}°). Plus chaud ensuite (${ctx.effectiveMax}°). Veste amovible.`;
   }
 
   if (hasRainRisk(ctx)) {
     return ctx.precipitationProbability > 0
-      ? `Risque de pluie eleve (${ctx.precipitationProbability}%), protection pluie recommandee.`
-      : 'Pluie detectee dans la prevision de la journee.';
+      ? `Pluie possible (${ctx.precipitationProbability}%). Protection utile.`
+      : 'Pluie prévue. Protection utile.';
   }
 
   if (hasStrongWind(ctx)) {
-    return `Vent fort prevu (${ctx.windSpeed} km/h), une couche coupe-vent est utile.`;
+    return `Vent fort (${ctx.windSpeed} km/h). Veste utile.`;
   }
 
   if (ctx.effectiveMax >= 29) {
-    return `Maximum prevu a ${ctx.effectiveMax} deg, protection soleil et hydratation recommandees.`;
+    return `Maximum ${ctx.effectiveMax}°. Soleil et eau.`;
   }
 
   if (ctx.season === 'winter' && ctx.effectiveMax <= 15) {
-    return 'En hiver, cette temperature reste fraiche sur la journee, surtout avec le ressenti.';
+    return 'Journée fraîche. Tenue chaude.';
   }
 
-  return 'La recommandation utilise la plage min/max de la journee, le ressenti, la saison et le moment actuel.';
+  return 'Tenue adaptée à la journée.';
 }
 
-function buildPlan(ctx: WeatherClothingContext, items: ClothingRecommendationItem[]): OutfitPlan {
-  const mainVisuals = items
-    .filter((entry) => !['impermeable', 'casquette', 'lunettes', 'eau', 'tenueMatin'].includes(entry))
+function buildVisualIds(items: ClothingRecommendationItem[]): OutfitVisualId[] {
+  return items
+    .filter((entry) => entry !== 'tenueMatin')
     .map(itemToVisualId)
     .filter((entry): entry is OutfitVisualId => entry !== null);
+}
+
+function buildOutfitReasons(ids: OutfitVisualId[], ctx: WeatherClothingContext) {
+  return ids.reduce<Partial<Record<OutfitVisualId, string>>>((reasons, id) => {
+    if (['impermeable', 'bottes', 'parapluie'].includes(id)) reasons[id] = 'Pour rester au sec';
+    else if (['manteau', 'pull', 'bonnet', 'gants', 'echarpe'].includes(id)) reasons[id] = 'Pour rester bien au chaud';
+    else if (id === 'vesteLegere') reasons[id] = hasStrongWind(ctx) ? 'Utile quand le vent souffle' : 'Facile à enlever s’il fait plus chaud';
+    else if (['casquette', 'lunettes'].includes(id)) reasons[id] = 'Utile quand le soleil est présent';
+    else if (['bouteille', 'bouteille_eau'].includes(id)) reasons[id] = 'Pour penser à boire';
+    else reasons[id] = 'Confortable pour cette journée';
+    return reasons;
+  }, {});
+}
+
+function buildPlan(
+  ctx: WeatherClothingContext,
+  items: ClothingRecommendationItem[],
+  structuredOutfit: StructuredOutfit,
+): OutfitPlan {
+  const legacyPlan = structuredOutfitToPlan(structuredOutfit, buildHeadline(ctx, items));
   const extraVisuals = items
-    .filter((entry) => ['impermeable', 'casquette', 'lunettes', 'eau'].includes(entry))
+    .filter((entry) => ['casquette', 'lunettes', 'eau'].includes(entry))
     .map(itemToVisualId)
     .filter((entry): entry is OutfitVisualId => entry !== null);
 
   return {
     headline: buildHeadline(ctx, items),
-    tiles: buildOutfitTiles(uniq(mainVisuals)),
+    tiles: buildMainOutfitTiles(uniq(legacyPlan.tiles.flatMap((tile) => tile.items.map((item) => item.id)))),
     extras: buildOutfitExtras(uniq(extraVisuals)),
   };
+}
+
+function buildMainOutfitTiles(ids: OutfitVisualId[]): OutfitTile[] {
+  if (!ids.includes('short') || !ids.includes('robe')) {
+    return buildOutfitTiles(ids);
+  }
+
+  const tiles: OutfitTile[] = [];
+
+  ids.forEach((id) => {
+    if (id === 'robe') return;
+    if (id === 'short') {
+      tiles.push(buildOutfitTile(['short', 'robe']));
+      return;
+    }
+    tiles.push(...buildOutfitTiles([id]));
+  });
+
+  return tiles;
 }
 
 export function getClothingRecommendation(
@@ -349,6 +417,8 @@ export function getClothingRecommendation(
   const items = withWeatherItems(chooseMainClothes(ctx), ctx);
   const childMessage = buildChildMessage(ctx, items);
   const mainRecommendation = buildHeadline(ctx, items);
+  const structuredOutfit = buildStructuredOutfit(uniq(buildVisualIds(items)));
+  const visualIds = uniq(buildVisualIds(items));
 
   return {
     childMessage,
@@ -365,9 +435,11 @@ export function getClothingRecommendation(
       mainRecommendation,
       reason: buildParentReason(ctx),
     },
-    outfitPlan: buildPlan(ctx, items),
+    structuredOutfit,
+    outfitPlan: buildPlan(ctx, items, structuredOutfit),
     items,
     isLayered: isFreshStartWarmerLater(ctx),
     reasons: buildReasons(ctx),
+    outfitReasons: buildOutfitReasons(visualIds, ctx),
   };
 }

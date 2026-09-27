@@ -25,13 +25,14 @@ import Animated, {
 import { AnimatedPressable } from '../../src/components/ui/AnimatedPressable';
 import { Star, House } from 'phosphor-react-native';
 import { BADGES } from '../../src/constants/badges';
-import { COLORS, SPACING, FONT_SIZE, SHADOWS, RADIUS, GRADIENTS } from '../../src/constants/theme';
+import { COLORS, SPACING, FONT_SIZE, SHADOWS, RADIUS } from '../../src/constants/theme';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
 import { Avatar } from '../../src/components/ui/Avatar';
 import { useChildrenStore } from '../../src/stores/childrenStore';
 import { CompletionRewardSummary } from '../../src/types';
 import * as Haptics from 'expo-haptics';
 import { formatChildName } from '../../src/utils/children';
+import { useAppTheme } from '../../src/hooks/useAppTheme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -97,6 +98,7 @@ function FallingParticle({ index }: { index: number }) {
 
 export default function CelebrationScreen() {
   const router = useRouter();
+  const { colors } = useAppTheme();
   const { getChild } = useChildrenStore();
   const params = useLocalSearchParams<{
     stars: string;
@@ -149,7 +151,7 @@ export default function CelebrationScreen() {
 
   return (
     <LinearGradient
-      colors={GRADIENTS.celebration}
+      colors={[colors.background, colors.surface, colors.background]}
       style={styles.gradient}
     >
       <SafeAreaView style={styles.safe}>
@@ -162,40 +164,40 @@ export default function CelebrationScreen() {
             <View style={styles.mainEmoji}>
               <OpenMoji emoji={params.routineIcon || '🎉'} size={72} />
             </View>
-            <Text style={styles.title} selectable={false}>Bravo ! 🎉</Text>
-            <Text style={styles.subtitle} selectable={false}>
-              Tu as termine {params.routineName || 'ta routine'} !
+            <Text style={[styles.title, { color: colors.text }]} selectable={false}>Bravo ! 🎉</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]} selectable={false}>
+              Tu as terminé {params.routineName || 'ta routine'} !
             </Text>
           </Animated.View>
 
           <Animated.View
             entering={ZoomIn.delay(500).duration(400).springify()}
-            style={styles.starsSection}
+            style={[styles.starsSection, { backgroundColor: colors.surface, borderColor: colors.border }]}
           >
             <Animated.View style={starPulseStyle}>
-              <Star size={34} weight="fill" color={COLORS.star} />
+              <Star size={34} weight="fill" color={colors.star} />
             </Animated.View>
-            <Text style={styles.starsCount} selectable={false}>+{totalStars}</Text>
-            <Text style={styles.starsLabel} selectable={false}>etoiles gagnees au total !</Text>
+            <Text style={[styles.starsCount, { color: colors.star }]} selectable={false}>+{totalStars}</Text>
+            <Text style={[styles.starsLabel, { color: colors.textSecondary }]} selectable={false}>étoiles gagnées au total !</Text>
           </Animated.View>
 
           {duration > 0 ? (
             <Animated.View
               entering={FadeInUp.delay(700).duration(400)}
-              style={styles.durationBadge}
+              style={[styles.durationBadge, { backgroundColor: colors.surface, borderColor: colors.border }]}
             >
               <Text style={styles.durationIcon} selectable={false}>⏱️</Text>
-              <Text style={styles.durationText} selectable={false}>
-                Realisee en {duration} minute{duration > 1 ? 's' : ''}
+              <Text style={[styles.durationText, { color: colors.textSecondary }]} selectable={false}>
+                Réalisée en {duration} minute{duration > 1 ? 's' : ''}
               </Text>
             </Animated.View>
           ) : null}
 
           <Animated.View
             entering={FadeInUp.delay(850).duration(500).springify()}
-            style={styles.summarySection}
+            style={[styles.summarySection, { backgroundColor: colors.surface, borderColor: colors.border }]}
           >
-            <Text style={styles.summaryTitle} selectable={false}>Recapitulatif par enfant</Text>
+            <Text style={[styles.summaryTitle, { color: colors.text }]} selectable={false}>Récapitulatif par enfant</Text>
 
             {rewardSummary.map((entry, index) => {
               const child = entry.childId ? getChild(entry.childId) : undefined;
@@ -205,7 +207,7 @@ export default function CelebrationScreen() {
                 <Animated.View
                   key={`${entry.childId || 'default'}-${index}`}
                   entering={FadeInDown.delay(950 + index * 90).duration(350)}
-                  style={styles.childRewardCard}
+                  style={[styles.childRewardCard, { backgroundColor: colors.surfaceSecondary }]}
                 >
                   <View style={styles.childHeader}>
                     {child ? (
@@ -216,16 +218,16 @@ export default function CelebrationScreen() {
                         avatarConfig={child.avatarConfig}
                       />
                     ) : (
-                      <View style={styles.fallbackAvatar}>
+                      <View style={[styles.fallbackAvatar, { backgroundColor: colors.surface }]}>
                         <OpenMoji emoji="⭐" size={28} />
                       </View>
                     )}
                     <View style={styles.childHeaderText}>
-                      <Text style={styles.childName} selectable={false}>
+                      <Text style={[styles.childName, { color: colors.text }]} selectable={false}>
                         {child ? formatChildName(child.name) : 'Routine'}
                       </Text>
-                      <Text style={styles.childStars} selectable={false}>
-                        +{entry.starsEarned} etoile{entry.starsEarned > 1 ? 's' : ''}
+                      <Text style={[styles.childStars, { color: colors.star }]} selectable={false}>
+                        +{entry.starsEarned} étoile{entry.starsEarned > 1 ? 's' : ''}
                       </Text>
                     </View>
                   </View>
@@ -236,14 +238,14 @@ export default function CelebrationScreen() {
                         <View key={badge.id} style={styles.badgeRow}>
                           <OpenMoji emoji={badge.icon} size={34} />
                           <View style={styles.badgeTextWrap}>
-                            <Text style={styles.badgeName} selectable={false}>{badge.name}</Text>
-                            <Text style={styles.badgeDesc} selectable={false}>{badge.description}</Text>
+                            <Text style={[styles.badgeName, { color: colors.text }]} selectable={false}>{badge.name}</Text>
+                            <Text style={[styles.badgeDesc, { color: colors.textSecondary }]} selectable={false}>{badge.description}</Text>
                           </View>
                         </View>
                       ))}
                     </View>
                   ) : (
-                    <Text style={styles.noBadgeText} selectable={false}>Pas de nouveau badge cette fois.</Text>
+                    <Text style={[styles.noBadgeText, { color: colors.textSecondary }]} selectable={false}>Pas de nouveau badge cette fois.</Text>
                   )}
                 </Animated.View>
               );
@@ -252,12 +254,13 @@ export default function CelebrationScreen() {
 
           <Animated.View entering={FadeInDown.delay(1200).duration(400)}>
             <AnimatedPressable
-              style={styles.continueButton}
-              onPress={() => router.replace('/child')}
+              style={[styles.continueButton, { backgroundColor: colors.action }]}
+              onPress={() => router.replace('/routines')}
               scaleDown={0.9}
+              accessibilityLabel="Terminer et revenir aux routines"
             >
-              <Text style={styles.continueText} selectable={false}>Super !</Text>
-              <House size={20} weight="fill" color="#FFF" />
+              <Text style={[styles.continueText, { color: colors.background }]} selectable={false}>Super !</Text>
+              <House size={20} weight="fill" color={colors.background} />
             </AnimatedPressable>
           </Animated.View>
         </ScrollView>
@@ -285,7 +288,7 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.xxl + 8,
     fontWeight: '900',
     color: COLORS.text,
-    letterSpacing: -0.5,
+    letterSpacing: 0,
   },
   subtitle: {
     fontSize: FONT_SIZE.md + 1,

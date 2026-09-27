@@ -3,6 +3,7 @@ import * as Location from 'expo-location';
 
 const CACHE_KEY_PREFIX = 'weather-cache';
 const CACHE_TTL = 30 * 60 * 1000;
+const WEATHER_FETCH_TIMEOUT_MS = 8000;
 export const WEATHER_LIVE_REFRESH_MS = 10 * 60 * 1000;
 
 function getCacheKey(options: WeatherOptions = {}): string {
@@ -19,6 +20,15 @@ export type WeatherCondition =
   | 'rain'
   | 'snow'
   | 'thunderstorm';
+
+export type WeatherErrorCode = 'location-denied' | 'location-unavailable' | 'city-not-found' | 'network';
+
+export class WeatherFetchError extends Error {
+  constructor(public readonly code: WeatherErrorCode, message: string) {
+    super(message);
+    this.name = 'WeatherFetchError';
+  }
+}
 
 export interface DayForecastSummary {
   minTemperature: number;
@@ -43,6 +53,26 @@ export interface WeatherData {
   timestamp: number;
   dayForecast: DayForecastSummary;
   nightForecast: DayForecastSummary;
+}
+
+export interface WeatherFreshness {
+  ageMinutes: number;
+  isStale: boolean;
+  label: string;
+}
+
+export function getWeatherFreshness(weather: Pick<WeatherData, 'timestamp'>, now = Date.now()): WeatherFreshness {
+  const ageMinutes = Math.max(0, Math.floor((now - weather.timestamp) / 60000));
+  const isStale = ageMinutes > 30;
+  return {
+    ageMinutes,
+    isStale,
+    label: ageMinutes < 2
+      ? 'Mise à jour maintenant'
+      : ageMinutes < 60
+        ? `Mise à jour il y a ${ageMinutes} min`
+        : `Mise à jour il y a ${Math.floor(ageMinutes / 60)} h`,
+  };
 }
 
 interface OpenMeteoResponse {
@@ -80,12 +110,44 @@ const DEFAULT_LON = 2.3522;
 
 async function geocodeCity(city: string): Promise<{ lat: number; lon: number; name: string } | null> {
   const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=fr`;
-  const res = await fetch(url);
-  if (!res.ok) return null;
+  let res: Response;
+  try {
+    res = await fetchWithTimeout(url);
+  } catch {
+    throw new WeatherFetchError('network', 'Impossible de joindre le service météo.');
+  }
+  if (!res.ok) throw new WeatherFetchError('network', 'Impossible de joindre le service météo.');
   const data = await res.json();
   if (!data.results?.length) return null;
   const r = data.results[0];
   return { lat: r.latitude, lon: r.longitude, name: r.name };
+}
+
+async function fetchWithTimeout(url: string): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), WEATHER_FETCH_TIMEOUT_MS);
+
+  try {
+    return await fetch(url, { signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function fetchFirstAvailable(urls: string[]): Promise<Response> {
+  let lastError: unknown;
+
+  for (const url of urls) {
+    try {
+      const res = await fetchWithTimeout(url);
+      if (res.ok) return res;
+      lastError = new Error(`Weather API error: ${res.status}`);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error('Weather API unavailable');
 }
 
 export interface WeatherOptions {
@@ -301,6 +363,8 @@ export async function fetchWeather(
   let lon = DEFAULT_LON;
   let city = 'Paris';
   let resolved = false;
+  let locationDenied = false;
+  let locationUnavailable = false;
 
   if (options.useGeolocation) {
     try {
@@ -310,16 +374,23 @@ export async function fetchWeather(
         lat = loc.coords.latitude;
         lon = loc.coords.longitude;
         resolved = true;
+        city = 'Ma position';
 
-        const [place] = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lon });
-        if (place?.city) {
-          city = place.city;
-        } else if (place?.subregion) {
-          city = place.subregion;
+        try {
+          const [place] = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lon });
+          if (place?.city) {
+            city = place.city;
+          } else if (place?.subregion) {
+            city = place.subregion;
+          }
+        } catch {
+          // The coordinates remain usable without a place name.
         }
+      } else {
+        locationDenied = true;
       }
     } catch {
-      // Fall through to city or default.
+      locationUnavailable = true;
     }
   }
 
@@ -330,17 +401,39 @@ export async function fetchWeather(
       lon = geo.lon;
       city = geo.name;
       resolved = true;
+    } else {
+      throw new WeatherFetchError('city-not-found', `Ville introuvable : ${options.cityName}`);
     }
   }
 
-  const url =
-    `https://api.open-meteo.com/v1/meteofrance?latitude=${lat}&longitude=${lon}` +
+  if (!resolved && options.useGeolocation && (locationDenied || locationUnavailable)) {
+    const staleCache = await getCachedWeather(cacheKey, Number.POSITIVE_INFINITY);
+    if (staleCache) return staleCache;
+    throw locationDenied
+      ? new WeatherFetchError('location-denied', 'La localisation n’est pas autorisée.')
+      : new WeatherFetchError('location-unavailable', 'La position est indisponible.');
+  }
+
+  const query =
+    `latitude=${lat}&longitude=${lon}` +
     `&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m,is_day` +
     `&hourly=temperature_2m,apparent_temperature,precipitation_probability,wind_speed_10m,weather_code` +
     `&timezone=auto`;
+  const urls = [
+    `https://api.open-meteo.com/v1/meteofrance?${query}`,
+    `https://api.open-meteo.com/v1/forecast?${query}`,
+  ];
 
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Weather API error: ${res.status}`);
+  let res: Response;
+  try {
+    res = await fetchFirstAvailable(urls);
+  } catch (error) {
+    const staleCache = await getCachedWeather(cacheKey, Number.POSITIVE_INFINITY);
+    if (staleCache) return staleCache;
+    throw error instanceof WeatherFetchError
+      ? error
+      : new WeatherFetchError('network', 'Impossible de mettre la météo à jour.');
+  }
 
   const data: OpenMeteoResponse = await res.json();
   const currentCondition = wmoCodeToCondition(data.current.weather_code);

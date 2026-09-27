@@ -1,44 +1,46 @@
+import { COLORS } from './theme';
 import { CalendarEventKind } from '../types/calendar';
 
 export const CALENDAR_COLORS = {
-  ink: '#314755',
-  muted: '#7A8E98',
-  softMuted: '#A9BAC2',
-  page: '#EDF7E8',
-  card: '#FFFFFF',
-  mint: '#A8E6CF',
-  mintSoft: '#EAF8E8',
-  lavender: '#9B7FE8',
-  lavenderDark: '#6C63FF',
-  coral: '#FF8B6A',
-  peach: '#FFCCAA',
-  sky: '#74B9FF',
-  rose: '#FF9FB2',
-  moon: '#4834C7',
-  yellow: '#FFD166',
-  lilac: '#C5A3FF',
+  ink: COLORS.text,
+  muted: COLORS.textSecondary,
+  softMuted: COLORS.textLight,
+  page: COLORS.background,
+  card: COLORS.surface,
+  mint: COLORS.primary,
+  mintSoft: COLORS.primarySoft,
+  lavender: COLORS.secondary,
+  lavenderDark: COLORS.secondaryDark,
+  coral: COLORS.error,
+  peach: COLORS.accent,
+  sky: '#C7DDBF',
+  rose: '#F3D9D5',
+  moon: '#756FB0',
+  yellow: COLORS.warning,
+  lilac: COLORS.secondaryLight,
 } as const;
 
 export const CALENDAR_GRADIENTS = {
-  today: ['#9B7FE8', '#6C63FF'] as [string, string],
-  week: ['#FF8B6A', '#FFD166'] as [string, string],
-  dodos: ['#1A1040', '#4834C7'] as [string, string],
-  tomorrow: ['#FF9FB2', '#FF6B9D'] as [string, string],
-  page: ['#DFF5D9', '#F7F2E8', '#FFF8EF'] as [string, string, string],
-  calmNight: ['#2D1B69', '#1A1040'] as [string, string],
+  today: ['#A8C79D', '#C7DDBF'] as [string, string],
+  week: ['#F3D6C4', '#F1E7D1'] as [string, string],
+  dodos: ['#756FB0', '#B8AEDF'] as [string, string],
+  tomorrow: ['#F3D9D5', '#F3D6C4'] as [string, string],
+  page: ['#FAF6EE', '#FFFDF8', '#F1E8D9'] as [string, string, string],
+  calmNight: ['#756FB0', '#6F6A93'] as [string, string],
 } as const;
 
 export const CALENDAR_EVENT_KIND_CONFIG: Record<
   CalendarEventKind,
   { label: string; icon: string; color: string; soft: string }
 > = {
-  special: { label: 'Special', icon: '⭐', color: '#FFD166', soft: '#FFF5D6' },
-  birthday: { label: 'Anniversaire', icon: '🎂', color: '#FF9FB2', soft: '#FFE9EF' },
-  holiday: { label: 'Vacances', icon: '🏖️', color: '#74B9FF', soft: '#E8F4FF' },
-  school: { label: 'Ecole', icon: '🎒', color: '#74B9FF', soft: '#E8F4FF' },
-  home: { label: 'Maison', icon: '🏠', color: '#A8E6CF', soft: '#EAF8E8' },
-  health: { label: 'Docteur', icon: '🩺', color: '#FF8B6A', soft: '#FFEDE7' },
-  routine: { label: 'Routine', icon: '🧩', color: '#C5A3FF', soft: '#F0E9FF' },
+  special: { label: 'Special', icon: '\u2B50', color: COLORS.warning, soft: COLORS.warningSoft },
+  birthday: { label: 'Anniversaire', icon: '\u{1F382}', color: COLORS.error, soft: COLORS.errorSoft },
+  holiday: { label: 'Vacances', icon: '\u{1F3D6}\uFE0F', color: COLORS.secondary, soft: COLORS.secondarySoft },
+  school: { label: 'Ecole', icon: '\u{1F392}', color: COLORS.primary, soft: COLORS.primarySoft },
+  home: { label: 'Maison', icon: '\u{1F3E0}', color: '#C7DDBF', soft: '#EFF6EC' },
+  health: { label: 'Docteur', icon: '\u{1FA7A}', color: COLORS.error, soft: COLORS.errorSoft },
+  routine: { label: 'Routine', icon: '\u{1F9E9}', color: COLORS.secondary, soft: COLORS.secondarySoft },
+  activity: { label: 'Activite', icon: '\u{1F3A8}', color: COLORS.accent, soft: COLORS.accentSoft },
 };
 
 export const CALENDAR_SPACING = {

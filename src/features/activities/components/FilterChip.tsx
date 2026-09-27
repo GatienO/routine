@@ -9,7 +9,7 @@ type FilterChipProps = {
 
 export function FilterChip({ label, selected = false, onPress }: FilterChipProps) {
   return (
-    <Pressable
+    <Pressable aria-pressed={selected}
       accessibilityRole="button"
       accessibilityState={{ selected }}
       onPress={onPress}
@@ -23,11 +23,11 @@ export function FilterChip({ label, selected = false, onPress }: FilterChipProps
         justifyContent: "center",
         borderWidth: 1,
         borderColor: selected ? colors.primary : colors.border,
-        backgroundColor: selected ? colors.primarySoft : colors.surface,
+        backgroundColor: selected ? colors.primary : colors.surface,
         opacity: pressed ? 0.78 : 1
       })}
     >
-      <Text selectable style={{ color: selected ? colors.primaryDark : colors.text, fontSize: 13, fontWeight: "800" }}>
+      <Text selectable style={{ color: selected ? colors.primaryDark : colors.text, fontSize: 13, fontWeight: "700" }}>
         {label}
       </Text>
     </Pressable>

@@ -8,6 +8,8 @@ import Reanimated, {
   Easing,
 } from 'react-native-reanimated';
 import { COLORS, FONT_SIZE } from '../../constants/theme';
+import { useAppTheme } from '../../hooks/useAppTheme';
+import { useReducedMotionPreference } from '../../hooks/useReducedMotionPreference';
 
 const AnimatedCircle = Reanimated.createAnimatedComponent(Circle);
 
@@ -37,22 +39,26 @@ export function CircularTimer({
   trackColor = COLORS.successLight,
   isFinished = false,
 }: CircularTimerProps) {
+  const { colors } = useAppTheme();
+  const reducedMotion = useReducedMotionPreference();
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const animatedProgress = useSharedValue(0);
 
   useEffect(() => {
-    animatedProgress.value = withTiming(progress, {
+    animatedProgress.value = reducedMotion ? progress : withTiming(progress, {
       duration: 800,
       easing: Easing.out(Easing.ease),
     });
-  }, [progress]);
+  }, [animatedProgress, progress, reducedMotion]);
 
   const animatedProps = useAnimatedProps(() => ({
     strokeDashoffset: circumference * (1 - animatedProgress.value),
   }));
 
-  const activeColor = isFinished ? COLORS.success : color;
+  const resolvedColor = color === COLORS.secondary ? colors.secondary : color;
+  const activeColor = isFinished ? colors.success : resolvedColor;
+  const resolvedTrackColor = trackColor === COLORS.successLight ? colors.successLight : trackColor;
 
   return (
     <View style={[styles.container, { width: size, height: size }]}>
@@ -62,7 +68,7 @@ export function CircularTimer({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke={trackColor}
+          stroke={resolvedTrackColor}
           strokeWidth={strokeWidth}
           fill="none"
         />
@@ -82,7 +88,7 @@ export function CircularTimer({
         </G>
       </Svg>
       <View style={styles.labelContainer}>
-        <Text style={[styles.label, isFinished && { color: COLORS.success }]}>
+        <Text style={[styles.label, { color: isFinished ? colors.success : colors.text }]}>
           {isFinished ? '✅' : label}
         </Text>
       </View>

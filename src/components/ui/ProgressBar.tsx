@@ -6,6 +6,8 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
+import { useAppTheme } from '../../hooks/useAppTheme';
+import { useReducedMotionPreference } from '../../hooks/useReducedMotionPreference';
 
 interface ProgressBarProps {
   progress: number; // 0 to 1
@@ -20,18 +22,20 @@ export function ProgressBar({
   height = 12,
   showLabel = false,
 }: ProgressBarProps) {
+  const { colors } = useAppTheme();
+  const reducedMotion = useReducedMotionPreference();
   const clampedProgress = Math.min(1, Math.max(0, progress));
   const percent = Math.round(clampedProgress * 100);
 
   const animatedWidth = useSharedValue(0);
 
   useEffect(() => {
-    animatedWidth.value = withSpring(clampedProgress * 100, {
+    animatedWidth.value = reducedMotion ? clampedProgress * 100 : withSpring(clampedProgress * 100, {
       damping: 18,
       stiffness: 90,
       mass: 0.8,
     });
-  }, [clampedProgress]);
+  }, [animatedWidth, clampedProgress, reducedMotion]);
 
   const fillStyle = useAnimatedStyle(() => ({
     width: `${animatedWidth.value}%` as any,
@@ -42,11 +46,11 @@ export function ProgressBar({
 
   return (
     <View style={styles.container}>
-      <View style={[styles.track, { height: height + 4, borderRadius: RADIUS.full }]}>
+      <View style={[styles.track, { height: height + 4, borderRadius: RADIUS.full, backgroundColor: colors.border }]}>
         <Animated.View style={fillStyle} />
       </View>
       {showLabel && (
-        <Text style={styles.label}>{percent}%</Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>{percent}%</Text>
       )}
     </View>
   );

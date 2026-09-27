@@ -66,7 +66,7 @@ export function Button({
   ].filter(Boolean) as TextStyle[];
 
   return (
-    <TouchableOpacity
+    <TouchableOpacity accessibilityRole="button"
       style={containerStyle}
       onPress={onPress}
       disabled={disabled || loading}

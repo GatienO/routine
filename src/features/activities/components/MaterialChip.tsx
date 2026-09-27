@@ -9,7 +9,7 @@ type MaterialChipProps = {
 
 export function MaterialChip({ label, selected, onPress }: MaterialChipProps) {
   return (
-    <Pressable
+    <Pressable aria-checked={selected}
       accessibilityRole="checkbox"
       accessibilityState={{ checked: selected }}
       onPress={onPress}

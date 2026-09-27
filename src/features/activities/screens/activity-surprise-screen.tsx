@@ -123,7 +123,7 @@ function ChoiceGroup({ title, children }: { title: string; children: ReactNode }
 
 function ChoicePill({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
   return (
-    <Pressable
+    <Pressable aria-pressed={selected}
       accessibilityRole="button"
       accessibilityState={{ selected }}
       onPress={onPress}

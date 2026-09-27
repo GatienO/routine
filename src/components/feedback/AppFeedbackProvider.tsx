@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { Button } from '../ui/Button';
+import { useAppTheme } from '../../hooks/useAppTheme';
 import { COLORS, FONT_SIZE, RADIUS, SHADOWS, SPACING } from '../../constants/theme';
 
 type FeedbackTone = 'info' | 'success' | 'warning' | 'danger';
@@ -134,6 +135,7 @@ export function showAppToast(options: AppToastOptions) {
 }
 
 export function AppFeedbackProvider({ children }: PropsWithChildren) {
+  const { colors } = useAppTheme();
   const [activeDialog, setActiveDialog] = useState<InternalDialog | null>(null);
   const [dialogQueue, setDialogQueue] = useState<InternalDialog[]>([]);
   const [activeToast, setActiveToast] = useState<InternalToast | null>(null);
@@ -345,7 +347,7 @@ export function AppFeedbackProvider({ children }: PropsWithChildren) {
               },
             ]}
           >
-            <Pressable
+            <Pressable accessibilityRole="button"
               onPress={dismissToast}
               style={[
                 styles.toastCard,
@@ -371,7 +373,7 @@ export function AppFeedbackProvider({ children }: PropsWithChildren) {
         </View>
       ) : null}
 
-      <Modal
+      {activeDialog ? <Modal
         transparent
         visible={Boolean(activeDialog)}
         animationType="none"
@@ -381,7 +383,7 @@ export function AppFeedbackProvider({ children }: PropsWithChildren) {
           }
         }}
       >
-        <Pressable
+        <Pressable accessible={false}
           style={styles.backdrop}
           onPress={() => {
             if (activeDialog?.dismissible !== false) {
@@ -431,7 +433,7 @@ export function AppFeedbackProvider({ children }: PropsWithChildren) {
                       onPress={() => handleDialogAction(action)}
                       variant={action.kind === 'neutral' ? 'outline' : 'primary'}
                       size="md"
-                      color={action.kind === 'danger' ? COLORS.error : COLORS.secondary}
+                      color={action.kind === 'danger' ? colors.attention : colors.action}
                       style={styles.dialogActionButton}
                     />
                   ))}
@@ -440,7 +442,7 @@ export function AppFeedbackProvider({ children }: PropsWithChildren) {
             ) : null}
           </Animated.View>
         </Pressable>
-      </Modal>
+      </Modal> : null}
     </View>
   );
 }

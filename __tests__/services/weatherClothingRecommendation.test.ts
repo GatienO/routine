@@ -46,7 +46,7 @@ describe('getClothingRecommendation', () => {
     expect(recommendation.isLayered).toBe(true);
     expect(recommendation.items).toContain('vesteLegere');
     expect(recommendation.items).not.toContain('manteau');
-    expect(recommendation.childMessage).toContain('fera chaud plus tard');
+    expect(recommendation.childMessage).toBe('Frais ce matin. Veste légère.');
   });
 
   it('recommande une tenue chaude pour une journee froide en hiver', () => {
@@ -69,7 +69,7 @@ describe('getClothingRecommendation', () => {
     const recommendation = getClothingRecommendation(weather, new Date('2026-01-10T09:00:00'));
 
     expect(recommendation.items).toEqual(expect.arrayContaining(['pull', 'manteau', 'pantalon']));
-    expect(recommendation.childMessage).toContain('manteau');
+    expect(recommendation.childMessage).toBe("Froid aujourd'hui. Manteau.");
   });
 
   it('recommande une veste legere pour une journee douce en ete', () => {
@@ -109,7 +109,8 @@ describe('getClothingRecommendation', () => {
     const recommendation = getClothingRecommendation(weather, new Date('2026-04-08T14:00:00'));
 
     expect(recommendation.items).toContain('impermeable');
-    expect(recommendation.childMessage).toContain('pleuvoir');
+    expect(recommendation.childMessage).toBe('Pluie possible. Imperméable.');
+    expect(recommendation.outfitReasons.impermeable).toBe('Pour rester au sec');
   });
 
   it('tient compte du fort vent', () => {
@@ -130,8 +131,9 @@ describe('getClothingRecommendation', () => {
     const recommendation = getClothingRecommendation(weather, new Date('2026-10-08T15:00:00'));
 
     expect(recommendation.items).toEqual(expect.arrayContaining(['vesteLegere']));
-    expect(recommendation.childMessage).toContain('vent');
+    expect(recommendation.childMessage).toBe('Vent fort. Veste utile.');
     expect(recommendation.parentSummary.windSpeed).toBe(45);
+    expect(recommendation.outfitReasons.vesteLegere).toBe('Utile quand le vent souffle');
   });
 
   it('recommande soleil et hydratation en forte chaleur', () => {
@@ -149,8 +151,13 @@ describe('getClothingRecommendation', () => {
 
     const recommendation = getClothingRecommendation(weather, new Date('2026-08-04T11:00:00'));
 
-    expect(recommendation.items).toEqual(expect.arrayContaining(['tshirt', 'short', 'casquette', 'eau']));
-    expect(recommendation.childMessage).toContain('chaud');
+    expect(recommendation.items).toEqual(expect.arrayContaining(['tshirt', 'short', 'robe', 'casquette', 'eau']));
+    expect(
+      recommendation.outfitPlan.tiles.some((tile) =>
+        tile.items.some((item) => item.id === 'robe'),
+      ),
+    ).toBe(true);
+    expect(recommendation.childMessage).toBe("Chaud aujourd'hui. Casquette + eau.");
   });
 
   it('ne se laisse pas tromper par une temperature actuelle froide si la journee devient chaude', () => {

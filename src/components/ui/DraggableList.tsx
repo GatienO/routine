@@ -8,6 +8,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { COLORS, RADIUS, SPACING } from '../../constants/theme';
+import { useReducedMotionPreference } from '../../hooks/useReducedMotionPreference';
 
 interface DraggableListProps<T> {
   data: T[];
@@ -74,6 +75,7 @@ function DraggableItemWithEnd<T>({
   itemHeight: number;
   onReorder: (fromIndex: number, translationY: number) => void;
 }) {
+  const reducedMotion = useReducedMotionPreference();
   const translateY = useSharedValue(0);
   const isActive = useSharedValue(false);
   const zIdx = useSharedValue(0);
@@ -91,7 +93,7 @@ function DraggableItemWithEnd<T>({
     })
     .onEnd(() => {
       const finalY = lastTranslation.current;
-      translateY.value = withSpring(0, { damping: 20, stiffness: 200 });
+      translateY.value = reducedMotion ? 0 : withSpring(0, { damping: 20, stiffness: 200 });
       isActive.value = false;
       zIdx.value = 0;
       runOnJS(onReorder)(index, finalY);

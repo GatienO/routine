@@ -12,6 +12,7 @@ import { Routine } from '../../src/types';
 beforeEach(() => {
   useRoutineStore.setState({
     routines: [],
+    trashedRoutines: [],
     executions: [],
     currentExecution: null,
     chainQueue: [],
@@ -77,6 +78,31 @@ describe('routineStore', () => {
 
     useRoutineStore.getState().removeRoutine(routine.id);
     expect(useRoutineStore.getState().routines).toHaveLength(0);
+  });
+
+  test('trashRoutine can be restored or permanently deleted', () => {
+    const routine = useRoutineStore.getState().addRoutine({
+      childId: 'child-1',
+      name: 'To trash',
+      icon: '🗑️',
+      color: '#FF6B6B',
+      category: 'morning',
+      steps: [],
+      isActive: true,
+    });
+
+    useRoutineStore.getState().trashRoutine(routine.id);
+    expect(useRoutineStore.getState().routines).toHaveLength(0);
+    expect(useRoutineStore.getState().trashedRoutines).toHaveLength(1);
+
+    useRoutineStore.getState().restoreRoutine(routine.id);
+    expect(useRoutineStore.getState().routines).toHaveLength(1);
+    expect(useRoutineStore.getState().trashedRoutines).toHaveLength(0);
+
+    useRoutineStore.getState().trashRoutine(routine.id);
+    useRoutineStore.getState().deleteTrashedRoutine(routine.id);
+    expect(useRoutineStore.getState().routines).toHaveLength(0);
+    expect(useRoutineStore.getState().trashedRoutines).toHaveLength(0);
   });
 
   test('toggleRoutine toggles active state', () => {
@@ -245,10 +271,67 @@ describe('routineStore', () => {
     });
 
     useRoutineStore.getState().startExecution(routine.id, ['child-1']);
+    useRoutineStore.setState({
+      chainQueue: ['queued-routine'],
+      pendingStepOrders: { [routine.id]: routine.steps },
+    });
     expect(useRoutineStore.getState().currentExecution).not.toBeNull();
 
     useRoutineStore.getState().cancelExecution();
     expect(useRoutineStore.getState().currentExecution).toBeNull();
     expect(useRoutineStore.getState().executions).toHaveLength(0);
+    expect(useRoutineStore.getState().chainQueue).toEqual([]);
+    expect(useRoutineStore.getState().pendingStepOrders).toEqual({});
+  });
+
+  test('completeStep is idempotent when the same validation is received twice', () => {
+    const routine = useRoutineStore.getState().addRoutine({
+      childId: 'child-1',
+      name: 'Double tap test',
+      icon: '✅',
+      color: '#397862',
+      category: 'morning',
+      steps: [
+        { id: 'step-1', title: 'S1', icon: '1', color: '#397862', durationMinutes: 1, instruction: '', isRequired: true, order: 0 },
+      ],
+      isActive: true,
+    });
+
+    useRoutineStore.getState().startExecution(routine.id, ['child-1']);
+    useRoutineStore.getState().completeStep('step-1');
+    useRoutineStore.getState().completeStep('step-1');
+
+    expect(useRoutineStore.getState().currentExecution?.stepsCompleted).toEqual(['step-1']);
+    expect(useRoutineStore.getState().currentExecution?.earnedStars).toBe(1);
+  });
+
+  test('persists an unfinished execution so it can resume after a restart', () => {
+    const routine = useRoutineStore.getState().addRoutine({
+      childId: 'child-1',
+      name: 'Routine à reprendre',
+      icon: '▶️',
+      color: '#397862',
+      category: 'morning',
+      steps: [
+        { id: 'step-1', title: 'S1', icon: '1', color: '#397862', durationMinutes: 1, instruction: '', isRequired: true, order: 0 },
+        { id: 'step-2', title: 'S2', icon: '2', color: '#397862', durationMinutes: 1, instruction: '', isRequired: true, order: 1 },
+      ],
+      isActive: true,
+    });
+
+    useRoutineStore.getState().startExecution(routine.id, ['child-1']);
+    useRoutineStore.getState().completeStep('step-1');
+
+    const partialize = useRoutineStore.persist.getOptions().partialize;
+    const persisted = partialize?.(useRoutineStore.getState()) as ReturnType<typeof useRoutineStore.getState>;
+
+    expect(persisted.currentExecution).toMatchObject({
+      routineId: routine.id,
+      participantChildIds: ['child-1'],
+      stepsCompleted: ['step-1'],
+      earnedStars: 1,
+    });
+    expect(persisted).toHaveProperty('chainQueue');
+    expect(persisted).toHaveProperty('pendingStepOrders');
   });
 });

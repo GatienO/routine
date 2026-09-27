@@ -31,6 +31,8 @@ describe('rewardStore', () => {
     expect(rewards.totalStars).toBe(0);
     expect(rewards.completedRoutines).toBe(0);
     expect(rewards.currentStreak).toBe(0);
+    expect(rewards.completedActivities).toBe(0);
+    expect(rewards.completedIndependentActivities).toBe(0);
   });
 
   test('recordCompletion increments stars and routines', () => {
@@ -145,5 +147,36 @@ describe('rewardStore', () => {
 
     expect(useRewardStore.getState().getRewards('child-1').totalStars).toBe(10);
     expect(useRewardStore.getState().getRewards('child-2').totalStars).toBe(5);
+  });
+
+  test('activity completion gives one star and unlocks activity badges only for participants', () => {
+    const summaries = useRewardStore.getState().recordActivityCompletion(['child-1', 'child-2', 'child-1']);
+
+    expect(summaries).toHaveLength(2);
+    expect(summaries[0].starsEarned).toBe(1);
+    expect(summaries[0].unlockedBadgeIds).toContain('activity_1');
+    expect(useRewardStore.getState().getRewards('child-1')).toMatchObject({
+      totalStars: 1,
+      completedActivities: 1,
+      completedRoutines: 0,
+    });
+    expect(useRewardStore.getState().getRewards('child-2').completedActivities).toBe(1);
+    expect(useRewardStore.getState().getRewards('child-3').completedActivities).toBe(0);
+  });
+
+  test('opening or favoriting an activity cannot award stars because only completion is exposed by rewardStore', () => {
+    expect(useRewardStore.getState()).not.toHaveProperty('recordActivityOpen');
+    expect(useRewardStore.getState()).not.toHaveProperty('recordActivityFavorite');
+    expect(useRewardStore.getState().getRewards('child-1').totalStars).toBe(0);
+  });
+
+  test('an accompanied activity marked as highly independent advances autonomy badges', () => {
+    const summaries = useRewardStore.getState().recordActivityCompletion(['child-1'], true);
+
+    expect(summaries[0].unlockedBadgeIds).toContain('autonomy_1');
+    expect(useRewardStore.getState().getRewards('child-1')).toMatchObject({
+      completedActivities: 1,
+      completedIndependentActivities: 1,
+    });
   });
 });

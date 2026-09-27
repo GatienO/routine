@@ -1,7 +1,6 @@
 import { Stack } from "expo-router";
 import { ReactNode } from "react";
 import { ScrollView, Text, useWindowDimensions, View } from "react-native";
-import type { ViewStyle } from "react-native";
 import { colors } from "../mini-theme";
 
 type AppScaffoldProps = {
@@ -12,11 +11,7 @@ type AppScaffoldProps = {
   children: ReactNode;
 };
 
-const headerGradientStyle = {
-  backgroundImage: `linear-gradient(110deg, ${colors.headerStart} 0%, ${colors.headerMiddle} 52%, ${colors.headerEnd} 100%)`
-} as unknown as ViewStyle;
-
-export function AppScaffold({ title, subtitle, icon = "🧱", screenTitle, children }: AppScaffoldProps) {
+export function AppScaffold({ title, subtitle, icon = "\u{1F9F1}", screenTitle, children }: AppScaffoldProps) {
   const { width } = useWindowDimensions();
   const horizontalPadding = width >= 720 ? 48 : 20;
 
@@ -29,16 +24,13 @@ export function AppScaffold({ title, subtitle, icon = "🧱", screenTitle, child
       <Stack.Screen options={{ title: screenTitle ?? title, headerShown: false }} />
 
       <View
-        style={[
-          {
-            width: "100%",
-            paddingTop: width >= 720 ? 34 : 28,
-            paddingBottom: width >= 720 ? 30 : 24,
-            paddingHorizontal: horizontalPadding,
-            backgroundColor: colors.primaryDark
-          },
-          headerGradientStyle
-        ]}
+        style={{
+          width: "100%",
+          paddingTop: width >= 720 ? 34 : 28,
+          paddingBottom: width >= 720 ? 18 : 14,
+          paddingHorizontal: horizontalPadding,
+          backgroundColor: colors.background
+        }}
       >
         <View style={{ width: "100%", maxWidth: 1240, alignSelf: "center", gap: 8 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
@@ -49,22 +41,22 @@ export function AppScaffold({ title, subtitle, icon = "🧱", screenTitle, child
                 borderRadius: 14,
                 alignItems: "center",
                 justifyContent: "center",
-                backgroundColor: "rgba(255, 255, 255, 0.16)",
+                backgroundColor: colors.primarySoft,
                 borderWidth: 1,
-                borderColor: "rgba(255, 255, 255, 0.22)"
+                borderColor: colors.border
               }}
             >
               <Text selectable={false} style={{ fontSize: 22, lineHeight: 28 }}>
                 {icon}
               </Text>
             </View>
-            <Text selectable style={{ flex: 1, color: colors.surface, fontSize: width >= 720 ? 30 : 24, lineHeight: width >= 720 ? 36 : 30, fontWeight: "900" }}>
+            <Text selectable style={{ flex: 1, color: colors.text, fontSize: width >= 720 ? 28 : 24, lineHeight: width >= 720 ? 34 : 30, fontWeight: "700" }}>
               {title}
             </Text>
           </View>
 
           {subtitle ? (
-            <Text selectable style={{ color: "#F3E8FF", fontSize: 14, lineHeight: 20, fontWeight: "700" }}>
+            <Text selectable style={{ color: colors.muted, fontSize: 14, lineHeight: 20, fontWeight: "500" }}>
               {subtitle}
             </Text>
           ) : null}
@@ -77,7 +69,7 @@ export function AppScaffold({ title, subtitle, icon = "🧱", screenTitle, child
           maxWidth: 1240,
           alignSelf: "center",
           paddingHorizontal: horizontalPadding,
-          paddingTop: width >= 720 ? 32 : 22,
+          paddingTop: width >= 720 ? 18 : 14,
           gap: 18
         }}
       >

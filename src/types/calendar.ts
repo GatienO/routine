@@ -5,7 +5,8 @@ export type CalendarEventKind =
   | 'school'
   | 'home'
   | 'health'
-  | 'routine';
+  | 'routine'
+  | 'activity';
 
 export interface CalendarEvent {
   id: string;
@@ -20,6 +21,8 @@ export interface CalendarEvent {
   allDay?: boolean;
   kind: CalendarEventKind;
   suggestedRoutineIds: string[];
+  suggestedActivityIds?: string[];
+  recurrence?: 'none' | 'weekly';
   createdAt: string;
   updatedAt: string;
 }
@@ -38,7 +41,7 @@ export interface CountdownEvent {
 
 export interface DayTimelineItem {
   id: string;
-  type: 'event' | 'routine-suggestion' | 'day-marker';
+  type: 'event' | 'routine-suggestion' | 'activity-suggestion' | 'day-marker';
   title: string;
   icon: string;
   color: string;
@@ -46,6 +49,7 @@ export interface DayTimelineItem {
   endMinutes?: number;
   eventId?: string;
   routineId?: string;
+  activityId?: string;
   childIds: string[];
   description?: string;
 }

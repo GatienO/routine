@@ -914,7 +914,7 @@ const baseActivities: BaseActivity[] = [
     messLevel: "low",
     materials: [],
     skills: ["langage", "concentration", "autonomie"],
-    description: "Observer la piece et trouver des objets connus.",
+    description: "Observer la pièce et trouver des objets connus.",
     steps: [
       "Choisis une piece depuis un endroit confortable.",
       "Demande: trouve quelque chose de rond.",
@@ -1052,7 +1052,7 @@ const baseActivities: BaseActivity[] = [
   },
   {
     id: "livre-a-lenvers",
-    title: "Livre a l'envers",
+    title: "Livre à l'envers",
     ageMin: 1,
     ageMax: 6,
     duration: 5,
@@ -1586,7 +1586,7 @@ const baseActivities: BaseActivity[] = [
   },
   {
     id: "defi-silence",
-    title: "Defi silence",
+    title: "Défi silence",
     thumbnail: "🤫",
     ageMin: 3,
     ageMax: 6,
@@ -1604,7 +1604,7 @@ const baseActivities: BaseActivity[] = [
     materials: [],
     skills: ["concentration", "emotions"],
     developmentGoals: ["self-control"],
-    description: "Ecouter les sons autour de soi en silence.",
+    description: "Écouter les sons autour de soi en silence.",
     steps: [
       "Asseyez-vous confortablement.",
       "Ecoutez les sons pendant quelques secondes.",
@@ -2084,7 +2084,7 @@ const baseActivities: BaseActivity[] = [
     materials: ["livres"],
     skills: ["langage", "imagination"],
     developmentGoals: ["narration"],
-    description: "Inventer une histoire a partir d'une image.",
+    description: "Inventer une histoire à partir d'une image.",
     steps: [
       "Ouvre un livre au hasard.",
       "Choisis une image.",
@@ -2624,7 +2624,7 @@ const baseActivities: BaseActivity[] = [
     materials: [],
     skills: ["motricite", "emotions"],
     developmentGoals: ["expression-corporelle"],
-    description: "Bouger comme le vent dans un espace exterieur.",
+    description: "Bouger comme le vent dans un espace extérieur.",
     steps: [
       "Levez les bras doucement.",
       "Bougez lentement comme le vent.",

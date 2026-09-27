@@ -1,3 +1,2 @@
-import ActivityHistoryScreen from '../../src/features/activities/screens/activity-history-screen';
-
-export default ActivityHistoryScreen;
+import { Redirect } from 'expo-router';
+export default function HistoryAlias() { return <Redirect href="/activities?view=recent" />; }

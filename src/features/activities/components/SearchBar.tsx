@@ -1,5 +1,6 @@
 import { TextInput, View } from "react-native";
-import { colors, radius } from "../mini-theme";
+import { useAppTheme } from "../../../hooks/useAppTheme";
+import { radius } from "../mini-theme";
 
 type SearchBarProps = {
   value: string;
@@ -7,7 +8,9 @@ type SearchBarProps = {
   placeholder?: string;
 };
 
-export function SearchBar({ value, onChange, placeholder = "Chercher une activite, un materiel" }: SearchBarProps) {
+export function SearchBar({ value, onChange, placeholder = "Chercher une activité, un matériel" }: SearchBarProps) {
+  const { colors } = useAppTheme();
+
   return (
     <View
       style={{
@@ -15,28 +18,28 @@ export function SearchBar({ value, onChange, placeholder = "Chercher une activit
         borderRadius: radius.md,
         borderCurve: "continuous",
         backgroundColor: colors.surface,
-        borderWidth: 2,
-        borderColor: "rgba(255, 255, 255, 0)",
+        borderWidth: 1,
+        borderColor: colors.border,
         paddingHorizontal: 16,
         flexDirection: "row",
         alignItems: "center",
         gap: 12,
-        boxShadow: "0 18px 36px rgba(15, 23, 42, 0.14)"
+        boxShadow: "0 8px 18px rgba(74, 63, 50, 0.06)"
       }}
     >
-      <SearchIcon />
+      <SearchIcon color={colors.textSecondary} />
       <TextInput
         accessibilityLabel="Recherche"
         value={value}
         onChangeText={onChange}
         placeholder={placeholder}
-        placeholderTextColor={colors.muted}
+        placeholderTextColor={colors.textSecondary}
         returnKeyType="search"
         style={{
           flex: 1,
           color: colors.text,
           fontSize: 14,
-          fontWeight: "500",
+          fontWeight: "400",
           minWidth: 0
         }}
       />
@@ -44,7 +47,7 @@ export function SearchBar({ value, onChange, placeholder = "Chercher une activit
   );
 }
 
-function SearchIcon() {
+function SearchIcon({ color }: { color: string }) {
   return (
     <View style={{ width: 18, height: 18 }}>
       <View
@@ -53,7 +56,7 @@ function SearchIcon() {
           height: 11,
           borderRadius: 999,
           borderWidth: 2,
-          borderColor: "#94A3B8",
+          borderColor: color,
           position: "absolute",
           top: 1,
           left: 1
@@ -64,7 +67,7 @@ function SearchIcon() {
           width: 8,
           height: 2,
           borderRadius: 999,
-          backgroundColor: "#94A3B8",
+          backgroundColor: color,
           position: "absolute",
           right: 0,
           bottom: 2,

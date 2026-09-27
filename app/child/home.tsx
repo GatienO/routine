@@ -2,5 +2,5 @@ import React from 'react';
 import { Redirect } from 'expo-router';
 
 export default function ChildHomeRedirect() {
-  return <Redirect href="/child" />;
+  return <Redirect href="/routines" />;
 }

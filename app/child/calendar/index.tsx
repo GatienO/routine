@@ -1,6 +1,6 @@
 import React from 'react';
-import { ChildCalendarExperience } from '../../../src/components/calendar/ChildCalendarExperience';
+import { AccompaniedCalendarExperience } from '../../../src/components/calendar/AccompaniedCalendarExperience';
 
 export default function ChildCalendarRoute() {
-  return <ChildCalendarExperience />;
+  return <AccompaniedCalendarExperience />;
 }

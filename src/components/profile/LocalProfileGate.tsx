@@ -1,19 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Modal,
   Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { Button } from '../ui/Button';
-import { COLORS, FONT_SIZE, RADIUS, SHADOWS, SPACING } from '../../constants/theme';
+import { FONT_SIZE, RADIUS, SHADOWS, SPACING, ThemeColors } from '../../constants/theme';
+import { useAppTheme } from '../../hooks/useAppTheme';
 import { useLocalProfileStore } from '../../stores/localProfileStore';
 
 export function LocalProfileGate() {
+  const { width } = useWindowDimensions();
+  const { colors, isDark } = useAppTheme();
   const hasHydrated = useLocalProfileStore((state) => state.hasHydrated);
   const profileId = useLocalProfileStore((state) => state.profileId);
   const profileName = useLocalProfileStore((state) => state.profileName);
@@ -29,10 +32,10 @@ export function LocalProfileGate() {
 
   if (!hasHydrated) {
     return (
-      <View style={styles.loadingBackdrop}>
-        <View style={styles.loadingCard}>
-          <Text style={styles.loadingTitle}>Chargement du profil local...</Text>
-          <Text style={styles.loadingText}>
+      <View style={[styles.loadingBackdrop, { backgroundColor: colors.navigationBackdrop }]}>
+        <View style={[styles.loadingCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[styles.loadingTitle, { color: colors.text }]}>Chargement du profil local...</Text>
+          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
             Les données restent sur cet appareil, sans compte ni base de données.
           </Text>
         </View>
@@ -46,43 +49,45 @@ export function LocalProfileGate() {
 
   const trimmedName = draftName.trim();
   const shortProfileId = profileId ? profileId.slice(-6) : 'LOCAL';
+  const compact = width < 560;
+  const modalWidth = Math.min(Math.max(width - SPACING.lg * 2, 272), 720);
 
   return (
-    <Modal transparent visible animationType="fade" onRequestClose={() => undefined}>
-      <Pressable style={styles.backdrop}>
+    <View accessibilityViewIsModal style={styles.gateLayer}>
+      <Pressable style={[styles.backdrop, { backgroundColor: colors.overlay }]}>
         <ScrollView
           style={styles.modalScroll}
           contentContainerStyle={styles.modalScrollContent}
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.modalCard}>
+          <View style={[styles.modalCard, compact && styles.modalCardCompact, { width: modalWidth, backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={styles.badgeRow}>
-              <View style={styles.localBadge}>
-                <Text style={styles.localBadgeText}>Profil local</Text>
+              <View style={[styles.localBadge, { backgroundColor: colors.timeSoft }]}>
+                <Text style={[styles.localBadgeText, { color: colors.time }]}>Profil local</Text>
               </View>
-              <Text style={styles.profileId}>ID {shortProfileId}</Text>
+              <Text style={[styles.profileId, { color: colors.textLight }]}>ID {shortProfileId}</Text>
             </View>
 
-            <Text style={styles.title}>Créez votre profil sur cet appareil</Text>
-            <Text style={styles.subtitle}>
+            <Text style={[styles.title, { color: colors.text }]}>Créez votre profil sur cet appareil</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
               Chaque utilisateur conserve ses enfants, routines et récompenses uniquement
               dans son navigateur ou son appareil. Aucune connexion et aucun partage
               automatique.
             </Text>
 
-            <View style={styles.infoGrid}>
-              <InfoCard title="Pas de compte" text="Aucune inscription n'est nécessaire." />
-              <InfoCard title="Données locales" text="Tout reste stocké ici, sur cet appareil." />
-              <InfoCard title="Profil unique" text="Chaque appareil ou navigateur garde son propre espace." />
+            <View style={[styles.infoGrid, compact && styles.infoGridCompact]}>
+              <InfoCard compact={compact} colors={colors} title="Pas de compte" text="Aucune inscription n'est nécessaire." />
+              <InfoCard compact={compact} colors={colors} title="Données locales" text="Tout reste stocké ici, sur cet appareil." />
+              <InfoCard compact={compact} colors={colors} title="Espace unique" text="Chaque appareil ou navigateur garde son propre espace." />
             </View>
 
-            <Text style={styles.label}>Nom du profil</Text>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Nom du profil</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
               value={draftName}
               onChangeText={setDraftName}
               placeholder="Ex : Famille Martin"
-              placeholderTextColor={COLORS.textLight}
+              placeholderTextColor={colors.textLight}
               maxLength={40}
               autoFocus={Platform.OS !== 'web'}
               returnKeyType="done"
@@ -92,7 +97,7 @@ export function LocalProfileGate() {
                 }
               }}
             />
-            <Text style={styles.hint}>
+            <Text style={[styles.hint, { color: colors.textLight }]}>
               Ce nom sert uniquement à identifier ce profil local sur cet appareil.
             </Text>
 
@@ -101,61 +106,59 @@ export function LocalProfileGate() {
               onPress={() => initializeProfile(trimmedName)}
               variant="primary"
               size="lg"
-              color={COLORS.secondary}
+              color={isDark ? colors.actionSoft : colors.action}
               disabled={!trimmedName}
             />
           </View>
         </ScrollView>
       </Pressable>
-    </Modal>
+    </View>
   );
 }
 
-function InfoCard({ title, text }: { title: string; text: string }) {
+function InfoCard({ colors, title, text, compact }: { colors: ThemeColors; title: string; text: string; compact: boolean }) {
   return (
-    <View style={styles.infoCard}>
-      <Text style={styles.infoCardTitle}>{title}</Text>
-      <Text style={styles.infoCardText}>{text}</Text>
+    <View style={[styles.infoCard, compact && styles.infoCardCompact, { backgroundColor: colors.background, borderColor: colors.border }]}>
+      <Text style={[styles.infoCardTitle, { color: colors.text }]}>{title}</Text>
+      <Text style={[styles.infoCardText, { color: colors.textSecondary }]}>{text}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  gateLayer: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 2000,
+    elevation: 2000,
+  },
   loadingBackdrop: {
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(244, 248, 245, 0.96)',
     padding: SPACING.lg,
     zIndex: 200,
   },
   loadingCard: {
     width: '100%',
     maxWidth: 420,
-    backgroundColor: COLORS.surface,
     borderRadius: RADIUS.xl,
     padding: SPACING.xl,
     gap: SPACING.sm,
     borderWidth: 1,
-    borderColor: COLORS.border,
     ...SHADOWS.md,
   },
   loadingTitle: {
     fontSize: FONT_SIZE.lg,
     fontWeight: '800',
-    color: COLORS.text,
     textAlign: 'center',
   },
   loadingText: {
     fontSize: FONT_SIZE.sm,
     lineHeight: 20,
-    color: COLORS.textSecondary,
     textAlign: 'center',
   },
   backdrop: {
     flex: 1,
-    backgroundColor: COLORS.overlay,
-    padding: SPACING.lg,
   },
   modalScroll: {
     width: '100%',
@@ -163,18 +166,19 @@ const styles = StyleSheet.create({
   modalScrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
+    paddingVertical: SPACING.lg,
   },
   modalCard: {
-    width: '100%',
     maxWidth: 720,
     alignSelf: 'center',
-    backgroundColor: COLORS.surface,
     borderRadius: RADIUS.xl,
     padding: SPACING.xl,
     gap: SPACING.md,
     borderWidth: 1,
-    borderColor: COLORS.border,
     ...SHADOWS.lg,
+  },
+  modalCardCompact: {
+    padding: SPACING.md,
   },
   badgeRow: {
     flexDirection: 'row',
@@ -187,73 +191,68 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: SPACING.sm,
     borderRadius: RADIUS.full,
-    backgroundColor: `${COLORS.secondary}20`,
   },
   localBadgeText: {
     fontSize: FONT_SIZE.xs,
     fontWeight: '800',
-    color: COLORS.secondaryDark,
     textTransform: 'uppercase',
     letterSpacing: 0.4,
   },
   profileId: {
     fontSize: FONT_SIZE.xs,
     fontWeight: '700',
-    color: COLORS.textLight,
   },
   title: {
     fontSize: FONT_SIZE.xl + 2,
     fontWeight: '900',
-    color: COLORS.text,
   },
   subtitle: {
     fontSize: FONT_SIZE.md,
     lineHeight: 24,
-    color: COLORS.textSecondary,
   },
   infoGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: SPACING.sm,
   },
+  infoGridCompact: {
+    flexDirection: 'column',
+  },
   infoCard: {
     flexGrow: 1,
     flexBasis: 180,
-    backgroundColor: COLORS.background,
     borderRadius: RADIUS.lg,
     padding: SPACING.md,
     gap: SPACING.xs,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    minWidth: 0,
+    flexShrink: 1,
+  },
+  infoCardCompact: {
+    width: '100%',
+    flexBasis: 'auto',
   },
   infoCardTitle: {
     fontSize: FONT_SIZE.sm,
     fontWeight: '800',
-    color: COLORS.text,
   },
   infoCardText: {
     fontSize: FONT_SIZE.sm,
     lineHeight: 20,
-    color: COLORS.textSecondary,
   },
   label: {
     fontSize: FONT_SIZE.sm,
     fontWeight: '700',
-    color: COLORS.textSecondary,
   },
   input: {
     borderWidth: 1,
-    borderColor: COLORS.border,
     borderRadius: RADIUS.lg,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.md,
     fontSize: FONT_SIZE.md,
-    color: COLORS.text,
-    backgroundColor: COLORS.surface,
   },
   hint: {
     fontSize: FONT_SIZE.xs,
     lineHeight: 18,
-    color: COLORS.textLight,
   },
 });

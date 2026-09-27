@@ -13,7 +13,7 @@ export function DurationSelector({ value, onChange }: DurationSelectorProps) {
       {DURATION_OPTIONS.map((duration) => {
         const selected = duration === value;
         return (
-          <Pressable
+          <Pressable aria-checked={selected}
             key={duration}
             accessibilityRole="radio"
             accessibilityState={{ checked: selected }}

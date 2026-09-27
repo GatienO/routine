@@ -9,6 +9,7 @@ interface RewardState {
   rewards: Record<string, ChildRewards>;
   getRewards: (childId: string) => ChildRewards;
   recordCompletion: (execution: RoutineExecution) => CompletionRewardSummary[];
+  recordActivityCompletion: (childIds: string[], independent?: boolean) => CompletionRewardSummary[];
   addStars: (childId: string, stars: number) => void;
   spendStars: (childId: string, stars: number) => boolean;
   getUnlockedBadges: (childId: string) => typeof BADGES;
@@ -29,6 +30,8 @@ function defaultRewards(childId: string): ChildRewards {
     currentStreak: 0,
     longestStreak: 0,
     completedRoutines: 0,
+    completedActivities: 0,
+    completedIndependentActivities: 0,
     unlockedBadges: [],
   };
 }
@@ -46,6 +49,8 @@ function normalizeUnlockedBadgeIds(unlockedBadges: string[]): string[] {
 function normalizeRewards(rewards: ChildRewards): ChildRewards {
   return {
     ...rewards,
+    completedActivities: rewards.completedActivities ?? 0,
+    completedIndependentActivities: rewards.completedIndependentActivities ?? 0,
     unlockedBadges: normalizeUnlockedBadgeIds(rewards.unlockedBadges),
   };
 }
@@ -93,6 +98,7 @@ export const useRewardStore = create<RewardState>()(
 
           let value = 0;
           if (badge.requirementType === 'routines') value = updated.completedRoutines;
+          else if (badge.requirementType === 'activities') value = updated.completedActivities ?? 0;
           else if (badge.requirementType === 'streak') value = updated.currentStreak;
           else if (badge.requirementType === 'stars') value = updated.totalStars;
 
@@ -128,6 +134,51 @@ export const useRewardStore = create<RewardState>()(
         });
 
         return rewardSummary;
+      },
+
+      recordActivityCompletion: (childIds, independent = false) => {
+        const participantIds = Array.from(new Set(childIds.filter(Boolean)));
+        const summaries: CompletionRewardSummary[] = [];
+
+        set((state) => {
+          const rewards = { ...state.rewards };
+
+          for (const childId of participantIds) {
+            const current = normalizeRewards(rewards[childId] ?? defaultRewards(childId));
+            const updated: ChildRewards = {
+              ...current,
+              totalStars: current.totalStars + 1,
+              completedActivities: (current.completedActivities ?? 0) + 1,
+              completedIndependentActivities: (current.completedIndependentActivities ?? 0) + (independent ? 1 : 0),
+              unlockedBadges: [...current.unlockedBadges],
+            };
+            const newlyUnlocked: string[] = [];
+
+            for (const badge of BADGES) {
+              if (updated.unlockedBadges.includes(badge.id)) continue;
+              const value = badge.requirementType === 'activities'
+                ? updated.completedActivities ?? 0
+                : badge.requirementType === 'autonomy'
+                  ? updated.completedIndependentActivities ?? 0
+                : badge.requirementType === 'stars'
+                  ? updated.totalStars
+                  : badge.requirementType === 'routines'
+                    ? updated.completedRoutines
+                    : updated.currentStreak;
+              if (value >= badge.requirement) {
+                updated.unlockedBadges.push(badge.id);
+                newlyUnlocked.push(badge.id);
+              }
+            }
+
+            rewards[childId] = updated;
+            summaries.push({ childId, starsEarned: 1, unlockedBadgeIds: newlyUnlocked });
+          }
+
+          return { rewards };
+        });
+
+        return summaries;
       },
 
       addStars: (childId, stars) => {

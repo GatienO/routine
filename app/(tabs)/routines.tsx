@@ -1,6 +1,6 @@
 import React from 'react';
-import ChildLauncherScreen from '../child';
+import { RoutinesHomeScreen } from '../../src/features/routines/screens/routines-home-screen';
 
 export default function RoutinesRoute() {
-  return <ChildLauncherScreen />;
+  return <RoutinesHomeScreen />;
 }

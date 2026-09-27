@@ -186,7 +186,7 @@ function RoutineShell({
   return (
     <Card padded={false} style={[styles.card, isMuted && styles.cardMuted]}>
       <View style={styles.cardBody}>
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           activeOpacity={0.78}
           onPress={onEdit}
           style={[styles.headerPressable, isMobile && styles.headerPressableStacked]}
@@ -365,7 +365,7 @@ const RoutineActionPanel = memo(function RoutineActionPanel({
         ) : null}
       </View>
 
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button"
         style={[
           styles.switchStatusRow,
           isActive ? styles.switchStatusRowActive : styles.switchStatusRowInactive,
@@ -457,10 +457,10 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
     borderWidth: 0,
     borderRadius: 30,
-    backgroundColor: 'rgba(255,255,255,0.96)',
+    backgroundColor: COLORS.surface,
     ...Platform.select({
       ios: {
-        shadowColor: '#8CB386',
+        shadowColor: '#0F172A',
         shadowOffset: { width: 0, height: 14 },
         shadowOpacity: 0.14,
         shadowRadius: 26,
@@ -469,7 +469,7 @@ const styles = StyleSheet.create({
         elevation: 8,
       },
       web: {
-        boxShadow: '0 18px 34px rgba(140, 179, 134, 0.18)',
+        boxShadow: '0 14px 30px rgba(74, 63, 50, 0.08)',
       },
     }),
   },
@@ -516,10 +516,10 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 28,
-    fontWeight: '800',
-    fontStyle: 'italic',
-    color: '#4F707B',
-    letterSpacing: -0.6,
+    fontWeight: '700',
+    fontStyle: 'normal',
+    color: COLORS.text,
+    letterSpacing: 0,
   },
   metaRow: {
     flexDirection: 'row',
@@ -530,7 +530,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.full,
     paddingVertical: 6,
     paddingHorizontal: SPACING.sm + 2,
-    backgroundColor: '#F3F9F6',
+    backgroundColor: COLORS.surfaceSecondary,
   },
   metaPillText: {
     fontSize: FONT_SIZE.xs,
@@ -564,7 +564,7 @@ const styles = StyleSheet.create({
   groupAvatar: {
     marginRight: -8,
     borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.96)',
+    borderColor: COLORS.border,
   },
   groupSummary: {
     flex: 1,
@@ -618,7 +618,7 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: 'rgba(255,255,255,0.94)',
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
     borderColor: '#DCEAE3',
     alignItems: 'center',
@@ -669,7 +669,7 @@ const styles = StyleSheet.create({
   },
   statusLabel: {
     fontSize: FONT_SIZE.xs,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   statusLabelActive: {
     color: COLORS.success,
@@ -690,7 +690,7 @@ const styles = StyleSheet.create({
   },
   statusChipText: {
     fontSize: FONT_SIZE.xs,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   statusChipTextActive: {
     color: COLORS.success,

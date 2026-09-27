@@ -1,3 +1,2 @@
-import ActivityFavoritesScreen from '../../src/features/activities/screens/activity-favorites-screen';
-
-export default ActivityFavoritesScreen;
+import { Redirect } from 'expo-router';
+export default function FavoritesAlias() { return <Redirect href="/activities?view=favorites" />; }

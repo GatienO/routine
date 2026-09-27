@@ -24,6 +24,7 @@ export const useCalendarStore = create<CalendarState>()(
         const now = new Date().toISOString();
         const event: CalendarEvent = {
           ...data,
+          suggestedActivityIds: data.suggestedActivityIds ?? [],
           id: generateId(),
           createdAt: now,
           updatedAt: now,

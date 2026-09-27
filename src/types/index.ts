@@ -47,6 +47,7 @@ export interface RoutineStep {
   isRequired: boolean;
   order: number;
   mediaUri?: string;
+  guidedKind?: 'weather-look' | 'outfit-choice';
 }
 
 export interface Routine {
@@ -89,7 +90,7 @@ export interface Badge {
   icon: string;
   description: string;
   requirement: number;
-  requirementType: 'routines' | 'streak' | 'stars';
+  requirementType: 'routines' | 'activities' | 'autonomy' | 'streak' | 'stars';
 }
 
 export interface ChildRewards {
@@ -98,6 +99,8 @@ export interface ChildRewards {
   currentStreak: number;
   longestStreak: number;
   completedRoutines: number;
+  completedActivities?: number;
+  completedIndependentActivities?: number;
   unlockedBadges: string[];
   lastCompletionDate?: string;
 }

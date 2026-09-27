@@ -1,3 +1,2 @@
-import ActivityFormScreen from '../../src/features/activities/screens/activity-form-screen';
-
-export default ActivityFormScreen;
+import { Redirect } from 'expo-router';
+export default function ActivityFormAlias() { return <Redirect href="/activities" />; }

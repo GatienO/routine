@@ -21,8 +21,8 @@ import { BreathingBubble } from '../../src/components/wellness/BreathingBubble';
 import { StretchingCard, STRETCHES } from '../../src/components/wellness/StretchingCard';
 import { ProgressBar } from '../../src/components/ui/ProgressBar';
 import { AnimatedPressable } from '../../src/components/ui/AnimatedPressable';
-import { useAppStore } from '../../src/stores/appStore';
 import { useRewardStore } from '../../src/stores/rewardStore';
+import { useRoutineStore } from '../../src/stores/routineStore';
 import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS, GRADIENTS } from '../../src/constants/theme';
 
 type Phase = 'intro' | 'breathing' | 'stretching' | 'done';
@@ -36,8 +36,8 @@ function pickRandomStretches(count: number) {
 
 export default function WellnessScreen() {
   const router = useRouter();
-  const { selectedChildId } = useAppStore();
   const { addStars } = useRewardStore();
+  const currentExecution = useRoutineStore((state) => state.currentExecution);
 
   const [phase, setPhase] = useState<Phase>('intro');
   const [stretches] = useState(() => pickRandomStretches(STRETCH_COUNT));
@@ -98,14 +98,17 @@ export default function WellnessScreen() {
 
   const handleFinish = () => {
     // Award 3 stars for completing wellness routine
-    if (selectedChildId) {
-      addStars(selectedChildId, 3);
-    }
-    router.replace('/child');
+    const participantIds = currentExecution?.participantChildIds?.length
+      ? currentExecution.participantChildIds
+      : currentExecution?.childId
+        ? [currentExecution.childId]
+        : [];
+    participantIds.forEach((childId) => addStars(childId, 3));
+    router.replace('/routines');
   };
 
   const handleQuit = () => {
-    router.replace('/child');
+    router.replace('/routines');
   };
 
   return (

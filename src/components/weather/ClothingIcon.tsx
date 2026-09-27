@@ -1,8 +1,8 @@
 import React from 'react';
-import { Image, Text } from 'react-native';
+import { Image, ImageSourcePropType, Text } from 'react-native';
 import { OutfitVisualId } from '../../constants/weatherOutfits';
 
-const clothingMap: Record<string, any[]> = {
+const clothingMap: Record<string, ImageSourcePropType[]> = {
   bonnet: [
     require('../../../assets/clothes/bonnet/bonnet_bleu.png'),
     require('../../../assets/clothes/bonnet/bonnet_orange.png'),
@@ -28,6 +28,8 @@ const clothingMap: Record<string, any[]> = {
     require('../../../assets/clothes/chaussures/chaussures_orange.png'),
     require('../../../assets/clothes/chaussures/chaussures_rose.png'),
   ],
+  bouteille: [require('../../../assets/clothes/bouteille/illustration-v2.png')],
+  bouteille_eau: [require('../../../assets/clothes/bouteille/illustration-v2.png')],
   echarpe: [
     require('../../../assets/clothes/echarpe/echarpe_bleu.png'),
     require('../../../assets/clothes/echarpe/echarpe_orange.png'),
@@ -51,6 +53,7 @@ const clothingMap: Record<string, any[]> = {
     require('../../../assets/clothes/pantalon/pantalon_orange.png'),
     require('../../../assets/clothes/pantalon/pantalon_rose.png'),
   ],
+  impermeable: [require('../../../assets/clothes/impermeable/illustration-v2.png')],
   parapluie: [require('../../../assets/clothes/plus/parapluie.png')],
   pull: [
     require('../../../assets/clothes/pull/pull_bleu.png'),
@@ -62,6 +65,8 @@ const clothingMap: Record<string, any[]> = {
     require('../../../assets/clothes/robe/robe_orange.png'),
     require('../../../assets/clothes/robe/robe_rose.png'),
   ],
+  sandales: [require('../../../assets/clothes/sandales/illustration-v2.png')],
+  maillot: [require('../../../assets/clothes/maillot/illustration-v2.png')],
   short: [
     require('../../../assets/clothes/short/short_bleu.png'),
     require('../../../assets/clothes/short/short_orange.png'),
@@ -77,6 +82,7 @@ const clothingMap: Record<string, any[]> = {
     require('../../../assets/clothes/tshirtML/tshirt_ML_orange.png'),
     require('../../../assets/clothes/tshirtML/tshirt_ML_rose.png'),
   ],
+  vesteLegere: [require('../../../assets/clothes/vesteLegere/illustration-v2.png')],
   pyjamaEte: [
     require('../../../assets/clothes/pyjama/ete/pyjama_ete_bleu.png'),
     require('../../../assets/clothes/pyjama/ete/pyjama_ete_orange.png'),
@@ -101,20 +107,22 @@ const clothingMap: Record<string, any[]> = {
 };
 
 const emojiFallbacks: Partial<Record<OutfitVisualId, string>> = {
-  bouteille_eau: '💧',
+  bouteille: '\u{1F4A7}',
+  bouteille_eau: '\u{1F4A7}',
   impermeable: '\u2602',
-  pluie: '🌧️',
-  neige: '❄️',
+  maillot: '\u{1FA71}',
+  pluie: '\u{1F327}\uFE0F',
+  sandales: '\u{1FA74}',
+  neige: '\u2744\uFE0F',
   vent: '\u{1F32C}\uFE0F',
   vesteLegere: '\u{1F9E5}',
 };
 
-function pickVariant(assets: any[], variant: number) {
-  // Créer un seed basé sur le variant et le jour actuel pour avoir
-  // une bonne diversité des couleurs tout en restant stable dans la même session
+function pickVariant(assets: ImageSourcePropType[], variant: number): ImageSourcePropType {
+  // Stabilise les couleurs dans une meme journee tout en variant les cartes.
   const today = new Date().toDateString();
   const dayHash = today.split('').reduce((h, c) => h + c.charCodeAt(0), 0);
-  const seed = (variant * 7 + dayHash) % assets.length; // 7 pour éviter trop de collisions
+  const seed = (variant * 7 + dayHash) % assets.length;
   return assets[Math.max(0, seed)];
 }
 

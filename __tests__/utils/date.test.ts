@@ -31,5 +31,6 @@ describe('date utils', () => {
     expect(formatDuration(1)).toBe('1 min');
     expect(formatDuration(5)).toBe('5 min');
     expect(formatDuration(15)).toBe('15 min');
+    expect(formatDuration(24.5)).toBe('24 min 30 s');
   });
 });

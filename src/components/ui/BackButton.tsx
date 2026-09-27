@@ -11,7 +11,7 @@ interface BackButtonProps {
 
 export function BackButton({ onPress, style, iconColor = COLORS.textSecondary }: BackButtonProps) {
   return (
-    <TouchableOpacity onPress={onPress} style={[styles.button, style]} activeOpacity={0.75}>
+    <TouchableOpacity accessibilityRole="button" onPress={onPress} style={[styles.button, style]} activeOpacity={0.75}>
       <ArrowLeft size={24} weight="bold" color={iconColor} />
     </TouchableOpacity>
   );

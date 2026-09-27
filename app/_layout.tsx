@@ -1,11 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Stack } from 'expo-router';
+import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
-import { useRouter } from 'expo-router';
+import { usePathname, useRouter } from 'expo-router';
 import { View } from 'react-native';
 import * as Linking from 'expo-linking';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { COLORS } from '../src/constants/theme';
 import { AppFeedbackProvider } from '../src/components/feedback/AppFeedbackProvider';
 import { LocalProfileGate } from '../src/components/profile/LocalProfileGate';
 import { WebInstallHint } from '../src/components/web/WebInstallHint';
@@ -13,6 +13,11 @@ import {
   AppBottomNavigation,
   useBottomNavigationOffset,
 } from '../src/components/ui/AppBottomNavigation';
+import { useAppTheme } from '../src/hooks/useAppTheme';
+import { AppBrandHeader } from '../src/components/ui/AppBrandHeader';
+import { PastelOrbs } from '../src/components/ui/PastelOrbs';
+import { useAppStore } from '../src/stores/appStore';
+import { consumePinOrigin } from '../src/utils/pinNavigation';
 
 export default function RootLayout() {
   return (
@@ -26,7 +31,19 @@ export default function RootLayout() {
 
 function RootShell() {
   const router = useRouter();
+  const pathname = usePathname();
+  const previousPath = useRef(pathname);
   const bottomOffset = useBottomNavigationOffset();
+  const [measuredBottomHeight, setMeasuredBottomHeight] = useState(bottomOffset);
+  const { colors, isDark } = useAppTheme();
+  const showMainShell = bottomOffset > 0;
+
+  useEffect(() => {
+    const isParent = pathname === '/parent' || pathname.startsWith('/parent/');
+    if (!isParent && pathname !== '/pin') useAppStore.getState().setParentMode(false);
+    if (previousPath.current === '/pin' && pathname !== '/pin') consumePinOrigin();
+    previousPath.current = pathname;
+  }, [pathname]);
 
   useEffect(() => {
     // Handle deep links when app is already open
@@ -54,17 +71,23 @@ function RootShell() {
 
   return (
     <>
-      <StatusBar style="dark" />
-      <View style={{ flex: 1, paddingBottom: bottomOffset }}>
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: COLORS.background },
-            animation: 'slide_from_right',
-          }}
-        />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+      <View style={{ flex: 1, paddingBottom: showMainShell ? Math.max(bottomOffset, measuredBottomHeight) : 0, backgroundColor: colors.background }}>
+        {showMainShell ? <PastelOrbs quiet /> : null}
+        {showMainShell ? <AppBrandHeader /> : null}
+        <View style={{ flex: 1 }}>
+          <ThemeProvider value={{ ...(isDark ? DarkTheme : DefaultTheme), colors: { ...(isDark ? DarkTheme.colors : DefaultTheme.colors), background: 'transparent' } }}>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: 'transparent' },
+              animation: 'slide_from_right',
+            }}
+          />
+          </ThemeProvider>
+        </View>
       </View>
-      <AppBottomNavigation />
+      <AppBottomNavigation onHeightChange={setMeasuredBottomHeight} />
       <LocalProfileGate />
       <WebInstallHint />
     </>

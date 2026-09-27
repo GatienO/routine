@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { Text, StyleSheet, View, useWindowDimensions, Platform } from 'react-native';
+import React, { useEffect, useMemo } from 'react';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   Easing,
   FadeIn,
@@ -11,38 +11,74 @@ import Animated, {
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ClothingIcon } from './ClothingIcon';
-import { WeatherData } from '../../services/weather';
-import { getClothingRecommendation } from '../../services/weatherClothingRecommendation';
-import { getWeatherTheme } from '../../constants/weatherThemes';
 import {
-  OutfitTile,
-  OutfitVisualItem,
+  OutfitZone,
+  TempLevel,
+  WeatherLevel,
+  getOutfitVisualItem,
 } from '../../constants/weatherOutfits';
-import { COLORS, FONT_SIZE, RADIUS, SPACING } from '../../constants/theme';
+import { WeatherData } from '../../services/weather';
+import {
+  ContextualWeatherModel,
+  getContextualWeatherModel,
+} from '../../services/weatherDayContext';
+import { FONT_SIZE, RADIUS, SPACING } from '../../constants/theme';
+import { useReducedMotionPreference } from '../../hooks/useReducedMotionPreference';
 
 interface Props {
   weather: WeatherData;
+  model?: ContextualWeatherModel;
 }
 
-const WEATHER_CARD_GRADIENT: [string, string] = ['#CBECC5', '#E8F8DD'];
-const WEATHER_PANEL_GRADIENT: [string, string] = ['#ECF9E8', '#F7FDF2'];
-const WEATHER_SOFT_GRADIENT: [string, string] = ['#DDF3D8', '#F0FAEA'];
-const WEATHER_TILE_GRADIENT: [string, string] = ['#F5FCF1', '#FFFFFF'];
-const WEATHER_BORDER = '#CFE7C8';
+const LEVEL_COLORS: Record<string, { bg: string; text: string; sub: string; border: string }> = {
+  blue: { bg: '#E5F3FF', text: '#24658F', sub: '#4B7693', border: '#B7DDF4' },
+  purple: { bg: '#F1ECFF', text: '#66509D', sub: '#7B6BA1', border: '#D8CCF4' },
+  green: { bg: '#E8F6E4', text: '#3E7448', sub: '#5F835F', border: '#C8E2C1' },
+  amber: { bg: '#FFF3C4', text: '#8A641E', sub: '#8B7040', border: '#F4DA88' },
+  coral: { bg: '#FFE8DF', text: '#A14D35', sub: '#9A6958', border: '#F2BBA9' },
+};
+
+const LEVEL_EMOJIS: Record<TempLevel, string> = {
+  very_cold: '❄️',
+  cold: '🧥',
+  mild: '🌤️',
+  warm: '☀️',
+  very_hot: '🥵',
+};
+
+function getLevelEmoji(weather: WeatherData, level: TempLevel): string {
+  if (weather.condition === 'snow' || weather.dayForecast.hasSnow) return '❄️';
+  if (weather.condition === 'rain' || weather.dayForecast.hasRain) return '🌧️';
+  if (weather.condition === 'thunderstorm' || weather.dayForecast.hasThunderstorm) return '⛈️';
+  return LEVEL_EMOJIS[level];
+}
+
+function visibleZones(zones: OutfitZone[], sleepMode: boolean): OutfitZone[] {
+  const filtered = sleepMode
+    ? zones.filter((zone) => zone.zone === 'body' || zone.zone === 'accessories')
+    : zones;
+
+  return filtered.filter((zone) => zone.items.length > 0);
+}
 
 function BouncingEmoji({ emoji }: { emoji: string }) {
+  const reducedMotion = useReducedMotionPreference();
   const translateY = useSharedValue(0);
 
   useEffect(() => {
+    if (reducedMotion) {
+      translateY.value = 0;
+      return;
+    }
     translateY.value = withRepeat(
       withSequence(
-        withTiming(-8, { duration: 1200, easing: Easing.inOut(Easing.ease) }),
+        withTiming(-7, { duration: 1200, easing: Easing.inOut(Easing.ease) }),
         withTiming(0, { duration: 1200, easing: Easing.inOut(Easing.ease) }),
       ),
       -1,
       true,
     );
-  }, [translateY]);
+  }, [reducedMotion, translateY]);
 
   const style = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
@@ -51,122 +87,110 @@ function BouncingEmoji({ emoji }: { emoji: string }) {
   return <Animated.Text style={[styles.weatherEmoji, style]}>{emoji}</Animated.Text>;
 }
 
-function OutfitTileInline({
-  tile,
-  index,
-  textColor,
-  size,
+function LevelHeader({
+  city,
+  contextLabel,
+  headline,
+  level,
+  emoji,
+  sleepMode,
 }: {
-  tile: OutfitTile;
-  index: number;
-  textColor: string;
-  size: number;
+  city: string;
+  contextLabel?: string;
+  headline: string;
+  level: WeatherLevel;
+  emoji: string;
+  sleepMode: boolean;
 }) {
-  const item = tile.items[0];
+  const colors = LEVEL_COLORS[level.colorKey] ?? LEVEL_COLORS.green;
 
   return (
-    <View style={styles.inlineItem}>
-      <ClothingIcon code={item.id} size={size} variant={index} />
-      <Text style={[styles.inlineItemLabel, { color: textColor }]}>{item.label}</Text>
+    <View style={[styles.levelHeader, sleepMode && styles.levelHeaderSleep]}>
+      <View style={[styles.levelIcon, { backgroundColor: colors.bg, borderColor: colors.border }]}>
+        <BouncingEmoji emoji={emoji} />
+      </View>
+      <View style={styles.levelText}>
+        <Text style={[styles.levelLabel, { color: sleepMode ? '#FFFDF8' : colors.text }]}>
+          {level.label}
+        </Text>
+        <Text style={[styles.levelSublabel, { color: sleepMode ? 'rgba(255,253,248,0.84)' : colors.sub }]}>
+          {level.sublabel}
+        </Text>
+        <Text style={[styles.levelMeta, sleepMode && styles.levelMetaSleep]}>
+          {city}{contextLabel ? ` · ${contextLabel}` : ''} · {headline}
+        </Text>
+      </View>
     </View>
   );
 }
 
-function ExtraTile({
-  item,
-  index,
-  textColor,
-  stacked,
-}: {
-  item: OutfitVisualItem;
-  index: number;
-  textColor: string;
-  stacked: boolean;
-}) {
-  return (
-    <LinearGradient colors={WEATHER_TILE_GRADIENT} style={[styles.extraTile, stacked && styles.extraTileStacked]}>
-      <ClothingIcon code={item.id} size={40} variant={index} />
-      <Text style={[styles.extraLabel, { color: textColor }]}>{item.label}</Text>
-    </LinearGradient>
+export function WeatherCard({ weather, model }: Props) {
+  const reducedMotion = useReducedMotionPreference();
+  const weatherModel = model ?? getContextualWeatherModel(weather);
+  const palette = weatherModel.palette;
+  const zones = useMemo(
+    () => visibleZones(weatherModel.structuredOutfit.zones, weatherModel.structuredOutfit.sleepMode),
+    [weatherModel.structuredOutfit],
   );
-}
-
-export function WeatherCard({ weather }: Props) {
-  const { width } = useWindowDimensions();
-  const theme = getWeatherTheme(weather.condition, weather.isDay);
-  const textColor = COLORS.text;
-  const secondaryColor = '#6C8468';
-  const eyebrowColor = '#8BA481';
-  const isNightRoutine = !weather.isDay;
-  const recommendation = getClothingRecommendation(weather);
-  const outfitPlan = recommendation.outfitPlan;
-  const temperatureLabel = `${weather.temperature}°C`;
-  const dayRangeLabel = `${weather.dayForecast.minTemperature} / ${weather.dayForecast.maxTemperature}°C`;
-  const visibleExtras = outfitPlan.extras;
-  const isWideLayout = width >= 920;
-  const clothingIconSize = isWideLayout ? 76 : 60;
+  const sleepMode = weatherModel.structuredOutfit.sleepMode;
+  const gradient = sleepMode ? (['#555174', '#8B84BA'] as [string, string]) : palette.gradient;
+  let variantIndex = 0;
 
   return (
-    <Animated.View entering={FadeIn.delay(150).duration(500)} style={styles.cardFrame}>
-      <LinearGradient colors={WEATHER_CARD_GRADIENT} style={styles.card}>
-      <View style={[styles.topGrid, isWideLayout && styles.topGridWide]}>
-        <LinearGradient colors={WEATHER_PANEL_GRADIENT} style={styles.weatherSummaryCard}>
-          <View style={styles.summaryRow}>
-            <BouncingEmoji emoji={theme.emoji} />
-            <View style={styles.summaryTextBlock}>
-              <Text style={[styles.cityText, { color: secondaryColor }]}>📍 {weather.city}</Text>
-              <Text style={[styles.weatherLabel, { color: textColor }]}>{theme.label}</Text>
-              <Text style={[styles.tempText, { color: textColor }]}>{temperatureLabel}</Text>
-              <Text style={[styles.rangeText, { color: secondaryColor }]}>{dayRangeLabel}</Text>
-            </View>
+    <Animated.View
+      entering={reducedMotion ? undefined : FadeIn.delay(120).duration(420)}
+      style={[styles.cardFrame, { shadowColor: palette.shadowColor }]}
+    >
+      <LinearGradient colors={gradient} style={[styles.hero, sleepMode && styles.heroSleep]}>
+        {sleepMode ? (
+          <View pointerEvents="none" style={styles.starsLayer}>
+            <Text style={[styles.star, styles.starOne]}>✦</Text>
+            <Text style={[styles.star, styles.starTwo]}>✧</Text>
+            <Text style={[styles.star, styles.starThree]}>✦</Text>
           </View>
-        </LinearGradient>
-
-        <LinearGradient colors={WEATHER_PANEL_GRADIENT} style={styles.storyCard}>
-          <Text style={[styles.storyEyebrow, { color: eyebrowColor }]}>
-            {isNightRoutine ? 'Pour cette soiree' : "Aujourd'hui"}
-          </Text>
-          <Text style={[styles.storyTitle, { color: textColor }]}>{recommendation.childMessage}</Text>
-          <Text style={[styles.storyTip, { color: secondaryColor }]}>{outfitPlan.headline}</Text>
-        </LinearGradient>
-
-        {visibleExtras.length > 0 ? (
-          <LinearGradient colors={WEATHER_SOFT_GRADIENT} style={styles.extrasAside}>
-            <Text style={[styles.extrasTitle, { color: eyebrowColor }]}>
-              En plus avec cette meteo
-            </Text>
-            <View style={[styles.extrasGrid, isWideLayout && styles.extrasGridAside]}>
-              {visibleExtras.map((item, index) => (
-                <ExtraTile
-                  key={`extra-${item.id}-${index}`}
-                  item={item}
-                  index={index}
-                  textColor={textColor}
-                  stacked={isWideLayout}
-                />
-              ))}
-            </View>
-          </LinearGradient>
         ) : null}
-      </View>
 
-      <LinearGradient colors={WEATHER_PANEL_GRADIENT} style={styles.mainPanel}>
-        <View style={styles.panelHeader}>
-          <Text style={[styles.panelEyebrow, { color: textColor }]}>Vetements recommandes</Text>
-        </View>
+        <LevelHeader
+          city={weather.city}
+          contextLabel={weatherModel.contextLabel}
+          headline={weatherModel.headline}
+          level={weatherModel.weatherLevel}
+          emoji={getLevelEmoji(weather, weatherModel.tempLevel)}
+          sleepMode={sleepMode}
+        />
 
-        <LinearGradient colors={WEATHER_SOFT_GRADIENT} style={styles.outfitSummaryCard}>
-          {outfitPlan.tiles.map((tile, index) => (
-            <OutfitTileInline
-              key={`${index}-${tile.items.map((entry) => entry.id).join('-')}`}
-              tile={tile}
-              index={index}
-              textColor={textColor}
-              size={clothingIconSize}
-            />
+        <View style={[styles.zonePanel, sleepMode && styles.zonePanelSleep]}>
+          {zones.map((zone) => (
+            <View key={zone.zone} style={styles.zoneRow}>
+              <Text style={[styles.zoneLabel, sleepMode && styles.zoneLabelSleep]}>
+                {zone.label.toUpperCase()}
+              </Text>
+              <View style={styles.zoneItems}>
+                {zone.items.map((itemId, index) => {
+                  const item = getOutfitVisualItem(itemId);
+                  const variant = variantIndex;
+                  variantIndex += 1;
+
+                  return (
+                    <View key={`${zone.zone}-${itemId}-${index}`} style={[styles.itemPill, sleepMode && styles.itemPillSleep]}>
+                      {zone.items.length > 1 ? (
+                        <View style={[styles.layerBadge, sleepMode && styles.layerBadgeSleep]}>
+                          <Text style={[styles.layerBadgeText, sleepMode && styles.layerBadgeTextSleep]}>
+                            {index + 1}
+                          </Text>
+                        </View>
+                      ) : null}
+                      <ClothingIcon code={item?.id ?? itemId} size={34} variant={variant} />
+                      <Text style={[styles.itemLabel, sleepMode && styles.itemLabelSleep]} numberOfLines={1}>
+                        {item?.label ?? itemId}
+                      </Text>
+                    </View>
+                  );
+                })}
+              </View>
+            </View>
           ))}
-        </LinearGradient>
-      </LinearGradient>
+        </View>
       </LinearGradient>
     </Animated.View>
   );
@@ -174,196 +198,181 @@ export function WeatherCard({ weather }: Props) {
 
 const styles = StyleSheet.create({
   cardFrame: {
-    borderRadius: 30,
-    marginBottom: SPACING.md,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    marginBottom: 0,
+    overflow: 'hidden',
     ...Platform.select({
       ios: {
-        shadowColor: '#8CB386',
         shadowOffset: { width: 0, height: 14 },
-        shadowOpacity: 0.14,
-        shadowRadius: 26,
+        shadowOpacity: 0.12,
+        shadowRadius: 24,
       },
       android: {
-        elevation: 8,
+        elevation: 7,
       },
       web: {
-        boxShadow: '0 18px 34px rgba(140, 179, 134, 0.18)',
+        boxShadow: '0 14px 30px rgba(130, 110, 84, 0.14)',
       },
     }),
   },
-  card: {
-    borderRadius: 30,
-    padding: SPACING.lg,
+  hero: {
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    paddingTop: SPACING.xl,
+    paddingHorizontal: SPACING.lg,
+    paddingBottom: SPACING.md,
     gap: SPACING.md,
-    borderWidth: 1,
-    borderColor: WEATHER_BORDER,
     overflow: 'hidden',
   },
-  topGrid: {
-    gap: SPACING.sm,
+  heroSleep: {
+    position: 'relative',
   },
-  topGridWide: {
-    flexDirection: 'row',
-    alignItems: 'stretch',
+  starsLayer: {
+    ...StyleSheet.absoluteFillObject,
   },
-  weatherSummaryCard: {
-    minWidth: 184,
-    width: 300,
-    minHeight: 132,
-    justifyContent: 'center',
-    borderRadius: 24,
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.md,
-    borderWidth: 1,
-    borderColor: WEATHER_BORDER,
-    overflow: 'hidden',
+  star: {
+    position: 'absolute',
+    color: 'rgba(255,253,248,0.48)',
+    fontSize: 18,
+    fontWeight: '900',
   },
-  summaryRow: {
+  starOne: {
+    top: 18,
+    right: 34,
+  },
+  starTwo: {
+    top: 70,
+    left: 22,
+    fontSize: 14,
+  },
+  starThree: {
+    bottom: 26,
+    right: 76,
+    fontSize: 12,
+  },
+  levelHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.sm,
+    gap: SPACING.md,
   },
-  summaryTextBlock: {
-    gap: 2,
-    flexShrink: 1,
+  levelHeaderSleep: {
+    zIndex: 1,
+  },
+  levelIcon: {
+    width: 68,
+    height: 68,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
   },
   weatherEmoji: {
-    fontSize: 42,
+    fontSize: 38,
   },
-  cityText: {
-    fontSize: FONT_SIZE.sm,
-    fontWeight: '700',
+  levelText: {
+    flex: 1,
+    minWidth: 0,
+    gap: 3,
   },
-  weatherLabel: {
+  levelLabel: {
     fontSize: FONT_SIZE.lg,
     fontWeight: '900',
+    lineHeight: 25,
   },
-  tempText: {
-    fontSize: FONT_SIZE.md,
-    fontWeight: '900',
-  },
-  rangeText: {
-    fontSize: FONT_SIZE.xs,
-    fontWeight: '800',
-  },
-  storyCard: {
-    flex: 1,
-    minHeight: 132,
-    justifyContent: 'center',
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: WEATHER_BORDER,
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.lg,
-    gap: 6,
-    overflow: 'hidden',
-  },
-  storyEyebrow: {
-    fontSize: FONT_SIZE.xs,
-    fontWeight: '900',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    textAlign: 'center',
-  },
-  storyTitle: {
-    fontSize: FONT_SIZE.xl,
-    fontWeight: '900',
-    textAlign: 'center',
-  },
-  storyTip: {
-    fontSize: FONT_SIZE.md,
-    fontWeight: '800',
-    lineHeight: 22,
-    textAlign: 'center',
-  },
-  extrasAside: {
-    minWidth: 230,
-    width: 230,
-    minHeight: 132,
-    justifyContent: 'center',
-    borderRadius: 24,
-    padding: SPACING.md,
-    gap: SPACING.sm,
-    borderWidth: 1,
-    borderColor: WEATHER_BORDER,
-    overflow: 'hidden',
-  },
-  extrasTitle: {
-    fontSize: FONT_SIZE.xs,
-    fontWeight: '900',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  extrasGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: SPACING.sm,
-  },
-  extrasGridAside: {
-    flexDirection: 'column',
-    flexWrap: 'nowrap',
-  },
-  extraTile: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.xs,
-    borderRadius: RADIUS.full,
-    paddingVertical: SPACING.xs + 2,
-    paddingHorizontal: SPACING.sm,
-    borderWidth: 1,
-    borderColor: WEATHER_BORDER,
-    overflow: 'hidden',
-  },
-  extraTileStacked: {
-    width: '100%',
-  },
-  extraLabel: {
+  levelSublabel: {
     fontSize: FONT_SIZE.sm,
-    fontWeight: '800',
-  },
-  mainPanel: {
-    width: '100%',
-    borderRadius: 24,
-    padding: SPACING.md,
-    gap: SPACING.sm,
-    borderWidth: 1,
-    borderColor: WEATHER_BORDER,
-    overflow: 'hidden',
-  },
-  panelHeader: {
-    gap: 4,
-  },
-  panelEyebrow: {
-    fontSize: FONT_SIZE.md,
     fontWeight: '900',
-    letterSpacing: 0.2,
   },
-  outfitSummaryCard: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: SPACING.sm,
-    borderRadius: 20,
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.sm,
-    borderWidth: 1,
-    borderColor: WEATHER_BORDER,
-    overflow: 'hidden',
-  },
-  inlineItem: {
-    flexGrow: 1,
-    flexBasis: 108,
-    minWidth: 108,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 2,
-    paddingVertical: 0,
-    paddingHorizontal: 0,
-  },
-  inlineItemLabel: {
+  levelMeta: {
+    color: 'rgba(75, 54, 25, 0.72)',
     fontSize: FONT_SIZE.xs,
     fontWeight: '800',
-    textAlign: 'center',
+  },
+  levelMetaSleep: {
+    color: 'rgba(255,253,248,0.72)',
+  },
+  zonePanel: {
+    gap: SPACING.sm,
+    borderRadius: RADIUS.md,
+    backgroundColor: 'rgba(255,255,255,0.48)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.44)',
+    padding: SPACING.sm,
+  },
+  zonePanelSleep: {
+    zIndex: 1,
+    backgroundColor: 'rgba(255,255,255,0.13)',
+    borderColor: 'rgba(255,255,255,0.18)',
+  },
+  zoneRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  zoneLabel: {
+    width: 92,
+    color: 'rgba(64,64,64,0.72)',
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 0.7,
+  },
+  zoneLabelSleep: {
+    color: 'rgba(255,253,248,0.72)',
+  },
+  zoneItems: {
+    flex: 1,
+    minWidth: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: SPACING.xs,
+  },
+  itemPill: {
+    minHeight: 44,
+    maxWidth: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    borderRadius: RADIUS.full,
+    backgroundColor: 'rgba(255,255,255,0.76)',
+    paddingVertical: 5,
+    paddingLeft: 6,
+    paddingRight: SPACING.sm,
+  },
+  itemPillSleep: {
+    backgroundColor: 'rgba(255,255,255,0.18)',
+  },
+  layerBadge: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFF3C4',
+  },
+  layerBadgeSleep: {
+    backgroundColor: 'rgba(255,253,248,0.22)',
+  },
+  layerBadgeText: {
+    color: '#8A641E',
+    fontSize: 11,
+    fontWeight: '900',
+  },
+  layerBadgeTextSleep: {
+    color: '#FFFDF8',
+  },
+  itemLabel: {
+    maxWidth: 92,
+    color: '#3F3A34',
+    fontSize: FONT_SIZE.xs,
+    fontWeight: '900',
+  },
+  itemLabelSleep: {
+    color: '#FFFDF8',
   },
 });

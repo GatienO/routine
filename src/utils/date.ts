@@ -25,5 +25,5 @@ export function formatDuration(minutes: number): string {
     return wholeMinutes === 1 ? '1 min' : `${wholeMinutes} min`;
   }
 
-  return `${wholeMinutes} min ${seconds.toString().padStart(2, '0')}`;
+  return `${wholeMinutes} min ${seconds.toString().padStart(2, '0')} s`;
 }

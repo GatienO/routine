@@ -1,11 +1,12 @@
 import React, { useCallback } from 'react';
-import { ViewStyle, StyleProp, Insets } from 'react-native';
+import { AccessibilityRole, AccessibilityState, ViewStyle, StyleProp, Insets } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
 } from 'react-native-reanimated';
 import { Pressable } from 'react-native';
+import { useReducedMotionPreference } from '../../hooks/useReducedMotionPreference';
 
 interface AnimatedPressableProps {
   onPress: () => void;
@@ -15,6 +16,9 @@ interface AnimatedPressableProps {
   scaleDown?: number;
   disabled?: boolean;
   hitSlop?: Insets | number;
+  accessibilityRole?: AccessibilityRole;
+  accessibilityLabel?: string;
+  accessibilityState?: AccessibilityState;
 }
 
 const SPRING_CONFIG = {
@@ -31,7 +35,11 @@ export function AnimatedPressable({
   scaleDown = 0.93,
   disabled = false,
   hitSlop,
+  accessibilityRole = 'button',
+  accessibilityLabel,
+  accessibilityState,
 }: AnimatedPressableProps) {
+  const reducedMotion = useReducedMotionPreference();
   const scale = useSharedValue(1);
 
   const animStyle = useAnimatedStyle(() => ({
@@ -39,12 +47,17 @@ export function AnimatedPressable({
   }));
 
   const handlePressIn = useCallback(() => {
+    if (reducedMotion) return;
     scale.value = withSpring(scaleDown, SPRING_CONFIG);
-  }, [scaleDown]);
+  }, [reducedMotion, scale, scaleDown]);
 
   const handlePressOut = useCallback(() => {
+    if (reducedMotion) {
+      scale.value = 1;
+      return;
+    }
     scale.value = withSpring(1, { ...SPRING_CONFIG, stiffness: 200 });
-  }, []);
+  }, [reducedMotion, scale]);
 
   return (
     <Pressable
@@ -54,6 +67,14 @@ export function AnimatedPressable({
       disabled={disabled}
       hitSlop={hitSlop}
       pressRetentionOffset={16}
+      accessibilityRole={accessibilityRole}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityState={accessibilityState}
+      aria-checked={accessibilityState?.checked}
+      aria-expanded={accessibilityState?.expanded}
+      aria-disabled={disabled || accessibilityState?.disabled}
+      aria-pressed={accessibilityRole === 'button' ? accessibilityState?.selected : undefined}
+      aria-selected={accessibilityRole === 'tab' ? accessibilityState?.selected : undefined}
       style={containerStyle}
     >
       <Animated.View style={[style, animStyle]}>{children}</Animated.View>

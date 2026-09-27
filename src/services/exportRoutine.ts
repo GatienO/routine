@@ -103,7 +103,7 @@ export async function printRoutine(routine: Routine, child: Child) {
       <html>
         <head>
           <meta charset="utf-8">
-          <title>${routine.name}</title>
+          <title>Routine</title>
           <style>
             * {
               margin: 0;

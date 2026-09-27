@@ -34,7 +34,7 @@ export function RoutineCard({
     <Card color={routine.color} style={!routine.isActive ? styles.inactive : undefined}>
       <View style={showActions ? styles.headerRow : undefined}>
         {showActions && onToggle && (
-          <TouchableOpacity
+          <TouchableOpacity accessibilityRole="button"
             style={[styles.activeBtn, routine.isActive ? styles.activeBtnOn : styles.activeBtnOff]}
             onPress={onToggle}
             activeOpacity={0.7}
@@ -45,7 +45,7 @@ export function RoutineCard({
             </Text>
           </TouchableOpacity>
         )}
-        <TouchableOpacity onPress={onPress} activeOpacity={0.7} style={showActions ? styles.headerCenter : undefined}>
+        <TouchableOpacity accessibilityRole="button" onPress={onPress} activeOpacity={0.7} style={showActions ? styles.headerCenter : undefined}>
           <View style={styles.header}>
             <OpenMoji emoji={routine.icon} size={36} />
             <View style={styles.info}>
@@ -67,15 +67,15 @@ export function RoutineCard({
         </TouchableOpacity>
         {showActions && (
           <View style={styles.headerActions}>
-            <TouchableOpacity style={styles.actionBtn} onPress={onPress} activeOpacity={0.7}>
+            <TouchableOpacity accessibilityRole="button" style={styles.actionBtn} onPress={onPress} activeOpacity={0.7}>
               <EditIcon size={18} color={COLORS.textSecondary} style={{ marginBottom: 2 }} />
               <Text style={styles.actionLabel}>Modifier</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionBtn} onPress={onDuplicate} activeOpacity={0.7}>
+            <TouchableOpacity accessibilityRole="button" style={styles.actionBtn} onPress={onDuplicate} activeOpacity={0.7}>
               <DuplicateIcon size={18} color={COLORS.textSecondary} style={{ marginBottom: 2 }} />
               <Text style={styles.actionLabel}>Dupliquer</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionBtn} onPress={onDelete} activeOpacity={0.7}>
+            <TouchableOpacity accessibilityRole="button" style={styles.actionBtn} onPress={onDelete} activeOpacity={0.7}>
               <DeleteIcon size={18} color={COLORS.error} style={{ marginBottom: 2 }} />
               <Text style={[styles.actionLabel, { color: COLORS.error }]}>Suppr.</Text>
             </TouchableOpacity>
@@ -86,7 +86,7 @@ export function RoutineCard({
       {/* Legacy toggle only (no action bar) */}
       {!showActions && showToggle && onToggle && (
         <View style={styles.legacyToggleRow}>
-          <TouchableOpacity
+          <TouchableOpacity accessibilityRole="button"
             style={[
               styles.toggle,
               { backgroundColor: routine.isActive ? COLORS.success : COLORS.textLight },

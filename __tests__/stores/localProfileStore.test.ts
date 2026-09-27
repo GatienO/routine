@@ -11,6 +11,8 @@ beforeEach(() => {
     profileId: null,
     profileName: '',
     createdAt: null,
+    tutorialPromptPending: true,
+    tutorialCompletedAt: null,
     hasHydrated: true,
   });
 });
@@ -43,5 +45,14 @@ describe('localProfileStore', () => {
     expect(state.profileId).toMatch(/^local-/);
     expect(state.createdAt).toBeTruthy();
     expect(state.profileName).toBe('');
+  });
+
+  test('keeps dismissal distinct from completing the guide', () => {
+    useLocalProfileStore.getState().dismissTutorialPrompt();
+    expect(useLocalProfileStore.getState().tutorialPromptPending).toBe(false);
+    expect(useLocalProfileStore.getState().tutorialCompletedAt).toBeNull();
+
+    useLocalProfileStore.getState().completeTutorial();
+    expect(useLocalProfileStore.getState().tutorialCompletedAt).toBeTruthy();
   });
 });

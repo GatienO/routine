@@ -11,6 +11,7 @@ import Reanimated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { COLORS, FONT_SIZE, SPACING } from '../../constants/theme';
+import { useReducedMotionPreference } from '../../hooks/useReducedMotionPreference';
 
 interface BreathingBubbleProps {
   /** Number of breathing cycles */
@@ -34,6 +35,7 @@ export function BreathingBubble({
   exhaleDuration = 4000,
   holdDuration = 2000,
 }: BreathingBubbleProps) {
+  const reducedMotion = useReducedMotionPreference();
   const scale = useSharedValue(0.5);
   const opacity = useSharedValue(0.6);
   const [phase, setPhase] = useState<string>(PHASES[0]);
@@ -62,8 +64,8 @@ export function BreathingBubble({
 
       // Inhale
       setPhase(PHASES[0]);
-      scale.value = withTiming(1.0, { duration: inhaleDuration, easing: Easing.inOut(Easing.ease) });
-      opacity.value = withTiming(1, { duration: inhaleDuration, easing: Easing.inOut(Easing.ease) });
+      scale.value = reducedMotion ? 0.75 : withTiming(1.0, { duration: inhaleDuration, easing: Easing.inOut(Easing.ease) });
+      opacity.value = reducedMotion ? 1 : withTiming(1, { duration: inhaleDuration, easing: Easing.inOut(Easing.ease) });
 
       phaseTimeout = setTimeout(() => {
         if (cancelled) return;
@@ -74,8 +76,8 @@ export function BreathingBubble({
           if (cancelled) return;
           // Exhale
           setPhase(PHASES[2]);
-          scale.value = withTiming(0.5, { duration: exhaleDuration, easing: Easing.inOut(Easing.ease) });
-          opacity.value = withTiming(0.6, { duration: exhaleDuration, easing: Easing.inOut(Easing.ease) });
+          scale.value = reducedMotion ? 0.75 : withTiming(0.5, { duration: exhaleDuration, easing: Easing.inOut(Easing.ease) });
+          opacity.value = reducedMotion ? 1 : withTiming(0.6, { duration: exhaleDuration, easing: Easing.inOut(Easing.ease) });
 
           phaseTimeout = setTimeout(() => {
             if (cancelled) return;
@@ -98,7 +100,7 @@ export function BreathingBubble({
       clearTimeout(phaseTimeout);
       clearTimeout(cycleTimeout);
     };
-  }, []);
+  }, [cycles, exhaleDuration, holdDuration, inhaleDuration, onComplete, opacity, reducedMotion, scale]);
 
   const bubbleStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],

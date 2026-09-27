@@ -13,6 +13,7 @@ import {
 import { fr } from 'date-fns/locale';
 import { CalendarEvent, CountdownEvent, DayTimelineItem } from '../types/calendar';
 import { Routine } from '../types';
+import { Activity } from '../features/activities/types';
 
 const DEFAULT_DAY_START_MINUTES = 7 * 60;
 const DEFAULT_DAY_END_MINUTES = 20 * 60;
@@ -83,7 +84,11 @@ export function getEventsForDay(events: CalendarEvent[], day: Date, childId?: st
   return events
     .filter((event) => {
       if (childId && !event.childIds.includes(childId)) return false;
-      return isSameDay(parseCalendarDate(event.date), day);
+      const eventDate = parseCalendarDate(event.date);
+      if (isSameDay(eventDate, day)) return true;
+      return event.recurrence === 'weekly'
+        && startOfDay(day).getTime() >= startOfDay(eventDate).getTime()
+        && eventDate.getDay() === day.getDay();
     })
     .sort(compareEventsByTime);
 }
@@ -131,11 +136,13 @@ export function getCountdownEvents(
 export function buildDayTimeline({
   events,
   routines,
+  activities = [],
   day,
   childId,
 }: {
   events: CalendarEvent[];
   routines: Routine[];
+  activities?: Activity[];
   day: Date;
   childId?: string | null;
 }): DayTimelineItem[] {
@@ -195,7 +202,25 @@ export function buildDayTimeline({
         routineId: routine.id,
         eventId: event.id,
         childIds: [routine.childId],
-        description: `${routine.steps.length} etapes suggerees`,
+        description: `${routine.steps.length} étapes suggérées`,
+      });
+    });
+
+    (event.suggestedActivityIds ?? []).forEach((activityId, activityIndex) => {
+      const activity = activities.find((item) => item.id === activityId);
+      if (!activity) return;
+
+      items.push({
+        id: `activity-${event.id}-${activity.id}`,
+        type: 'activity-suggestion',
+        title: activity.title,
+        icon: activity.thumbnail,
+        color: event.color,
+        startMinutes: Math.min(DEFAULT_DAY_END_MINUTES, startMinutes + 28 + activityIndex * 18),
+        activityId: activity.id,
+        eventId: event.id,
+        childIds: event.childIds,
+        description: `${activity.duration} min · ${activity.weather === 'outdoor' ? 'dehors' : 'activité'}`,
       });
     });
   });

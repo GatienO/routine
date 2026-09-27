@@ -97,7 +97,7 @@ export function WebInstallHint() {
       <View style={styles.card}>
         <Text style={styles.title}>Mode plein écran</Text>
         <Text style={styles.body}>{message}</Text>
-        <Pressable onPress={dismiss} style={styles.button}>
+        <Pressable accessibilityRole="button" onPress={dismiss} style={styles.button}>
           <Text style={styles.buttonText}>Compris</Text>
         </Pressable>
       </View>

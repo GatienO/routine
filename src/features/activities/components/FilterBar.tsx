@@ -1,7 +1,7 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import type { ReactNode } from "react";
-import { Modal, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
-import type { ViewStyle } from "react-native";
+import { Pressable, Text, View } from "react-native";
+import { useAppTheme } from "../../../hooks/useAppTheme";
 import type {
   ActivityFilters,
   DevelopmentGoalGroup,
@@ -26,17 +26,16 @@ import {
   SMART_FILTER_OPTIONS,
   WEATHER_OPTIONS
 } from "../options";
-import { colors, radius } from "../mini-theme";
-
-const headerGradientStyle = {
-  backgroundImage: `linear-gradient(110deg, ${colors.headerStart} 0%, ${colors.headerMiddle} 52%, ${colors.headerEnd} 100%)`
-} as unknown as ViewStyle;
+import { ResponsiveOverlay } from "../../../components/ui/ResponsiveOverlay";
+import { SlidersHorizontal, Sparkle, CaretDown, CaretUp } from "phosphor-react-native";
+import { useFocusRing } from "../../../hooks/useFocusRing";
 
 type FilterBarProps = {
   filters: ActivityFilters;
   resultCount: number;
   onChange: (filters: Partial<ActivityFilters>) => void;
   onReset: () => void;
+  onSurprise?: () => void;
 };
 
 type CategoryId =
@@ -59,235 +58,37 @@ type FilterCategory = {
   count: number;
 };
 
-export function FilterBar({ filters, resultCount, onChange, onReset }: FilterBarProps) {
+const FILTER_GROUPS: { id: string; label: string; categories: CategoryId[] }[] = [
+  { id: 'moment', label: 'Le moment', categories: ['moment', 'time', 'weather'] },
+  { id: 'participants', label: 'Les participants', categories: ['format', 'age', 'autonomy'] },
+  { id: 'parent', label: 'Le parent et le matériel', categories: ['parent', 'materials', 'mess'] },
+  { id: 'envies', label: 'Envies et découvertes', categories: ['suggested', 'type', 'development'] },
+];
+export function FilterBar({ filters, resultCount, onChange, onReset, onSurprise }: FilterBarProps) {
+  const { colors } = useAppTheme();
   const [expanded, setExpanded] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<CategoryId>("suggested");
-  const { width, height } = useWindowDimensions();
-
-  const activeFilterCount = getActiveFilterCount(filters);
-  const categories = useMemo(() => getFilterCategories(filters), [filters]);
-  const currentCategory = categories.find((category) => category.id === selectedCategory) ?? categories[0];
-  const isWide = width >= 760;
-
-  return (
-    <View
-      style={{
-        borderRadius: radius.md,
-        borderCurve: "continuous",
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        backgroundColor: colors.headerPanel,
-        borderWidth: 1,
-        borderColor: "rgba(255, 255, 255, 0.22)"
-      }}
-    >
-      <View
-        style={{
-          flexDirection: "row",
-          flexWrap: "wrap",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 14
-        }}
-      >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 14, minWidth: 0 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
-            <TrendIcon />
-            <Text
-              selectable
-              style={{ color: colors.surface, fontSize: 14, fontWeight: "900", fontVariant: ["tabular-nums"] }}
-            >
-              {resultCount} idées
-            </Text>
-          </View>
-          {activeFilterCount > 0 ? (
-            <View
-              style={{
-                minHeight: 30,
-                borderRadius: 10,
-                paddingHorizontal: 12,
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 6,
-                backgroundColor: colors.emerald
-              }}
-            >
-              <Text selectable={false} style={{ color: colors.surface, fontSize: 13, lineHeight: 16, fontWeight: "900" }}>
-                ✓
-              </Text>
-              <Text selectable style={{ color: colors.surface, fontSize: 13, fontWeight: "900" }}>
-                {activeFilterCount} filtre{activeFilterCount > 1 ? "s" : ""}
-              </Text>
-            </View>
-          ) : null}
-        </View>
-
-        <View style={{ flexDirection: "row", gap: 8 }}>
-          <ToolbarButton label="Effacer" onPress={onReset} tone="ghost" />
-          <ToolbarButton
-            label="Filtrer"
-            selected={expanded}
-            icon={<FilterIcon />}
-            onPress={() => setExpanded(true)}
-          />
-        </View>
-      </View>
-
-      <Modal
-        visible={expanded}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setExpanded(false)}
-        statusBarTranslucent
-      >
-        <View
-          style={{
-            flex: 1,
-            justifyContent: isWide ? "center" : "flex-end",
-            backgroundColor: isWide ? "rgba(15, 23, 42, 0.48)" : colors.background
-          }}
-        >
-          {isWide ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Fermer les filtres"
-              onPress={() => setExpanded(false)}
-              style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0 }}
-            />
-          ) : null}
-
-          <View
-            style={{
-              alignSelf: "center",
-              width: "100%",
-              maxWidth: isWide ? 940 : undefined,
-              height: isWide ? Math.min(height - 72, 780) : "100%",
-              borderRadius: isWide ? 24 : 0,
-              borderCurve: "continuous",
-              overflow: "hidden",
-              backgroundColor: colors.background,
-              boxShadow: isWide ? "0 24px 64px rgba(15, 23, 42, 0.28)" : undefined
-            }}
-          >
-            <View
-              style={[
-                {
-                  minHeight: 82,
-                  paddingHorizontal: isWide ? 28 : 20,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  borderBottomWidth: 1,
-                  borderBottomColor: "rgba(255, 255, 255, 0.2)",
-                  backgroundColor: colors.primaryDark
-                },
-                headerGradientStyle
-              ]}
-            >
-              <Text selectable style={{ color: colors.surface, fontSize: 26, lineHeight: 32, fontWeight: "900" }}>
-                Filtres
-              </Text>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Fermer les filtres"
-                onPress={() => setExpanded(false)}
-                style={({ pressed }) => ({
-                  width: 48,
-                  height: 48,
-                  borderRadius: 999,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: "rgba(255, 255, 255, 0.16)",
-                  borderWidth: 1,
-                  borderColor: "rgba(255, 255, 255, 0.24)",
-                  opacity: pressed ? 0.6 : 1
-                })}
-              >
-                <Text selectable={false} style={{ color: colors.surface, fontSize: 34, lineHeight: 38, fontWeight: "700" }}>
-                  ×
-                </Text>
-              </Pressable>
-            </View>
-
-            <View style={{ flex: 1, flexDirection: "row", minHeight: 0 }}>
-              <View
-                style={{
-                  width: isWide ? 278 : 132,
-                  flexGrow: 0,
-                  flexShrink: 0,
-                  backgroundColor: colors.primarySoft,
-                  borderRightWidth: 1,
-                  borderRightColor: colors.border
-                }}
-              >
-                {categories.map((category) => (
-                  <CategoryTab
-                    key={category.id}
-                    category={category}
-                    selected={category.id === currentCategory.id}
-                    onPress={() => setSelectedCategory(category.id)}
-                  />
-                ))}
-              </View>
-
-              <View style={{ flex: 1, minWidth: 0 }}>
-                <ScrollView
-                  contentInsetAdjustmentBehavior="automatic"
-                  showsVerticalScrollIndicator={false}
-                  contentContainerStyle={{
-                    paddingHorizontal: isWide ? 30 : 20,
-                    paddingTop: isWide ? 34 : 28,
-                    paddingBottom: 108,
-                    gap: 18
-                  }}
-                >
-                  <Text selectable style={{ color: colors.text, fontSize: isWide ? 27 : 23, lineHeight: isWide ? 34 : 29, fontWeight: "900" }}>
-                    {currentCategory.label}
-                  </Text>
-                  {renderCategoryContent(currentCategory.id, filters, onChange)}
-                </ScrollView>
-              </View>
-            </View>
-
-            <View
-              style={{
-                minHeight: 84,
-                paddingHorizontal: isWide ? 28 : 18,
-                paddingVertical: 14,
-                alignItems: "flex-end",
-                justifyContent: "center",
-                borderTopWidth: 1,
-                borderTopColor: colors.border,
-                backgroundColor: colors.surface,
-                boxShadow: "0 -10px 24px rgba(15, 23, 42, 0.06)"
-              }}
-            >
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => setExpanded(false)}
-                style={({ pressed }) => ({
-                  minHeight: 52,
-                  width: isWide ? 340 : "100%",
-                  borderRadius: 999,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: colors.primary,
-                  borderWidth: 1,
-                  borderColor: colors.primary,
-                  boxShadow: "0 10px 22px rgba(124, 58, 237, 0.2)",
-                  opacity: pressed ? 0.78 : 1
-                })}
-              >
-                <Text selectable={false} style={{ color: colors.surface, fontSize: 18, fontWeight: "900", fontVariant: ["tabular-nums"] }}>
-                  Afficher {resultCount} résultat{resultCount > 1 ? "s" : ""}
-                </Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
+  const [openGroup, setOpenGroup] = useState<string | null>('moment');
+  const categories = getFilterCategories(filters);
+  const count = getActiveFilterCount(filters);
+  return <View style={{ gap: 12 }}>
+    <View style={{ flexDirection: 'row', gap: 8 }}>
+      <View style={{ flex: 1 }}><ToolbarButton label={count ? 'Filtres · ' + count : 'Filtres'} selected={expanded} icon={<SlidersHorizontal size={20} color={colors.text} />} onPress={() => setExpanded(true)} /></View>
+      {onSurprise ? <View style={{ flex: 1 }}><ToolbarButton label="Surprise" icon={<Sparkle size={20} color={colors.text} />} onPress={onSurprise} /></View> : null}
     </View>
-  );
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: 20 }}>
+      <Text accessibilityLiveRegion="polite" style={{ color: colors.textSecondary, fontSize: 13 }}>{resultCount} idée{resultCount > 1 ? 's' : ''}</Text>
+      {count || filters.search ? <ToolbarButton label="Effacer" onPress={onReset} tone="ghost" /> : null}
+    </View>
+    <ResponsiveOverlay visible={expanded} title="Affiner les idées" onClose={() => setExpanded(false)} footer={<ToolbarButton label={'Voir ' + resultCount + ' idées'} onPress={() => setExpanded(false)} />}>
+      <ToolbarButton label="Effacer les filtres" onPress={onReset} tone="ghost" />
+      {FILTER_GROUPS.map(group => <View key={group.id} style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 14, overflow: 'hidden' }}>
+        <Pressable aria-expanded={openGroup === group.id} accessibilityRole="button" accessibilityState={{ expanded: openGroup === group.id }} onPress={() => setOpenGroup(openGroup === group.id ? null : group.id)} style={{ minHeight: 48, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Text style={{ flex: 1, fontSize: 16, fontWeight: '600', color: colors.text }}>{group.label}</Text>{openGroup === group.id ? <CaretUp color={colors.text} /> : <CaretDown color={colors.text} />}
+        </Pressable>
+        {openGroup === group.id ? <View style={{ padding: 14, gap: 24 }}>{group.categories.map(id => <View key={id} style={{ gap: 12 }}><Text accessibilityRole="header" style={{ color: colors.text, fontSize: 17, fontWeight: '700' }}>{categories.find(category => category.id === id)?.label}</Text>{renderCategoryContent(id, filters, onChange)}</View>)}</View> : null}
+      </View>)}
+    </ResponsiveOverlay>
+  </View>;
 }
 
 function renderCategoryContent(
@@ -341,7 +142,7 @@ function renderCategoryContent(
             onPress={() => toggleScalar("independenceLevel", "high")}
           />
           <SelectionPill
-            label="Sans surveillance"
+            label="Adulte à proximité"
             selected={filters.requiresSupervision === false}
             onPress={() => toggleScalar("requiresSupervision", false)}
           />
@@ -617,12 +418,12 @@ function renderCategoryContent(
             onPress={() => toggleScalar("independenceLevel", "medium")}
           />
           <SelectionPill
-            label="Sans surveillance"
+            label="Adulte à proximité"
             selected={filters.requiresSupervision === false}
             onPress={() => toggleScalar("requiresSupervision", false)}
           />
           <SelectionPill
-            label="Avec surveillance"
+            label="Adulte très présent"
             selected={filters.requiresSupervision === true}
             onPress={() => toggleScalar("requiresSupervision", true)}
           />
@@ -798,8 +599,10 @@ function CategoryTab({
   selected: boolean;
   onPress: () => void;
 }) {
+  const { colors } = useAppTheme();
+
   return (
-    <Pressable
+    <Pressable aria-pressed={selected}
       accessibilityRole="button"
       accessibilityState={{ selected }}
       onPress={onPress}
@@ -810,18 +613,18 @@ function CategoryTab({
         paddingVertical: 8,
         justifyContent: "center",
         borderBottomWidth: 1,
-        borderBottomColor: "rgba(124, 58, 237, 0.12)",
+        borderBottomColor: colors.border,
         borderLeftWidth: selected ? 5 : 0,
         borderLeftColor: colors.primary,
-        backgroundColor: selected ? colors.surface : colors.primarySoft,
+        backgroundColor: selected ? colors.surface : colors.surfaceSecondary,
         opacity: pressed ? 0.72 : 1
       })}
     >
-      <Text selectable={false} numberOfLines={2} style={{ color: selected ? colors.primaryDark : colors.text, fontSize: 14, lineHeight: 18, fontWeight: "900" }}>
+      <Text selectable={false} numberOfLines={2} style={{ color: selected ? colors.primaryDark : colors.text, fontSize: 14, lineHeight: 18, fontWeight: "700" }}>
         {category.label}
       </Text>
       {category.count > 0 ? (
-        <Text selectable={false} style={{ color: colors.muted, fontSize: 12, lineHeight: 16, fontWeight: "800", marginTop: 4 }}>
+        <Text selectable={false} style={{ color: colors.textSecondary, fontSize: 12, lineHeight: 16, fontWeight: "500", marginTop: 4 }}>
           {category.count} actif{category.count > 1 ? "s" : ""}
         </Text>
       ) : null}
@@ -838,15 +641,17 @@ function FilterContentGroup({
   helper?: string;
   children: ReactNode;
 }) {
+  const { colors } = useAppTheme();
+
   return (
     <View style={{ gap: 12 }}>
       {title ? (
-        <Text selectable style={{ color: colors.text, fontSize: 18, lineHeight: 24, fontWeight: "900" }}>
+        <Text selectable style={{ color: colors.text, fontSize: 18, lineHeight: 24, fontWeight: "700" }}>
           {title}
         </Text>
       ) : null}
       {helper ? (
-        <Text selectable style={{ color: colors.muted, fontSize: 14, lineHeight: 20, fontWeight: "700" }}>
+        <Text selectable style={{ color: colors.textSecondary, fontSize: 14, lineHeight: 20, fontWeight: "500" }}>
           {helper}
         </Text>
       ) : null}
@@ -870,8 +675,10 @@ function SelectionPill({
   selected: boolean;
   onPress: () => void;
 }) {
+  const { colors } = useAppTheme();
+
   return (
-    <Pressable
+    <Pressable aria-pressed={selected}
       accessibilityRole="button"
       accessibilityState={{ selected }}
       onPress={onPress}
@@ -882,25 +689,25 @@ function SelectionPill({
         paddingHorizontal: 16,
         paddingVertical: helper ? 10 : 9,
         justifyContent: "center",
-        borderWidth: 1.5,
+        borderWidth: 1,
         borderColor: selected ? colors.primary : colors.border,
         backgroundColor: selected ? colors.primarySoft : colors.surface,
-        boxShadow: selected ? "0 8px 18px rgba(124, 58, 237, 0.12)" : undefined,
+        boxShadow: selected ? "0 8px 18px rgba(74, 63, 50, 0.08)" : undefined,
         opacity: pressed ? 0.72 : 1
       })}
     >
       <View style={{ flexDirection: "row", alignItems: "center", gap: 9 }}>
         {selected ? (
-          <Text selectable={false} style={{ color: colors.primaryDark, fontSize: 18, lineHeight: 20, fontWeight: "900" }}>
+          <Text selectable={false} style={{ color: colors.primaryDark, fontSize: 18, lineHeight: 20, fontWeight: "700" }}>
             ✓
           </Text>
         ) : null}
         <View style={{ minWidth: 0 }}>
-          <Text selectable={false} style={{ color: selected ? colors.primaryDark : colors.text, fontSize: 16, lineHeight: 21, fontWeight: "900" }}>
+          <Text selectable={false} style={{ color: selected ? colors.primaryDark : colors.text, fontSize: 16, lineHeight: 21, fontWeight: "700" }}>
             {label}
           </Text>
           {helper ? (
-            <Text selectable={false} style={{ color: colors.muted, fontSize: 12, lineHeight: 16, fontWeight: "700", marginTop: 2 }}>
+            <Text selectable={false} style={{ color: colors.textSecondary, fontSize: 12, lineHeight: 16, fontWeight: "500", marginTop: 2 }}>
               {helper}
             </Text>
           ) : null}
@@ -911,6 +718,8 @@ function SelectionPill({
 }
 
 function TrendIcon() {
+  const { colors } = useAppTheme();
+
   return (
     <View style={{ width: 16, height: 16 }}>
       <View
@@ -918,7 +727,7 @@ function TrendIcon() {
           width: 13,
           height: 2,
           borderRadius: 999,
-          backgroundColor: colors.surface,
+          backgroundColor: colors.primaryDark,
           position: "absolute",
           left: 1,
           top: 8,
@@ -931,7 +740,7 @@ function TrendIcon() {
           height: 6,
           borderTopWidth: 2,
           borderRightWidth: 2,
-          borderColor: colors.surface,
+          borderColor: colors.textSecondary,
           position: "absolute",
           right: 1,
           top: 3
@@ -942,6 +751,8 @@ function TrendIcon() {
 }
 
 function FilterIcon() {
+  const { colors } = useAppTheme();
+
   return (
     <View style={{ width: 14, height: 14 }}>
       {[3, 7, 11].map((top, index) => (
@@ -987,6 +798,7 @@ function ToolbarButton({
   tone?: "solid" | "ghost";
   onPress: () => void;
 }) {
+  const { colors } = useAppTheme();
   const isGhost = tone === "ghost";
 
   return (
@@ -995,7 +807,8 @@ function ToolbarButton({
       accessibilityState={selected ? { selected } : undefined}
       onPress={onPress}
       style={({ pressed }) => ({
-        minHeight: 32,
+        minHeight: 44,
+        minWidth: 44,
         paddingHorizontal: 14,
         borderRadius: 10,
         borderCurve: "continuous",
@@ -1003,15 +816,15 @@ function ToolbarButton({
         alignItems: "center",
         justifyContent: "center",
         gap: 7,
-        backgroundColor: isGhost ? "rgba(255, 255, 255, 0.18)" : colors.surface,
+        backgroundColor: isGhost ? 'transparent' : colors.surface,
         borderWidth: 1,
-        borderColor: isGhost ? "rgba(255, 255, 255, 0.3)" : colors.surface,
-        boxShadow: isGhost ? undefined : "0 10px 22px rgba(15, 23, 42, 0.14)",
+        borderColor: isGhost ? 'transparent' : colors.border,
+
         opacity: pressed ? 0.76 : 1
       })}
     >
       {icon}
-      <Text selectable={false} style={{ color: isGhost ? colors.surface : colors.primary, fontSize: 12, fontWeight: "900" }}>
+      <Text selectable={false} style={{ color: colors.text, fontSize: 12, fontWeight: "700" }}>
         {label}
       </Text>
     </Pressable>
