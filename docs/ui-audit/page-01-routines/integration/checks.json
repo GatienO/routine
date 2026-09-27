@@ -1,0 +1,42 @@
+[
+  {
+    "width": 320,
+    "count": 24,
+    "columns": 2,
+    "firstChecked": "true",
+    "selected": 5,
+    "overflow": false,
+    "selection": true,
+    "reset": true
+  },
+  {
+    "width": 390,
+    "count": 24,
+    "columns": 3,
+    "firstChecked": "true",
+    "selected": 5,
+    "overflow": false,
+    "selection": true,
+    "reset": true
+  },
+  {
+    "width": 600,
+    "count": 24,
+    "columns": 4,
+    "firstChecked": "true",
+    "selected": 5,
+    "overflow": false,
+    "selection": true,
+    "reset": true
+  },
+  {
+    "width": 768,
+    "count": 24,
+    "columns": 3,
+    "firstChecked": "true",
+    "selected": 5,
+    "overflow": false,
+    "selection": true,
+    "reset": true
+  }
+]

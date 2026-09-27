@@ -1,0 +1,138 @@
+[
+  {
+    "name": "routines-before-light-320x800.png",
+    "innerWidth": 320,
+    "innerHeight": 800,
+    "scrollWidth": 320,
+    "scrollHeight": 800,
+    "smallTargets": []
+  },
+  {
+    "name": "routines-before-dark-320x800.png",
+    "innerWidth": 320,
+    "innerHeight": 800,
+    "scrollWidth": 320,
+    "scrollHeight": 800,
+    "smallTargets": []
+  },
+  {
+    "name": "routines-before-light-390x844.png",
+    "innerWidth": 390,
+    "innerHeight": 844,
+    "scrollWidth": 390,
+    "scrollHeight": 844,
+    "smallTargets": []
+  },
+  {
+    "name": "routines-before-dark-390x844.png",
+    "innerWidth": 390,
+    "innerHeight": 844,
+    "scrollWidth": 390,
+    "scrollHeight": 844,
+    "smallTargets": []
+  },
+  {
+    "name": "routines-before-light-768x1024.png",
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "scrollWidth": 768,
+    "scrollHeight": 1024,
+    "smallTargets": []
+  },
+  {
+    "name": "routines-before-dark-768x1024.png",
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "scrollWidth": 768,
+    "scrollHeight": 1024,
+    "smallTargets": []
+  },
+  {
+    "name": "routines-before-light-1024x768.png",
+    "innerWidth": 1024,
+    "innerHeight": 768,
+    "scrollWidth": 1024,
+    "scrollHeight": 768,
+    "smallTargets": []
+  },
+  {
+    "name": "routines-before-dark-1024x768.png",
+    "innerWidth": 1024,
+    "innerHeight": 768,
+    "scrollWidth": 1024,
+    "scrollHeight": 768,
+    "smallTargets": []
+  },
+  {
+    "name": "routines-before-light-1440x1000.png",
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "scrollWidth": 1440,
+    "scrollHeight": 1000,
+    "smallTargets": []
+  },
+  {
+    "name": "routines-before-dark-1440x1000.png",
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "scrollWidth": 1440,
+    "scrollHeight": 1000,
+    "smallTargets": []
+  },
+  {
+    "name": "routines-before-first-start-light-320x800.png",
+    "innerWidth": 320,
+    "innerHeight": 800,
+    "scrollWidth": 320,
+    "scrollHeight": 800,
+    "smallTargets": []
+  },
+  {
+    "name": "routines-before-first-start-dark-1440x1000.png",
+    "innerWidth": 1440,
+    "innerHeight": 1000,
+    "scrollWidth": 1440,
+    "scrollHeight": 1000,
+    "smallTargets": []
+  },
+  {
+    "name": "routines-before-empty-light-390x844.png",
+    "innerWidth": 390,
+    "innerHeight": 844,
+    "scrollWidth": 390,
+    "scrollHeight": 844,
+    "smallTargets": []
+  },
+  {
+    "name": "routines-before-resume-light-390x844.png",
+    "innerWidth": 390,
+    "innerHeight": 844,
+    "scrollWidth": 390,
+    "scrollHeight": 844,
+    "smallTargets": []
+  },
+  {
+    "name": "routines-before-outfit-light-390x844.png",
+    "innerWidth": 390,
+    "innerHeight": 844,
+    "scrollWidth": 390,
+    "scrollHeight": 844,
+    "smallTargets": []
+  },
+  {
+    "name": "routines-before-chain-light-390x844.png",
+    "innerWidth": 390,
+    "innerHeight": 844,
+    "scrollWidth": 390,
+    "scrollHeight": 844,
+    "smallTargets": []
+  },
+  {
+    "name": "routines-before-chain-dark-768x1024.png",
+    "innerWidth": 768,
+    "innerHeight": 1024,
+    "scrollWidth": 768,
+    "scrollHeight": 1024,
+    "smallTargets": []
+  }
+]

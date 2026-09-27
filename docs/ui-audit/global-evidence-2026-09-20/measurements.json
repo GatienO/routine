@@ -1,0 +1,272 @@
+[
+  {
+    "route": "routines",
+    "width": 320,
+    "buttons": [],
+    "scrollWidth": 320,
+    "viewport": 320
+  },
+  {
+    "route": "activities",
+    "width": 320,
+    "buttons": [
+      {
+        "h": 32,
+        "label": "Effacer",
+        "w": 68.40625
+      },
+      {
+        "h": 32,
+        "label": "Filtrer",
+        "w": 84.0625
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      }
+    ],
+    "scrollWidth": 320,
+    "viewport": 320
+  },
+  {
+    "route": "routines",
+    "width": 768,
+    "buttons": [],
+    "scrollWidth": 768,
+    "viewport": 768
+  },
+  {
+    "route": "activities",
+    "width": 768,
+    "buttons": [
+      {
+        "h": 32,
+        "label": "Effacer",
+        "w": 68.40625
+      },
+      {
+        "h": 32,
+        "label": "Filtrer",
+        "w": 84.0625
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      }
+    ],
+    "scrollWidth": 768,
+    "viewport": 768
+  },
+  {
+    "route": "routines",
+    "width": 1440,
+    "buttons": [],
+    "scrollWidth": 1440,
+    "viewport": 1440
+  },
+  {
+    "route": "activities",
+    "width": 1440,
+    "buttons": [
+      {
+        "h": 32,
+        "label": "Effacer",
+        "w": 68.40625
+      },
+      {
+        "h": 32,
+        "label": "Filtrer",
+        "w": 84.0625
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      }
+    ],
+    "scrollWidth": 1440,
+    "viewport": 1440
+  }
+]

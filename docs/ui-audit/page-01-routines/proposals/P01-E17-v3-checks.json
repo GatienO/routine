@@ -1,0 +1,79 @@
+{
+  "bytes": 156934,
+  "metrics": [
+    {
+      "name": "mobile",
+      "width": 816,
+      "scrollWidth": 816,
+      "panels": [
+        {
+          "items": 24,
+          "selected": 0,
+          "images": true
+        },
+        {
+          "items": 24,
+          "selected": 6,
+          "images": true
+        }
+      ]
+    },
+    {
+      "name": "tablet",
+      "width": 1160,
+      "scrollWidth": 1160,
+      "panels": [
+        {
+          "items": 24,
+          "selected": 0,
+          "images": true
+        },
+        {
+          "items": 24,
+          "selected": 6,
+          "images": true
+        }
+      ]
+    },
+    {
+      "name": "catalogue",
+      "width": 816,
+      "scrollWidth": 816,
+      "panels": [
+        {
+          "items": 24,
+          "selected": 0,
+          "images": true
+        },
+        {
+          "items": 24,
+          "selected": 6,
+          "images": true
+        }
+      ]
+    },
+    {
+      "name": "dark",
+      "width": 816,
+      "scrollWidth": 816,
+      "panels": [
+        {
+          "items": 24,
+          "selected": 0,
+          "images": true
+        },
+        {
+          "items": 24,
+          "selected": 6,
+          "images": true
+        }
+      ]
+    }
+  ],
+  "interaction": {
+    "checked": true,
+    "doneEnabled": true,
+    "count": "1 sélectionné · 24 articles disponibles"
+  },
+  "reset": true
+}

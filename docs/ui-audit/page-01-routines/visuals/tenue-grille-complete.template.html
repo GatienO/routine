@@ -1,0 +1,68 @@
+<div id="tenue-complete" aria-label="Préparer la tenue — même catalogue avec ou sans météo">
+  <style>
+    #tenue-complete { color-scheme: light dark; --bg:light-dark(#F7F5EF,#171B23); --surface:light-dark(#fff,#222834); --ink:light-dark(#303743,#F5F3ED); --muted:light-dark(#68707B,#B5BDC8); --border:light-dark(#DEDFDC,#394351); --mint:light-dark(#B8DFCF,#31594C); --action:light-dark(#397862,#A9DDC8); color:var(--ink); font:14px/1.45 system-ui,sans-serif; }
+    #tenue-complete[data-theme="light"]{color-scheme:light} #tenue-complete[data-theme="dark"]{color-scheme:dark}
+    #tenue-complete * { box-sizing:border-box; }
+    #tenue-complete .examples { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px; }
+    #tenue-complete .caption { margin:0 0 10px;font-size:15px;font-weight:600; }
+    #tenue-complete .stage { background:var(--bg);border:1px solid var(--border);border-radius:22px; padding-top:44px;overflow:hidden;position:relative; }
+    #tenue-complete .stage::before { content:'';position:absolute;left:-35px;top:-38px;width:150px;height:150px;border-radius:50%;background:light-dark(#D8D0F2,#453E60); }
+    #tenue-complete .panel { position:relative;background:var(--surface);border-radius:22px 22px 0 0;display:flex;flex-direction:column;height:660px; }
+    #tenue-complete header { padding:18px;border-bottom:1px solid var(--border); }
+    #tenue-complete .heading { display:flex;gap:8px;align-items:center;justify-content:space-between; }
+    #tenue-complete h3 { margin:0;font-size:19px;font-weight:600; }
+    #tenue-complete p { margin:5px 0 0; }
+    #tenue-complete .sub { color:var(--muted); }
+    #tenue-complete button { font:inherit;color:inherit;cursor:pointer; }
+    #tenue-complete .close { background:var(--surface);border:1px solid var(--border);border-radius:50%;min-width:44px;min-height:44px;font-size:23px; }
+    #tenue-complete .content { flex:1;min-height:0;overflow:auto;padding:16px;scrollbar-width:thin; }
+    #tenue-complete .grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px; }
+    #tenue-complete .item { position:relative;min-height:118px;border:1px solid var(--border);border-radius:18px;background:var(--surface);padding:12px 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;text-align:center; }
+    #tenue-complete .item:has(input:checked) { background:light-dark(#EAF6EF,#29443C);border-color:var(--action); }
+    #tenue-complete .item input { position:absolute;right:8px;top:8px;width:20px;height:20px;accent-color:var(--action); }
+    #tenue-complete .item img { width:60px;height:60px;object-fit:contain; }
+    #tenue-complete footer { padding:14px 16px;border-top:1px solid var(--border); }
+    #tenue-complete .count { color:var(--muted);margin:0 0 9px;min-height:21px; }
+    #tenue-complete .actions { display:flex;gap:10px; }
+    #tenue-complete .reset,#tenue-complete .done { min-height:48px;border-radius:14px;padding:10px 12px; }
+    #tenue-complete .reset { background:var(--surface);border:1px solid var(--border); }
+    #tenue-complete .done { flex:1;background:var(--mint);border:1px solid transparent;font-weight:600; }
+    #tenue-complete .done:disabled { background:light-dark(#EFEEE9,#2C3340);color:var(--muted);cursor:default; }
+    #tenue-complete[data-format="tablet"] .stage { padding:0 0 0 20%;background:light-dark(#E3DFE8,#232331); }
+    #tenue-complete[data-format="tablet"] .panel { border-radius:0;height:740px;border-left:1px solid var(--border); }
+    #tenue-complete[data-format="catalogue"] .panel { height:auto; }
+    #tenue-complete[data-format="catalogue"] .content { overflow:visible; }
+    #tenue-complete .closed { padding:32px;min-height:200px;display:grid;place-items:center; }
+    @media(max-width:600px){#tenue-complete .examples{grid-template-columns:1fr}#tenue-complete .panel{height:650px}#tenue-complete[data-format="tablet"] .stage{padding-left:10%}}
+  </style>
+  <div class="examples"></div>
+  <script>
+    (()=>{
+      const root=document.getElementById('tenue-complete');
+      const clothes=__OUTFIT_DATA__;
+      const suggested=['tshirtML','pull','pantalon','chaussettes','chaussures','impermeable'];
+      const settings={format:'mobile',theme:'light'};
+      const picked=[new Set(),new Set(suggested)];
+      const closed=[false,false];
+      function render(){
+        root.dataset.format=settings.format;root.dataset.theme=settings.theme;
+        root.querySelector('.examples').innerHTML=[false,true].map((weather,index)=>`<section aria-label="${weather?'Avec météo':'Sans météo'}"><h2 class="caption">${weather?'Avec météo · présélection':'Sans météo · choix libre'}</h2><div class="stage"><div class="panel">${closed[index]?`<div class="closed"><button class="reset" data-open="${index}">Rouvrir l’exemple</button></div>`:`<header><div class="heading"><h3>Préparer la tenue</h3><button class="close" aria-label="Fermer l’exemple" data-close="${index}">×</button></div><p class="sub">${weather?'Une sélection à ajuster.':'Choisissez les vêtements.'}</p></header><div class="content"><div class="grid">${clothes.map(item=>`<label class="item"><input type="checkbox" data-panel="${index}" value="${item.id}" ${picked[index].has(item.id)?'checked':''}>${item.emoji?`<span style="font-size:42px;min-height:60px" role="img" aria-label="${item.label}, illustration provisoire">${item.emoji}</span>`:`<img src="${item.src}" alt="">`}<span>${item.label}</span></label>`).join('')}</div></div><footer><p class="count" aria-live="polite">${picked[index].size} sélectionné${picked[index].size>1?'s':''} · ${clothes.length} articles disponibles</p><div class="actions"><button class="reset" data-reset="${index}">Réinitialiser</button><button class="done" data-done="${index}" ${picked[index].size?'':'disabled'}>Tenue prête</button></div></footer>`}</div></div></section>`).join('');
+      }
+      root.addEventListener('change',event=>{
+        const input=event.target;if(!input.matches('input[data-panel]'))return;
+        const index=Number(input.dataset.panel);input.checked?picked[index].add(input.value):picked[index].delete(input.value);
+        const panel=input.closest('.panel');panel.querySelector('.count').textContent=`${picked[index].size} sélectionné${picked[index].size>1?'s':''} · ${clothes.length} articles disponibles`;
+        panel.querySelector('.done').disabled=!picked[index].size;
+      });
+      root.addEventListener('click',event=>{
+        const button=event.target.closest('button');if(!button)return;
+        if(button.dataset.reset!==undefined){const i=Number(button.dataset.reset);picked[i]=new Set(i?suggested:[]);render();}
+        if(button.dataset.close!==undefined||button.dataset.done!==undefined){closed[Number(button.dataset.close??button.dataset.done)]=true;render();}
+        if(button.dataset.open!==undefined){closed[Number(button.dataset.open)]=false;render();}
+      });
+      globalThis.renderTenueComplete=next=>{Object.assign(settings,next);render();};
+      render();
+      if(globalThis.Tweak){const tweak=new Tweak({container:root,onChange:render});tweak.addSelect(settings,'format',{label:'Format',options:[{label:'Mobile',value:'mobile'},{label:'Tablette',value:'tablet'},{label:'Catalogue complet',value:'catalogue'}]});tweak.addSelect(settings,'theme',{label:'Thème',options:[{label:'Clair',value:'light'},{label:'Sombre',value:'dark'}]});}
+    })();
+  </script>
+</div>

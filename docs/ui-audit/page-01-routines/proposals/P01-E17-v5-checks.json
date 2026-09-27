@@ -1,0 +1,116 @@
+{
+  "bytes": 157746,
+  "metrics": [
+    {
+      "name": "mobile",
+      "width": 816,
+      "scrollWidth": 816,
+      "panels": [
+        {
+          "columns": 3,
+          "items": 24,
+          "selected": 0,
+          "images": true,
+          "border": "0px"
+        },
+        {
+          "columns": 3,
+          "items": 24,
+          "selected": 6,
+          "images": true,
+          "border": "0px"
+        }
+      ]
+    },
+    {
+      "name": "tablet",
+      "width": 1160,
+      "scrollWidth": 1160,
+      "panels": [
+        {
+          "columns": 3,
+          "items": 24,
+          "selected": 0,
+          "images": true,
+          "border": "0px"
+        },
+        {
+          "columns": 3,
+          "items": 24,
+          "selected": 6,
+          "images": true,
+          "border": "0px"
+        }
+      ]
+    },
+    {
+      "name": "catalogue",
+      "width": 816,
+      "scrollWidth": 816,
+      "panels": [
+        {
+          "columns": 3,
+          "items": 24,
+          "selected": 0,
+          "images": true,
+          "border": "0px"
+        },
+        {
+          "columns": 3,
+          "items": 24,
+          "selected": 6,
+          "images": true,
+          "border": "0px"
+        }
+      ]
+    },
+    {
+      "name": "dark",
+      "width": 816,
+      "scrollWidth": 816,
+      "panels": [
+        {
+          "columns": 3,
+          "items": 24,
+          "selected": 0,
+          "images": true,
+          "border": "0px"
+        },
+        {
+          "columns": 3,
+          "items": 24,
+          "selected": 6,
+          "images": true,
+          "border": "0px"
+        }
+      ]
+    },
+    {
+      "name": "small",
+      "width": 320,
+      "scrollWidth": 320,
+      "panels": [
+        {
+          "columns": 2,
+          "items": 24,
+          "selected": 0,
+          "images": true,
+          "border": "0px"
+        },
+        {
+          "columns": 2,
+          "items": 24,
+          "selected": 6,
+          "images": true,
+          "border": "0px"
+        }
+      ]
+    }
+  ],
+  "interaction": {
+    "checked": true,
+    "doneEnabled": true,
+    "count": "1 sélectionné · 24 articles disponibles"
+  },
+  "reset": true
+}

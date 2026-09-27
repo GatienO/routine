@@ -75,6 +75,29 @@ Ne pas déplacer de logique métier dans `app/` si elle peut rester dans `src/`.
 - Vérifier l'UX mobile avant de conclure.
 - Garder les textes courts et orientés action.
 
+## Continuité obligatoire des audits UI/UX
+
+Depuis la demande du 2026-09-20, appliquer l'audit global puis les corrections par lots. Lire dans cet ordre :
+
+1. `docs/ui-audit/METHOD.md` ;
+2. `docs/ui-audit/MASTER.md` ;
+3. `docs/ui-audit/GLOBAL-METHOD.md` ;
+4. `docs/ui-audit/GLOBAL-AUDIT.md` (reprise, constats, journal, todo) ;
+5. `docs/ui-audit/GLOBAL-COVERAGE.md` ;
+6. fiche du lot actif, décisions historiques pertinentes et identité visuelle.
+
+- Couvrir les trois intentions et toutes les routes/fonctions, sans attendre la clôture détaillée de Routines.
+- Distinguer inventorié, observé, décidé, intégré et vérifié; ne pas annoncer un audit complet avec des parcours non testés.
+- Regrouper les corrections par cause et limiter chaque lot à 3–5 résultats utilisateur.
+- Journaliser chaque demande, correction, rejet et validation avant de changer de lot; conserver l'historique et ne jamais inférer une validation.
+- À la reprise, restituer le point global défini dans la méthode, puis poursuivre le lot actif.
+- Trois options écrites et visuelles comparables pour un nouveau choix structurant : diagnostic, responsive, accessibilité, bénéfice, risque et recommandation; trois visuels et PNG de secours visible dans la même réponse.
+- Ne pas inventer trois variantes pour chaque micro-correction d'une décision acquise; montrer les corrections dans le prototype du lot.
+- Aucun choix graphique soumis sans explication et visuel.
+- Ne pas construire pendant la décision; attendre `prototype validé — construction autorisée` pour le lot identifié.
+- Ne pas contourner le PIN ni modifier les données réelles pour compléter l'audit. Utiliser des données de test isolées pour les parcours d'écriture.
+- Les anciennes files page par page sont historiques; leurs décisions/rejets explicites restent conservés.
+
 ## UX
 
 Pour les enfants :

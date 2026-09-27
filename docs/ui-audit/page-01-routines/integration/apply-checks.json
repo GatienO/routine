@@ -1,0 +1,30 @@
+{
+  "selected": [
+    "tshirt",
+    "tshirtML",
+    "pull",
+    "vesteLegere",
+    "manteau",
+    "impermeable"
+  ],
+  "previewMatches": true,
+  "reload": true,
+  "reopen": true,
+  "cancel": true,
+  "routinesUnchanged": true,
+  "withoutWeather": true,
+  "measures": [
+    {
+      "width": 320,
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "overflow": false
+    }
+  ]
+}

@@ -1,0 +1,1615 @@
+[
+  {
+    "name": "activities-light-390",
+    "buttons": [
+      {
+        "h": 44,
+        "label": "Revenir aux routines",
+        "w": 44
+      },
+      {
+        "h": 44,
+        "label": "Passer au mode sombre",
+        "w": 44
+      },
+      {
+        "h": 32,
+        "label": "Effacer",
+        "w": 68.40625
+      },
+      {
+        "h": 32,
+        "label": "Filtrer",
+        "w": 84.0625
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 64,
+        "label": "Routines",
+        "w": 124.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "Activités",
+        "w": 124.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "Parent, verrouillé",
+        "w": 124.66667175292967
+      }
+    ],
+    "height": 844,
+    "overflow": false,
+    "width": 390
+  },
+  {
+    "name": "activities-bottom-390",
+    "buttons": [
+      {
+        "h": 44,
+        "label": "Revenir aux routines",
+        "w": 44
+      },
+      {
+        "h": 44,
+        "label": "Passer au mode sombre",
+        "w": 44
+      },
+      {
+        "h": 200,
+        "label": "Ouvrir Mission escargot",
+        "w": 348.66668701171875
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 194.6666717529297,
+        "label": "Ouvrir Mission rangement",
+        "w": 348.66668701171875
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 194.6666717529297,
+        "label": "Ouvrir Mini yoga animaux",
+        "w": 348.66668701171875
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 64,
+        "label": "Routines",
+        "w": 124.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "Activités",
+        "w": 124.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "Parent, verrouillé",
+        "w": 124.66667175292967
+      }
+    ],
+    "height": 844,
+    "overflow": false,
+    "width": 390
+  },
+  {
+    "name": "routines-light-390",
+    "buttons": [
+      {
+        "h": 44,
+        "label": "Revenir aux routines",
+        "w": 44
+      },
+      {
+        "h": 44,
+        "label": "Passer au mode sombre",
+        "w": 44
+      },
+      {
+        "h": 44,
+        "label": "Adapter la tenue proposée",
+        "w": 81.45833587646484
+      },
+      {
+        "h": 58,
+        "label": "Lancer Super matin (copie)",
+        "w": 308.66668701171875
+      },
+      {
+        "h": 178,
+        "label": "Ouvrir le calendrier enfant",
+        "w": 342
+      },
+      {
+        "h": 64,
+        "label": "Routines",
+        "w": 124.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "Activités",
+        "w": 124.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "Parent, verrouillé",
+        "w": 124.66667175292967
+      }
+    ],
+    "height": 844,
+    "overflow": false,
+    "width": 390
+  },
+  {
+    "name": "pin-light-390",
+    "buttons": [
+      {
+        "h": 44,
+        "label": "Annuler et revenir à Routines",
+        "w": 44
+      },
+      {
+        "h": 44,
+        "label": "Passer au mode sombre",
+        "w": 44
+      },
+      {
+        "h": 64,
+        "label": "1",
+        "w": 100.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "2",
+        "w": 100.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "3",
+        "w": 100.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "4",
+        "w": 100.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "5",
+        "w": 100.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "6",
+        "w": 100.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "7",
+        "w": 100.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "8",
+        "w": 100.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "9",
+        "w": 100.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "0",
+        "w": 100.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "Effacer le dernier chiffre",
+        "w": 100.66667175292967
+      },
+      {
+        "h": 44,
+        "label": "Annuler",
+        "w": 100
+      }
+    ],
+    "height": 844,
+    "overflow": false,
+    "width": 390
+  },
+  {
+    "name": "pin-dark-390",
+    "buttons": [
+      {
+        "h": 44,
+        "label": "Annuler et revenir à Routines",
+        "w": 44
+      },
+      {
+        "h": 44,
+        "label": "Passer au mode clair",
+        "w": 44
+      },
+      {
+        "h": 64,
+        "label": "1",
+        "w": 100.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "2",
+        "w": 100.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "3",
+        "w": 100.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "4",
+        "w": 100.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "5",
+        "w": 100.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "6",
+        "w": 100.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "7",
+        "w": 100.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "8",
+        "w": 100.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "9",
+        "w": 100.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "0",
+        "w": 100.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "Effacer le dernier chiffre",
+        "w": 100.66667175292967
+      },
+      {
+        "h": 44,
+        "label": "Annuler",
+        "w": 100
+      }
+    ],
+    "height": 844,
+    "overflow": false,
+    "width": 390
+  },
+  {
+    "name": "pin-dark-768",
+    "buttons": [
+      {
+        "h": 44,
+        "label": "Annuler et revenir à Routines",
+        "w": 44
+      },
+      {
+        "h": 44,
+        "label": "Passer au mode clair",
+        "w": 44
+      },
+      {
+        "h": 64,
+        "label": "1",
+        "w": 103.55208587646484
+      },
+      {
+        "h": 64,
+        "label": "2",
+        "w": 103.5625
+      },
+      {
+        "h": 64,
+        "label": "3",
+        "w": 103.55208587646484
+      },
+      {
+        "h": 64,
+        "label": "4",
+        "w": 103.55208587646484
+      },
+      {
+        "h": 64,
+        "label": "5",
+        "w": 103.5625
+      },
+      {
+        "h": 64,
+        "label": "6",
+        "w": 103.55208587646484
+      },
+      {
+        "h": 64,
+        "label": "7",
+        "w": 103.55208587646484
+      },
+      {
+        "h": 64,
+        "label": "8",
+        "w": 103.5625
+      },
+      {
+        "h": 64,
+        "label": "9",
+        "w": 103.55208587646484
+      },
+      {
+        "h": 64,
+        "label": "0",
+        "w": 103.5625
+      },
+      {
+        "h": 64,
+        "label": "Effacer le dernier chiffre",
+        "w": 103.55208587646484
+      },
+      {
+        "h": 44,
+        "label": "Annuler",
+        "w": 100
+      }
+    ],
+    "height": 1024,
+    "overflow": false,
+    "width": 768
+  },
+  {
+    "name": "pin-light-768",
+    "buttons": [
+      {
+        "h": 44,
+        "label": "Annuler et revenir à Routines",
+        "w": 44
+      },
+      {
+        "h": 44,
+        "label": "Passer au mode sombre",
+        "w": 44
+      },
+      {
+        "h": 64,
+        "label": "1",
+        "w": 103.55208587646484
+      },
+      {
+        "h": 64,
+        "label": "2",
+        "w": 103.5625
+      },
+      {
+        "h": 64,
+        "label": "3",
+        "w": 103.55208587646484
+      },
+      {
+        "h": 64,
+        "label": "4",
+        "w": 103.55208587646484
+      },
+      {
+        "h": 64,
+        "label": "5",
+        "w": 103.5625
+      },
+      {
+        "h": 64,
+        "label": "6",
+        "w": 103.55208587646484
+      },
+      {
+        "h": 64,
+        "label": "7",
+        "w": 103.55208587646484
+      },
+      {
+        "h": 64,
+        "label": "8",
+        "w": 103.5625
+      },
+      {
+        "h": 64,
+        "label": "9",
+        "w": 103.55208587646484
+      },
+      {
+        "h": 64,
+        "label": "0",
+        "w": 103.5625
+      },
+      {
+        "h": 64,
+        "label": "Effacer le dernier chiffre",
+        "w": 103.55208587646484
+      },
+      {
+        "h": 44,
+        "label": "Annuler",
+        "w": 100
+      }
+    ],
+    "height": 1024,
+    "overflow": false,
+    "width": 768
+  },
+  {
+    "name": "pin-light-320",
+    "buttons": [
+      {
+        "h": 44,
+        "label": "Annuler et revenir à Routines",
+        "w": 44
+      },
+      {
+        "h": 44,
+        "label": "Passer au mode sombre",
+        "w": 44
+      },
+      {
+        "h": 64,
+        "label": "1",
+        "w": 72.21875
+      },
+      {
+        "h": 64,
+        "label": "2",
+        "w": 72.22917175292969
+      },
+      {
+        "h": 64,
+        "label": "3",
+        "w": 72.21875
+      },
+      {
+        "h": 64,
+        "label": "4",
+        "w": 72.21875
+      },
+      {
+        "h": 64,
+        "label": "5",
+        "w": 72.22917175292969
+      },
+      {
+        "h": 64,
+        "label": "6",
+        "w": 72.21875
+      },
+      {
+        "h": 64,
+        "label": "7",
+        "w": 72.21875
+      },
+      {
+        "h": 64,
+        "label": "8",
+        "w": 72.22917175292969
+      },
+      {
+        "h": 64,
+        "label": "9",
+        "w": 72.21875
+      }
+    ],
+    "height": 568,
+    "overflow": false,
+    "width": 320
+  },
+  {
+    "name": "parent-light-390",
+    "buttons": [
+      {
+        "h": 44,
+        "label": "Revenir aux routines",
+        "w": 44
+      },
+      {
+        "h": 44,
+        "label": "Passer au mode sombre",
+        "w": 44
+      },
+      {
+        "h": 52,
+        "label": "Créer une routine",
+        "w": 214
+      },
+      {
+        "h": 52,
+        "label": "Aller aux routines à lancer",
+        "w": 120
+      },
+      {
+        "h": 110,
+        "label": "Famille, Enfants et préférences",
+        "w": 342
+      },
+      {
+        "h": 110,
+        "label": "Routines, Créer et organiser",
+        "w": 342
+      },
+      {
+        "h": 110,
+        "label": "Calendrier, Préparer les repères",
+        "w": 342
+      },
+      {
+        "h": 64,
+        "label": "Routines",
+        "w": 124.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "Activités",
+        "w": 124.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "Parent, déverrouillé",
+        "w": 124.66667175292967
+      }
+    ],
+    "height": 844,
+    "overflow": false,
+    "width": 390
+  },
+  {
+    "name": "parent-light-768",
+    "buttons": [
+      {
+        "h": 44,
+        "label": "Revenir aux routines",
+        "w": 44
+      },
+      {
+        "h": 44,
+        "label": "Passer au mode sombre",
+        "w": 44
+      },
+      {
+        "h": 52,
+        "label": "Créer une routine",
+        "w": 592
+      },
+      {
+        "h": 52,
+        "label": "Aller aux routines à lancer",
+        "w": 120
+      },
+      {
+        "h": 126,
+        "label": "Famille, Enfants et préférences",
+        "w": 352
+      },
+      {
+        "h": 126,
+        "label": "Routines, Créer et organiser",
+        "w": 352
+      },
+      {
+        "h": 126,
+        "label": "Calendrier, Préparer les repères",
+        "w": 352
+      },
+      {
+        "h": 126,
+        "label": "Progrès, Étoiles et récompenses",
+        "w": 352
+      },
+      {
+        "h": 126,
+        "label": "Réglages, Météo, sécurité et données",
+        "w": 720
+      },
+      {
+        "h": 64,
+        "label": "Routines",
+        "w": 234.6666717529297
+      },
+      {
+        "h": 64,
+        "label": "Activités",
+        "w": 234.6666717529297
+      },
+      {
+        "h": 64,
+        "label": "Parent, déverrouillé",
+        "w": 234.6666717529297
+      }
+    ],
+    "height": 1024,
+    "overflow": false,
+    "width": 768
+  },
+  {
+    "name": "parent-dark-768",
+    "buttons": [
+      {
+        "h": 44,
+        "label": "Revenir aux routines",
+        "w": 44
+      },
+      {
+        "h": 44,
+        "label": "Passer au mode clair",
+        "w": 44
+      },
+      {
+        "h": 52,
+        "label": "Créer une routine",
+        "w": 592
+      },
+      {
+        "h": 52,
+        "label": "Aller aux routines à lancer",
+        "w": 120
+      },
+      {
+        "h": 126,
+        "label": "Famille, Enfants et préférences",
+        "w": 352
+      },
+      {
+        "h": 126,
+        "label": "Routines, Créer et organiser",
+        "w": 352
+      },
+      {
+        "h": 126,
+        "label": "Calendrier, Préparer les repères",
+        "w": 352
+      },
+      {
+        "h": 126,
+        "label": "Progrès, Étoiles et récompenses",
+        "w": 352
+      },
+      {
+        "h": 126,
+        "label": "Réglages, Météo, sécurité et données",
+        "w": 720
+      },
+      {
+        "h": 64,
+        "label": "Routines",
+        "w": 234.6666717529297
+      },
+      {
+        "h": 64,
+        "label": "Activités",
+        "w": 234.6666717529297
+      },
+      {
+        "h": 64,
+        "label": "Parent, déverrouillé",
+        "w": 234.6666717529297
+      }
+    ],
+    "height": 1024,
+    "overflow": false,
+    "width": 768
+  },
+  {
+    "name": "parent-dark-390",
+    "buttons": [
+      {
+        "h": 44,
+        "label": "Revenir aux routines",
+        "w": 44
+      },
+      {
+        "h": 44,
+        "label": "Passer au mode clair",
+        "w": 44
+      },
+      {
+        "h": 52,
+        "label": "Créer une routine",
+        "w": 214
+      },
+      {
+        "h": 52,
+        "label": "Aller aux routines à lancer",
+        "w": 120
+      },
+      {
+        "h": 110,
+        "label": "Famille, Enfants et préférences",
+        "w": 342
+      },
+      {
+        "h": 110,
+        "label": "Routines, Créer et organiser",
+        "w": 342
+      },
+      {
+        "h": 110,
+        "label": "Calendrier, Préparer les repères",
+        "w": 342
+      },
+      {
+        "h": 64,
+        "label": "Routines",
+        "w": 124.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "Activités",
+        "w": 124.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "Parent, déverrouillé",
+        "w": 124.66667175292967
+      }
+    ],
+    "height": 844,
+    "overflow": false,
+    "width": 390
+  },
+  {
+    "name": "parent-dark-320",
+    "buttons": [
+      {
+        "h": 44,
+        "label": "Revenir aux routines",
+        "w": 44
+      },
+      {
+        "h": 44,
+        "label": "Passer au mode clair",
+        "w": 44
+      },
+      {
+        "h": 52,
+        "label": "Créer une routine",
+        "w": 272
+      },
+      {
+        "h": 52,
+        "label": "Aller aux routines à lancer",
+        "w": 120
+      },
+      {
+        "h": 64,
+        "label": "Routines",
+        "w": 101.33333587646484
+      },
+      {
+        "h": 64,
+        "label": "Activités",
+        "w": 101.33333587646484
+      },
+      {
+        "h": 64,
+        "label": "Parent, déverrouillé",
+        "w": 101.33333587646484
+      }
+    ],
+    "height": 568,
+    "overflow": false,
+    "width": 320
+  },
+  {
+    "name": "parent-dark-1440",
+    "buttons": [
+      {
+        "h": 44,
+        "label": "Revenir aux routines",
+        "w": 44
+      },
+      {
+        "h": 44,
+        "label": "Passer au mode clair",
+        "w": 44
+      },
+      {
+        "h": 52,
+        "label": "Créer une routine",
+        "w": 972
+      },
+      {
+        "h": 52,
+        "label": "Aller aux routines à lancer",
+        "w": 120
+      },
+      {
+        "h": 126,
+        "label": "Famille, Enfants et préférences",
+        "w": 356
+      },
+      {
+        "h": 126,
+        "label": "Routines, Créer et organiser",
+        "w": 356
+      },
+      {
+        "h": 126,
+        "label": "Calendrier, Préparer les repères",
+        "w": 356
+      },
+      {
+        "h": 126,
+        "label": "Progrès, Étoiles et récompenses",
+        "w": 542
+      },
+      {
+        "h": 126,
+        "label": "Réglages, Météo, sécurité et données",
+        "w": 542
+      },
+      {
+        "h": 64,
+        "label": "Routines",
+        "w": 234.6666717529297
+      },
+      {
+        "h": 64,
+        "label": "Activités",
+        "w": 234.6666717529297
+      },
+      {
+        "h": 64,
+        "label": "Parent, déverrouillé",
+        "w": 234.6666717529297
+      }
+    ],
+    "height": 1000,
+    "overflow": false,
+    "width": 1440
+  },
+  {
+    "name": "parent-light-1440",
+    "buttons": [
+      {
+        "h": 44,
+        "label": "Revenir aux routines",
+        "w": 44
+      },
+      {
+        "h": 44,
+        "label": "Passer au mode sombre",
+        "w": 44
+      },
+      {
+        "h": 52,
+        "label": "Créer une routine",
+        "w": 972
+      },
+      {
+        "h": 52,
+        "label": "Aller aux routines à lancer",
+        "w": 120
+      },
+      {
+        "h": 126,
+        "label": "Famille, Enfants et préférences",
+        "w": 356
+      },
+      {
+        "h": 126,
+        "label": "Routines, Créer et organiser",
+        "w": 356
+      },
+      {
+        "h": 126,
+        "label": "Calendrier, Préparer les repères",
+        "w": 356
+      },
+      {
+        "h": 126,
+        "label": "Progrès, Étoiles et récompenses",
+        "w": 542
+      },
+      {
+        "h": 126,
+        "label": "Réglages, Météo, sécurité et données",
+        "w": 542
+      },
+      {
+        "h": 64,
+        "label": "Routines",
+        "w": 234.6666717529297
+      },
+      {
+        "h": 64,
+        "label": "Activités",
+        "w": 234.6666717529297
+      },
+      {
+        "h": 64,
+        "label": "Parent, déverrouillé",
+        "w": 234.6666717529297
+      }
+    ],
+    "height": 1000,
+    "overflow": false,
+    "width": 1440
+  },
+  {
+    "name": "pin-light-1440",
+    "buttons": [
+      {
+        "h": 44,
+        "label": "Annuler et revenir à Routines",
+        "w": 44
+      },
+      {
+        "h": 44,
+        "label": "Passer au mode sombre",
+        "w": 44
+      },
+      {
+        "h": 64,
+        "label": "1",
+        "w": 103.55208587646484
+      },
+      {
+        "h": 64,
+        "label": "2",
+        "w": 103.5625
+      },
+      {
+        "h": 64,
+        "label": "3",
+        "w": 103.55208587646484
+      },
+      {
+        "h": 64,
+        "label": "4",
+        "w": 103.55208587646484
+      },
+      {
+        "h": 64,
+        "label": "5",
+        "w": 103.5625
+      },
+      {
+        "h": 64,
+        "label": "6",
+        "w": 103.55208587646484
+      },
+      {
+        "h": 64,
+        "label": "7",
+        "w": 103.55208587646484
+      },
+      {
+        "h": 64,
+        "label": "8",
+        "w": 103.5625
+      },
+      {
+        "h": 64,
+        "label": "9",
+        "w": 103.55208587646484
+      },
+      {
+        "h": 64,
+        "label": "0",
+        "w": 103.5625
+      },
+      {
+        "h": 64,
+        "label": "Effacer le dernier chiffre",
+        "w": 103.55208587646484
+      },
+      {
+        "h": 44,
+        "label": "Annuler",
+        "w": 100
+      }
+    ],
+    "height": 1000,
+    "overflow": false,
+    "width": 1440
+  },
+  {
+    "name": "routines-light-768",
+    "buttons": [
+      {
+        "h": 44,
+        "label": "Revenir aux routines",
+        "w": 44
+      },
+      {
+        "h": 44,
+        "label": "Passer au mode sombre",
+        "w": 44
+      },
+      {
+        "h": 44,
+        "label": "Adapter la tenue proposée",
+        "w": 81.45833587646484
+      },
+      {
+        "h": 58,
+        "label": "Lancer Super matin (copie)",
+        "w": 368.6666870117187
+      },
+      {
+        "h": 410,
+        "label": "Ouvrir le calendrier enfant",
+        "w": 286
+      },
+      {
+        "h": 44,
+        "label": "Préparer plusieurs routines à la suite",
+        "w": 80.19792175292969
+      },
+      {
+        "h": 44,
+        "label": "Gérer les routines",
+        "w": 52.19791793823242
+      },
+      {
+        "h": 44,
+        "label": "Créer une routine",
+        "w": 88.97917175292969
+      },
+      {
+        "h": 96,
+        "label": "Préparer la routine Super matin",
+        "w": 720
+      },
+      {
+        "h": 64,
+        "label": "Routines",
+        "w": 234.6666717529297
+      },
+      {
+        "h": 64,
+        "label": "Activités",
+        "w": 234.6666717529297
+      },
+      {
+        "h": 64,
+        "label": "Parent, verrouillé",
+        "w": 234.6666717529297
+      }
+    ],
+    "height": 1024,
+    "overflow": false,
+    "width": 768
+  },
+  {
+    "name": "routines-dark-768",
+    "buttons": [
+      {
+        "h": 44,
+        "label": "Revenir aux routines",
+        "w": 44
+      },
+      {
+        "h": 44,
+        "label": "Passer au mode clair",
+        "w": 44
+      },
+      {
+        "h": 44,
+        "label": "Adapter la tenue proposée",
+        "w": 81.45833587646484
+      },
+      {
+        "h": 58,
+        "label": "Lancer Super matin (copie)",
+        "w": 368.6666870117187
+      },
+      {
+        "h": 410,
+        "label": "Ouvrir le calendrier enfant",
+        "w": 286
+      },
+      {
+        "h": 44,
+        "label": "Préparer plusieurs routines à la suite",
+        "w": 80.19792175292969
+      },
+      {
+        "h": 44,
+        "label": "Gérer les routines",
+        "w": 52.19791793823242
+      },
+      {
+        "h": 44,
+        "label": "Créer une routine",
+        "w": 88.97917175292969
+      },
+      {
+        "h": 96,
+        "label": "Préparer la routine Super matin",
+        "w": 720
+      },
+      {
+        "h": 64,
+        "label": "Routines",
+        "w": 234.6666717529297
+      },
+      {
+        "h": 64,
+        "label": "Activités",
+        "w": 234.6666717529297
+      },
+      {
+        "h": 64,
+        "label": "Parent, verrouillé",
+        "w": 234.6666717529297
+      }
+    ],
+    "height": 1024,
+    "overflow": false,
+    "width": 768
+  },
+  {
+    "name": "routines-dark-390",
+    "buttons": [
+      {
+        "h": 44,
+        "label": "Revenir aux routines",
+        "w": 44
+      },
+      {
+        "h": 44,
+        "label": "Passer au mode clair",
+        "w": 44
+      },
+      {
+        "h": 44,
+        "label": "Adapter la tenue proposée",
+        "w": 81.45833587646484
+      },
+      {
+        "h": 58,
+        "label": "Lancer Super matin (copie)",
+        "w": 308.66668701171875
+      },
+      {
+        "h": 178,
+        "label": "Ouvrir le calendrier enfant",
+        "w": 342
+      },
+      {
+        "h": 64,
+        "label": "Routines",
+        "w": 124.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "Activités",
+        "w": 124.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "Parent, verrouillé",
+        "w": 124.66667175292967
+      }
+    ],
+    "height": 844,
+    "overflow": false,
+    "width": 390
+  },
+  {
+    "name": "activities-dark-768",
+    "buttons": [
+      {
+        "h": 44,
+        "label": "Revenir aux routines",
+        "w": 44
+      },
+      {
+        "h": 44,
+        "label": "Passer au mode clair",
+        "w": 44
+      },
+      {
+        "h": 32,
+        "label": "Effacer",
+        "w": 68.40625
+      },
+      {
+        "h": 32,
+        "label": "Filtrer",
+        "w": 84.0625
+      },
+      {
+        "h": 208.6666717529297,
+        "label": "Ouvrir Défi silence",
+        "w": 670.6666870117188
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 194.6666717529297,
+        "label": "Ouvrir Livre à l'envers",
+        "w": 320.66668701171875
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 64,
+        "label": "Routines",
+        "w": 234.6666717529297
+      },
+      {
+        "h": 64,
+        "label": "Activités",
+        "w": 234.6666717529297
+      },
+      {
+        "h": 64,
+        "label": "Parent, verrouillé",
+        "w": 234.6666717529297
+      }
+    ],
+    "height": 1024,
+    "overflow": false,
+    "width": 768
+  },
+  {
+    "name": "activities-dark-390",
+    "buttons": [
+      {
+        "h": 44,
+        "label": "Revenir aux routines",
+        "w": 44
+      },
+      {
+        "h": 44,
+        "label": "Passer au mode clair",
+        "w": 44
+      },
+      {
+        "h": 32,
+        "label": "Effacer",
+        "w": 68.40625
+      },
+      {
+        "h": 32,
+        "label": "Filtrer",
+        "w": 84.0625
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 64,
+        "label": "Routines",
+        "w": 124.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "Activités",
+        "w": 124.66667175292967
+      },
+      {
+        "h": 64,
+        "label": "Parent, verrouillé",
+        "w": 124.66667175292967
+      }
+    ],
+    "height": 844,
+    "overflow": false,
+    "width": 390
+  },
+  {
+    "name": "activities-light-768",
+    "buttons": [
+      {
+        "h": 44,
+        "label": "Revenir aux routines",
+        "w": 44
+      },
+      {
+        "h": 44,
+        "label": "Passer au mode sombre",
+        "w": 44
+      },
+      {
+        "h": 32,
+        "label": "Effacer",
+        "w": 68.40625
+      },
+      {
+        "h": 32,
+        "label": "Filtrer",
+        "w": 84.0625
+      },
+      {
+        "h": 208.6666717529297,
+        "label": "Ouvrir Défi silence",
+        "w": 670.6666870117188
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 194.6666717529297,
+        "label": "Ouvrir Livre à l'envers",
+        "w": 320.66668701171875
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 64,
+        "label": "Routines",
+        "w": 234.6666717529297
+      },
+      {
+        "h": 64,
+        "label": "Activités",
+        "w": 234.6666717529297
+      },
+      {
+        "h": 64,
+        "label": "Parent, verrouillé",
+        "w": 234.6666717529297
+      }
+    ],
+    "height": 1024,
+    "overflow": false,
+    "width": 768
+  },
+  {
+    "name": "activities-light-320",
+    "buttons": [
+      {
+        "h": 44,
+        "label": "Revenir aux routines",
+        "w": 44
+      },
+      {
+        "h": 44,
+        "label": "Passer au mode sombre",
+        "w": 44
+      },
+      {
+        "h": 64,
+        "label": "Routines",
+        "w": 101.33333587646484
+      },
+      {
+        "h": 64,
+        "label": "Activités",
+        "w": 101.33333587646484
+      },
+      {
+        "h": 64,
+        "label": "Parent, verrouillé",
+        "w": 101.33333587646484
+      }
+    ],
+    "height": 568,
+    "overflow": false,
+    "width": 320
+  },
+  {
+    "name": "routines-light-320",
+    "buttons": [
+      {
+        "h": 44,
+        "label": "Revenir aux routines",
+        "w": 44
+      },
+      {
+        "h": 44,
+        "label": "Passer au mode sombre",
+        "w": 44
+      },
+      {
+        "h": 44,
+        "label": "Adapter la tenue proposée",
+        "w": 81.45833587646484
+      },
+      {
+        "h": 64,
+        "label": "Routines",
+        "w": 101.33333587646484
+      },
+      {
+        "h": 64,
+        "label": "Activités",
+        "w": 101.33333587646484
+      },
+      {
+        "h": 64,
+        "label": "Parent, verrouillé",
+        "w": 101.33333587646484
+      }
+    ],
+    "height": 568,
+    "overflow": false,
+    "width": 320
+  },
+  {
+    "name": "routines-light-1440",
+    "buttons": [
+      {
+        "h": 44,
+        "label": "Revenir aux routines",
+        "w": 44
+      },
+      {
+        "h": 44,
+        "label": "Passer au mode sombre",
+        "w": 44
+      },
+      {
+        "h": 44,
+        "label": "Adapter la tenue proposée",
+        "w": 81.45833587646484
+      },
+      {
+        "h": 58,
+        "label": "Lancer Super matin (copie)",
+        "w": 748.6666870117188
+      },
+      {
+        "h": 410,
+        "label": "Ouvrir le calendrier enfant",
+        "w": 286
+      },
+      {
+        "h": 44,
+        "label": "Préparer plusieurs routines à la suite",
+        "w": 80.19792175292969
+      },
+      {
+        "h": 44,
+        "label": "Gérer les routines",
+        "w": 52.19791793823242
+      },
+      {
+        "h": 44,
+        "label": "Créer une routine",
+        "w": 88.97917175292969
+      },
+      {
+        "h": 96,
+        "label": "Préparer la routine Super matin",
+        "w": 1100
+      },
+      {
+        "h": 64,
+        "label": "Routines",
+        "w": 234.6666717529297
+      },
+      {
+        "h": 64,
+        "label": "Activités",
+        "w": 234.6666717529297
+      },
+      {
+        "h": 64,
+        "label": "Parent, verrouillé",
+        "w": 234.6666717529297
+      }
+    ],
+    "height": 1000,
+    "overflow": false,
+    "width": 1440
+  },
+  {
+    "name": "activities-light-1440",
+    "buttons": [
+      {
+        "h": 44,
+        "label": "Revenir aux routines",
+        "w": 44
+      },
+      {
+        "h": 44,
+        "label": "Passer au mode sombre",
+        "w": 44
+      },
+      {
+        "h": 32,
+        "label": "Effacer",
+        "w": 68.40625
+      },
+      {
+        "h": 32,
+        "label": "Filtrer",
+        "w": 84.0625
+      },
+      {
+        "h": 208.6666259765625,
+        "label": "Ouvrir Défi silence",
+        "w": 1318.666748046875
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Ajouter aux favoris",
+        "w": 40
+      },
+      {
+        "h": 64,
+        "label": "Routines",
+        "w": 234.6666717529297
+      },
+      {
+        "h": 64,
+        "label": "Activités",
+        "w": 234.6666717529297
+      },
+      {
+        "h": 64,
+        "label": "Parent, verrouillé",
+        "w": 234.6666717529297
+      }
+    ],
+    "height": 1000,
+    "overflow": false,
+    "width": 1440
+  }
+]

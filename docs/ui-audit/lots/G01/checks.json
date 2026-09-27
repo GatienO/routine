@@ -1,0 +1,142 @@
+[
+  {
+    "screen": "routines",
+    "theme": "light",
+    "width": 390,
+    "overflow": false,
+    "small": []
+  },
+  {
+    "screen": "activities",
+    "theme": "light",
+    "width": 390,
+    "overflow": false,
+    "small": []
+  },
+  {
+    "screen": "parent",
+    "theme": "light",
+    "width": 390,
+    "overflow": false,
+    "small": []
+  },
+  {
+    "screen": "pin",
+    "theme": "light",
+    "width": 390,
+    "overflow": false,
+    "small": []
+  },
+  {
+    "screen": "routines",
+    "theme": "dark",
+    "width": 390,
+    "overflow": false,
+    "small": []
+  },
+  {
+    "screen": "activities",
+    "theme": "dark",
+    "width": 390,
+    "overflow": false,
+    "small": []
+  },
+  {
+    "screen": "parent",
+    "theme": "dark",
+    "width": 390,
+    "overflow": false,
+    "small": []
+  },
+  {
+    "screen": "pin",
+    "theme": "dark",
+    "width": 390,
+    "overflow": false,
+    "small": []
+  },
+  {
+    "screen": "routines",
+    "theme": "light",
+    "width": 768,
+    "overflow": false,
+    "small": []
+  },
+  {
+    "screen": "activities",
+    "theme": "light",
+    "width": 768,
+    "overflow": false,
+    "small": []
+  },
+  {
+    "screen": "parent",
+    "theme": "light",
+    "width": 768,
+    "overflow": false,
+    "small": []
+  },
+  {
+    "screen": "pin",
+    "theme": "light",
+    "width": 768,
+    "overflow": false,
+    "small": []
+  },
+  {
+    "screen": "routines",
+    "theme": "dark",
+    "width": 768,
+    "overflow": false,
+    "small": []
+  },
+  {
+    "screen": "activities",
+    "theme": "dark",
+    "width": 768,
+    "overflow": false,
+    "small": []
+  },
+  {
+    "screen": "parent",
+    "theme": "dark",
+    "width": 768,
+    "overflow": false,
+    "small": []
+  },
+  {
+    "screen": "pin",
+    "theme": "dark",
+    "width": 768,
+    "overflow": false,
+    "small": []
+  },
+  {
+    "screen": "routines",
+    "width": 320,
+    "theme": "light",
+    "overflow": false,
+    "small": []
+  },
+  {
+    "screen": "pin",
+    "width": 320,
+    "theme": "light",
+    "overflow": false,
+    "small": []
+  },
+  {
+    "screen": "routines",
+    "width": 1440,
+    "theme": "light",
+    "overflow": false,
+    "small": []
+  },
+  {
+    "screen": "pin",
+    "width": 1440,
+    "theme": "light",
+    "overflow": false,
+    "small": []
+  }
+]
