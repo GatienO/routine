@@ -40,7 +40,8 @@ Critères de travail issus des fondations : une action principale visible, texte
 ## Todo transversale de préparation
 
 - [ ] Recueillir les trois irritants prioritaires de l'utilisateur.
-- [ ] Rejouer les parcours complets : premier démarrage, créer puis lancer une routine, reprendre une routine, trouver puis terminer une activité, préparer un repère calendrier.
+- [x] Rejouer le premier démarrage (G07, installation web isolée; preuves dans `lots/G07/REVIEW.md`).
+- [ ] Rejouer les autres parcours complets : créer puis lancer une routine, reprendre une routine, trouver puis terminer une activité, préparer un repère calendrier.
 - [ ] Pour chaque friction, noter le point de départ, les actions, le résultat attendu et le résultat réel.
 - [ ] Classer les constats : bloquant, ralentissement fréquent, cohérence visuelle.
 - [ ] Repérer les composants partagés concernés pour préparer une correction réutilisable.

@@ -1,6 +1,6 @@
 # Matrice de couverture — 2026-09-20
 
-Lot G07 autorisé et intégré : le premier démarrage relie `/onboarding/family`, `/pin`, `/onboarding/child`, `/onboarding/complete` et `/routines`. Première vue intégrée observée sur navigateur isolé; transitions vérifiées par tests de routage. Le parcours complet au clic reste à vérifier visuellement. Voir [G07/REVIEW.md](./lots/G07/REVIEW.md).
+Lot G07 terminé : le premier démarrage relie `/onboarding/family`, `/pin`, `/onboarding/child`, `/onboarding/complete` et `/routines`. Le parcours complet au clic, les retours, les reprises après rechargement et le rendu 320/390/768 px ont été vérifiés sur navigateur isolé. Voir [G07/REVIEW.md](./lots/G07/REVIEW.md).
 
 42 fichiers de route hors layouts, 4 layouts, 3 destinations principales après l'ajout des trois routes G07. Cette matrice garantit un rattachement, pas une validation de toutes les fonctions.
 
@@ -54,9 +54,9 @@ Après autorisation G06, minuteur, pause et reprise ont été rejoués sur origi
 | /parent/trash | Parent | Écran / état | [app/parent/trash.tsx](../../app/parent/trash.tsx) | Routage lu; parcours UI protégé, non testé |
 | /parent/weather | Parent | Écran / état | [app/parent/weather.tsx](../../app/parent/weather.tsx) | Routage lu; parcours UI protégé, non testé |
 | /pin | PIN | Écran / état | [app/pin.tsx](../../app/pin.tsx) | Code + écran observé; parcours partiel |
-| /onboarding/family | Premier démarrage | Écran / état | [app/onboarding/family.tsx](../../app/onboarding/family.tsx) | Première vue intégrée observée sur profil isolé |
-| /onboarding/child | Premier démarrage | Écran / état | [app/onboarding/child.tsx](../../app/onboarding/child.tsx) | Code et export web vérifiés; clic non rejoué visuellement |
-| /onboarding/complete | Premier démarrage | Écran / état | [app/onboarding/complete.tsx](../../app/onboarding/complete.tsx) | Code et export web vérifiés; clic non rejoué visuellement |
+| /onboarding/family | Premier démarrage | Écran / état | [app/onboarding/family.tsx](../../app/onboarding/family.tsx) | Clics, retour, reprise et rendu 320/390/768 px vérifiés sur profil isolé |
+| /onboarding/child | Premier démarrage | Écran / état | [app/onboarding/child.tsx](../../app/onboarding/child.tsx) | Création unique, retour, reprise, clair/sombre et rendu 320/390/768 px vérifiés |
+| /onboarding/complete | Premier démarrage | Écran / état | [app/onboarding/complete.tsx](../../app/onboarding/complete.tsx) | Reprise, ouverture de l’accueil et rendu 320/390/768 px vérifiés |
 
 ## Fonctions transversales à ne pas oublier
 

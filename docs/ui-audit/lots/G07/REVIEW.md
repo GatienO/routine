@@ -1,6 +1,6 @@
 # G07 — Première création du profil familial
 
-Statut au 2026-09-27 : **prototype validé, construction autorisée et intégrée; validation visuelle finale ouverte**. Après « Continue g07 », l'utilisateur a écrit « je valide go ». Cette autorisation porte sur le prototype G07 et le parcours décrit ici; elle ne vaut pas validation finale du produit.
+Statut au 2026-09-27 : **G07 terminé et retiré de la todo active**. Après « Continue g07 », l'utilisateur a écrit « je valide go », puis demandé de terminer les contrôles restants et supprimer la todo. Le produit a été intégré et le parcours web vérifié sur profil isolé; cette fiche reste comme historique.
 
 ## Parcours attendu
 
@@ -33,9 +33,9 @@ Le sens retenu provisoirement pour « informations de base » est le **nom de fa
 
 La séquence et la destination ont été définies par l’utilisateur; aucun nouveau choix de structure n’est ouvert. Le prototype applique l’identité existante : fond crème et ronds pastel, menthe pour continuer, cartes blanches, titres courts. La première vue présente l’information locale une seule fois; le code garde la saisie et la confirmation existantes; l’enfant demande uniquement prénom et âge, avec illustration modifiable plus tard; un court écran de fin donne un bouton explicite « Ouvrir l’accueil ».
 
-À valider visuellement avant construction : longueur des textes, présence de l’écran de fin et simplification du choix d’illustration au premier démarrage. Le thème sombre et l’erreur de confirmation PIN sont montrés; le retour et la reprise après relance sont spécifiés dans les critères mais restent à observer sur le produit isolé. Aucun arbitrage n’est inféré de cette fiche.
+Le prototype a été validé avant construction. Les vues intégrées confirment les textes courts, l'écran de fin et l'illustration par défaut modifiable plus tard. Les retours et la reprise après relance ont été rejoués sur le produit isolé.
 
-## Reprise selon la méthode globale
+## Plan initial selon la méthode globale (historique)
 
 1. **Couvrir et observer** : code et premier écran isolé examinés. Reste à rejouer fermeture à chaque étape, erreurs de saisie, retour, relance et profil existant sans toucher au profil familial réel.
 2. **Décider** : prototype clair/sombre préparé pour les quatre étapes, avec état d’erreur PIN. Obtenir la validation visuelle explicite. Trois options écrites et visuelles ne seront nécessaires que si un nouveau choix de structure apparaît; l’ordre demandé n’est pas remis en débat.
@@ -47,4 +47,6 @@ La séquence et la destination ont été définies par l’utilisateur; aucun no
 - La première ouverture affiche une page dédiée pour le nom familial et l'information sur le stockage local; le menu principal est masqué pendant la création. [Capture de la première vue intégrée](./integration-family.png) sur navigateur isolé à 500 × 850 px.
 - Le PIN existant crée et confirme le code avant le profil enfant. Un nouvel écran enfant ne demande que prénom et âge; il utilise le store existant et bloque un double clic. Une page de fin ouvre explicitement `/routines`. Le guide suit le même ordre.
 - La progression est persistée dans `localProfileStore`. Le routage reconduit vers la première étape manquante après relance et laisse les familles existantes hors onboarding. Aucune donnée réelle n'a été modifiée.
-- TypeScript, 169 tests automatisés (dont les reprises à chaque étape), export web et `git diff --check` réussis. Le parcours complet au clic et le rendu des étapes 2 à 4 sur navigateur isolé restent à rejouer; aucune validation visuelle finale n'est inférée. Essais sur appareils iOS/Android hors périmètre demandé.
+- TypeScript, 169 tests automatisés (dont les destinations de reprise), export web et `git diff --check` réussis. Le scénario `scripts/check-g07-web.mjs` rejoue les clics, les retours, les relances, l'enfant unique et l'accueil final dans un profil Edge temporaire. Les captures [Famille 320](./integration-family-320.png), [PIN 320](./integration-pin-320.png), [Enfant 390](./integration-child.png), [Enfant sombre](./integration-child-dark.png) et [Fin 768](./integration-complete-768.png) documentent le rendu; les trois largeurs 320/390/768 px n'ont pas de débordement horizontal. Aucun essai sur appareil iOS/Android, conformément au périmètre demandé.
+
+**Todo G07 : aucune tâche active.** Le parcours n'est pas encore publié sur le site de production; sa publication relève du flux Git/déploiement, pas d'une correction G07 restante.

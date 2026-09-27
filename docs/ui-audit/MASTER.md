@@ -1,6 +1,6 @@
-# Chantier G06 — lancement et routine en cours
+# Audit global — état des lots
 
-Lot actif **G07 — première création du profil familial** : bienvenue et nom de famille → code Parent → premier enfant → accueil `/routines`. Prototype validé et construction autorisée par « je valide go » le 2026-09-27. Le parcours est intégré; [critères et vérifications](./lots/G07/REVIEW.md). Validation visuelle finale du produit encore ouverte.
+**G07 terminé et retiré de la todo active** le 2026-09-27 : bienvenue et nom de famille → code Parent → premier enfant → accueil `/routines`. Prototype validé, construction autorisée puis parcours complet vérifié sur installation web isolée, avec retours, rechargements, 320/390/768 px et thème sombre. [Fiche et preuves conservées](./lots/G07/REVIEW.md). Aucun lot actif ouvert ici.
 
 Extension visuelle demandée après G06 : le fond pastel à ronds de l’accueil est appliqué au cadre commun de toutes les routes. Le code et l’export web sont vérifiés; contrôle visuel final sur les pages en attente. Suivi dans [GLOBAL-AUDIT.md](./GLOBAL-AUDIT.md).
 
