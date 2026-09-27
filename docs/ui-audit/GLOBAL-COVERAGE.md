@@ -12,6 +12,7 @@ Suite du 27 septembre : G05, routine favorite groupée pour plusieurs enfants, a
 
 Nouveau périmètre du 27 septembre : G06 examine le lancement, `/child/summary`, `/child/run`, la reprise et le minuteur. Son [diagnostic](./lots/G06/REVIEW.md) est partiel : lancement et rechargement observés sur famille fictive; pause, enchaînement, thèmes, tablette et cas longs restent à contrôler pour ce lot. Les colonnes de l’inventaire initial ne sont pas réécrites comme si ces parcours étaient désormais vérifiés.
 Après autorisation G06, minuteur, pause et reprise ont été rejoués sur origine fictive web, ainsi que l’affichage 320/390/768 px, thème sombre et titre long à 320/390 px, et les commandes Parent au clavier. L’enchaînement d’une routine minutée avec une routine sans durée a été vérifié jusqu’à la célébration finale. La validation visuelle finale de l’utilisateur reste ouverte. Détails dans [G06/REVIEW.md](./lots/G06/REVIEW.md).
+Clôture G06 : un second essai web isolé après les correctifs `/child/run` confirme l'étape et le minuteur visibles, la pause conservée après rechargement, sa reprise et l'absence de débordement à 320/390/768 px. Le test de rendu web passe. G06 ne figure plus dans la todo active; la fiche conserve les preuves et l'historique.
 
 | Route | Surface | Nature | Source | Couverture actuelle |
 |---|---|---|---|---|

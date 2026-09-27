@@ -2,6 +2,8 @@
 
 ## État actuel — 2026-09-27
 
+Clôture G06 à la demande « termine la todo et une fois terminé supprime » : le parcours `/child/run` a été rejoué sur un profil Edge temporaire avec routine fictive. Étape, nom et minuteur visibles; la pause garde son temps après rechargement, puis reprend avec une échéance persistée. Captures à 320/390/768 px sans débordement; `npm run test:web-run` réussit. Les trois maquettes comparatives disposent maintenant d'un PNG lisible. **Aucune tâche G06 ne reste dans la todo active**; les diagnostics précédents restent conservés ci-dessous comme journal historique. Pas d'essai iOS/Android, selon le périmètre demandé.
+
 Nouvelle demande initialement inscrite en **todo future G07** : refaire le parcours de première création du profil, dans l’ordre message de base/nom de famille/informations utiles → code Parent → premier enfant → accueil. La demande d’inscription seule n’autorisait pas la construction; voir [G07/REVIEW.md](./lots/G07/REVIEW.md). Aucun changement de produit ni de données pour cette demande.
 
 G07 a ensuite été autorisé explicitement par « je valide go ». L'installation neuve reçoit maintenant les trois étapes puis une fin avec ouverture de `/routines`; le stade inachevé est conservé dans le profil local et les familles existantes ne sont pas relancées dans le parcours. La première vue intégrée a été capturée sur profil navigateur isolé; contrôles et limites dans [G07/REVIEW.md](./lots/G07/REVIEW.md). La validation visuelle finale du produit n'est pas déduite de l'autorisation de construire.

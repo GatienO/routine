@@ -1,6 +1,6 @@
 # G06 — Lancement et routine en cours
 
-Statut : **construction autorisée et intégrée, validation visuelle finale en attente**. Nouveau lot ouvert le 2026-09-27 après clôture de la todo globale. Routes : `/routines` → `/child/summary` → `/child/run`, reprise depuis `/routines`, enchaînement et `/child/pause`. Les essais sur appareil iOS/Android restent hors périmètre à la demande de l’utilisateur.
+Statut au 2026-09-27 : **G06 terminé et retiré de la todo active** à la demande de l'utilisateur. Routes : `/routines` → `/child/summary` → `/child/run`, reprise depuis `/routines`, enchaînement et `/child/pause`. Les essais sur appareil iOS/Android restent hors périmètre à la demande de l’utilisateur.
 
 ## Résultats attendus
 
@@ -27,7 +27,7 @@ La navigation globale disparaît pendant l’exécution; les participants sont e
 
 ## Trois options pour l’écran en cours
 
-Le [prototype HTML](./prototype.html) décrit la même routine, l’étape 1/3, 0:42 restant et deux enfants. Il n’a **pas été rendu ni vérifié visuellement** : l’ouverture locale dans le navigateur automatisé a été refusée par la politique de sécurité. Les PNG comparatifs exigés par la méthode n’existent donc pas encore. Ce sont des propositions, pas des captures du produit. Le correctif de persistance du minuteur est commun aux trois options.
+Le [prototype HTML](./prototype.html) décrit la même routine, l’étape 1/3, 0:42 restant et deux enfants. Son ouverture dans le navigateur automatisé avait d'abord été refusée; [le PNG comparatif des options A/B/C](./prototype-options.png) a ensuite été rendu et contrôlé avec Edge isolé. Ce sont des propositions historiques, pas des captures du produit. Le correctif de persistance du minuteur est commun aux trois options.
 
 | Option | Hiérarchie | Responsive | Accessibilité / états | Bénéfice | Risque |
 |---|---|---|---|---|---|
@@ -43,7 +43,7 @@ L’utilisateur a répondu « j'autorise continue » immédiatement après la pr
 
 Contrôle web sur des origines fictives isolées : le minuteur conserve environ 0:45 après rechargement au lieu de repartir à 1:00; une pause à 0:45 garde exactement 0:45 après rechargement puis peut reprendre. Le panneau Parent s’ouvre avec Entrée, son bouton de fermeture et ses actions sont exposés; l’étape suivante sans durée n’hérite pas du minuteur précédent. Captures observées à 320, 390 et 768 px en clair, puis à 390/320 px en sombre avec un nom de routine long. La composition à 768 px a été corrigée pour éviter de tronquer le prénom et le titre long s’affiche sur plusieurs lignes. L’enchaînement d’une routine minutée avec une seconde routine sans durée a été joué jusqu’à la célébration finale. Un accès transitoire à une exécution nulle découvert pendant cet essai a été corrigé puis le parcours rejoué sans erreur. TypeScript strict, 23 suites/160 tests et `git diff --check` réussissent; tests de calcul d’échéance, pause et persistance ajoutés. La validation visuelle finale de l’utilisateur reste ouverte; aucun essai natif revendiqué.
 
-Le prototype HTML antérieur n’a toujours pas de PNG comparatifs car son ouverture locale a été bloquée par la politique de sécurité du navigateur automatisé. Les captures du **produit intégré** ont pu être observées sur l’origine fictive; elles ne sont pas présentées comme les trois maquettes comparatives exigées pour un nouveau choix graphique. La direction A recommandée a été construite sur autorisation de l’utilisateur, sans inférer son approbation visuelle finale.
+Le prototype historique possède désormais son [PNG comparatif](./prototype-options.png); le contraste du texte des cartes a été corrigé pour rester lisible quand le navigateur hôte utilise le thème sombre. La direction A recommandée avait été construite sur autorisation de l’utilisateur. Les captures du **produit intégré** restent distinctes de ces maquettes.
 
 ## Correctif de reprise — écran `/child/run` vide
 
@@ -52,3 +52,9 @@ Demande utilisateur : après lancement, l’écran des étapes et du minuteur ne
 Après retour utilisateur, l’URL de production fournie reste sur `/child/summary` lors de l’écran blanc. L’ouverture directe de `/child/run` sur `douceroutine.vercel.app` reproduit une erreur JavaScript dans le bundle : `ReferenceError: process is not defined`, à l’import du module `react-native-worklets/platformChecker` (`process.env.JEST_WORKER_ID`). Les précédentes hypothèses sur l’état de l’exécution ne suffisaient donc pas à expliquer ce parcours. L’entrée web de l’app initialise `process.env` avant de charger Expo Router lorsque le navigateur ne fournit pas `process`. Ce correctif ne touche ni les routines ni les données locales. TypeScript, 163 tests et le build web passent. Après publication du commit `9da0933`, le nouveau bundle Vercel charge `/child/run` sans cette exception et, faute de routine dans le navigateur de test isolé, revient normalement à Routines. La vérification du lancement avec les données locales de l’utilisateur reste ouverte.
 
 Sur demande de terminer le correctif sans intervention de l’utilisateur, un contrôle de rendu web automatisé a été ajouté avec une exécution fictive : l’étape et le libellé du minuteur apparaissent, y compris avec une humeur difficile et une étape facultative. Un test séparé vérifie que le point d’entrée fournit `process.env` avant Expo Router dans un contexte navigateur et préserve le processus existant sur natif. Ces tests ne reproduisent pas les données privées du navigateur de l’utilisateur.
+
+## Contrôle final et retrait de la todo
+
+Le scénario `scripts/check-g06-web.mjs` charge une famille et une routine fictives dans un profil Edge temporaire. Sur `/child/run`, il vérifie le nom de routine, l'étape et le minuteur, ouvre les actions Parent, met en pause, recharge et constate que le même temps reste affiché, puis reprend et recharge encore avec une échéance active. [Mobile 320](./integration-run-320.png), [tablette 768](./integration-run-768.png) et [pause après rechargement](./integration-run-paused.png) documentent le produit; aucun débordement horizontal à 320/390/768 px. Les tests de rendu web passent. Les contrôles précédents couvrent le thème sombre, un titre long, l'enchaînement et la célébration. Aucun appareil iOS/Android n'a été testé, conformément au périmètre demandé.
+
+**Todo G06 : aucune tâche active.** Le travail local restant à publier sur le site concerne le flux Git/déploiement, pas une correction G06 ouverte.
