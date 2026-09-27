@@ -305,6 +305,8 @@ Reprise G06 : l’utilisateur signale que `/child/run` n’affiche plus les éta
 
 Retour utilisateur : le problème persiste après ce premier correctif. Sur l’URL Vercel fournie, l’ouverture directe de `/child/run` reproduit `ReferenceError: process is not defined` dans `react-native-worklets/platformChecker`. L’écran de préparation reste sur `/child/summary`, donc l’erreur du bundle web est la cause confirmée à corriger. L’entrée de l’app fournit `process.env` au navigateur avant de charger Expo Router; build web, TypeScript et 163 tests réussissent. La création d’un enfant fictif directement sur l’origine Vercel a été refusée par la revue automatique; aucun autre essai d’écriture sur cette origine n’a été fait. La vérification de la version déployée est à poursuivre après publication, sans données familiales.
 
+Après déploiement du commit `9da0933`, le bundle de production a changé et l’ouverture directe de `/child/run` ne produit plus `process is not defined`; sans exécution locale dans le navigateur isolé, la route revient à Routines. Cette observation confirme le chargement du module corrigé, pas encore le parcours complet avec les données de l’utilisateur. Sa vérification est demandée séparément.
+
 ## Protocole sur appareil écarté du périmètre (non testé)
 
 À exécuter sur installation isolée iOS et Android, sans données familiales :
