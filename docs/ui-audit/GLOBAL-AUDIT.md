@@ -1,5 +1,7 @@
 # Audit global — bilan et suivi
 
+Mise à jour G08 du 2026-09-29 : `50c09b9` a été poussé sur `main`; le site publié montre maintenant le sélecteur commun de 324 pictogrammes dans le constructeur de routine, l'étape et le repère Parent, ainsi que 16 illustrations et 24 animaux dans Famille. Contrôle en lecture seule du profil de test, sans routine, repère, humeur ni récompense enregistrés. Recherche « girafe », catégorie Animaux, rendu grand écran clair/sombre, vignettes Activités et repère de la semaine enfant observés. Les tests web du sélecteur et de l'image importée passent. Une correction supplémentaire rend toutes les catégories visibles sur tablette et réduit les largeurs minimales à 320 px; son rendu visuel doit encore être vérifié. Le contrôle responsive final G08 reste ouvert faute d'accès du navigateur automatisé à l'origine locale (`ERR_BLOCKED_BY_CLIENT`).
+
 ## État actuel — 2026-09-27
 
 Nouvelle demande G08 : inventaire des endroits avec choix ou affichage d'icônes, avatars et images, à partir du signalement « très peu d'icônes » dans le constructeur de routine sur tablette. Diagnostic confirmé par le code : 18 premiers émojis de la catégorie Hygiène seulement sont présentés pour routines et étapes, alors que huit groupes existent. La [todo G08 par emplacement](./lots/G08/REVIEW.md) couvre également avatars, calendrier, Activités, humeurs, météo, récompenses, image d'étape et rendu partagé `OpenMoji`. Le rendu sur la tablette de l'utilisateur n'a pas été testé ici; aucun code produit ni donnée familiale modifié.
