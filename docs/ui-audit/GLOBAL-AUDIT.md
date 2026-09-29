@@ -325,6 +325,35 @@ Après déploiement du commit `9da0933`, le bundle de production a changé et l�
 
 ## Protocole sur appareil écarté du périmètre (non testé)
 
+### 2026-09-27 — G08 : trois exemples et contrôle responsive final
+
+Demande : ajouter la vérification responsive en fin de toutes les todos d'écran, commencer G08 et générer trois exemples. La méthode active et la fiche G08 imposent maintenant ce contrôle final à 320/390/768/1440 px, avec thème, contenu long, défilement, clavier et cible tactile selon l'écran. Pour le choix d'icône de routine/étape, trois maquettes comparables mobile/tablette sont préparées : A, panneau par catégories (recommandé); B, grille dans le formulaire; C, recherche et récents. Les trois PNG et le prototype HTML se trouvent dans [G08](./lots/G08/REVIEW.md). Ces visuels sont des propositions et non des captures du produit ni une validation du rendu sur la tablette de l'utilisateur. Aucun code produit G08 n'a été modifié; choix et autorisation de construire restent ouverts.
+
+### 2026-09-27 — G08 : option C choisie
+
+L'utilisateur répond « c » à la comparaison des trois maquettes. Le choix de conception G08-01/02 est **C — recherche, récents et catégories complètes**. Ce choix ne vaut pas validation explicite du prototype ni autorisation de construction selon la méthode du dépôt; le code produit reste inchangé. La fiche G08 précise les états et les vérifications requis pour l'intégration ultérieure.
+
+### 2026-09-29 — G08 : construction du premier groupe
+
+L'utilisateur répond « je valide CONTINUE la todo » : le prototype C est validé et la construction G08 autorisée. Les choix d'icônes de routine et d'étape utilisent désormais une recherche en français, des récents locaux et toutes les catégories; le symbole hérité reste visible. Les 16 avatars locaux sont affichés dans Famille. `OpenMoji` montre un émoji natif pendant le chargement de l'image et repart correctement sur une nouvelle valeur. TypeScript strict, 27 suites/172 tests Jest, export web et `git diff --check` passent. Sur l'origine locale de contrôle, le PIN `0000` associé à un autre profil de test est incorrect : aucun autre code n'a été essayé et aucun profil n'a été modifié. Le parcours visuel complet, le responsive final et les autres emplacements G08 restent ouverts; aucun résultat de tablette réelle n'est revendiqué.
+
+### 2026-09-29 — G08 : calendrier Parent
+
+Demande : « continue la todo ». Le même sélecteur C est partagé avec le formulaire de repère Parent, qui n'expose plus seulement huit icônes. Les deux icônes historiques absentes de la bibliothèque (`🎂`, `🩺`) y sont ajoutées. L'éditeur et le dialogue d'icônes sont frères : l'éditeur revient avec ses champs inchangés après sélection ou fermeture. Ce comportement est établi par le code, pas encore par un parcours UI déverrouillé. TypeScript strict, 27 suites/172 tests Jest, export web et `git diff --check` passent. Le responsive final reste à faire après les autres tâches de l'écran.
+
+### 2026-09-29 — G08 : repli des images d'étape et de tenue
+
+Demande : « continue la todo ». Une URI d'image d'étape importée pouvait laisser une zone vide sur `/child/run`; elle affiche maintenant l'icône de l'étape pendant le chargement et un message lisible en cas d'erreur. Les PNG de tenue gardent un émoji correspondant pendant le chargement et après une erreur. Le composant `Avatar` a été relu : ses trois formats restent pris en charge dans le code. Ces corrections ne constituent pas encore une observation sur les pages; import invalide, rendu des vêtements, ancien avatar et responsive final sont à rejouer sur une famille fictive isolée. Aucun ajout de photo dans le constructeur n'a été décidé.
+
+TypeScript strict, 27 suites/172 tests Jest et export web réussissent. Le navigateur automatisé a refusé l'origine locale `127.0.0.1:8096`, puis l'adresse serveur `localhost:8096` (`ERR_BLOCKED_BY_CLIENT`); il n'y a donc pas de nouvelle preuve visuelle pour Routines ou Activités sur cette compilation. La limite est notée sans déclarer ces écrans vérifiés.
+
+### 2026-09-29 — G08 : icônes cohérentes entre pages
+
+Demande : « continue la todo ». Le code montre que la même icône de routine ou de repère passait d'`OpenMoji` à l'émoji système entre les cartes, `/child/run`, la liste Parent du calendrier et la semaine enfant. Ces trois derniers affichages utilisent maintenant le composant partagé avec repli immédiat, sans changer les valeurs enregistrées. Les activités gardent leurs vignettes natives fixes; aucun problème nouveau n'a été observé sur une capture. La cohérence visuelle réelle, le contenu long et le responsive final restent à contrôler sur un navigateur de test accessible.
+
+Le premier enfant conserve l'avatar et la couleur par défaut pour préserver le parcours G07 court. Le texte de l'onboarding annonce leur modification ultérieure; les 16 illustrations sont maintenant proposées dans Famille. Cette décision est issue des parcours déjà acquis et de la lecture du code, pas d'une nouvelle observation visuelle. Les vignettes Activités, humeurs, badges et icônes d'actions restent à contrôler sur les écrans; aucune anomalie supplémentaire n'est déduite du seul inventaire.
+
+
 À exécuter sur installation isolée iOS et Android, sans données familiales :
 
 1. Premier enfant → création du PIN par l’utilisateur; verrou Parent, annulation puis retour système depuis Activités et une sous-page Parent.

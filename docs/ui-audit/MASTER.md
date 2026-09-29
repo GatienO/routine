@@ -1,6 +1,6 @@
 # Audit global — état des lots
 
-**G08 — inventaire des icônes, avatars et images, todo ouverte** à la demande du 2026-09-27. Le choix d'icône du constructeur est limité dans le code aux 18 premières valeurs; les autres emplacements, leurs sources visuelles et les contrôles à mener sont détaillés dans la [fiche G08](./lots/G08/REVIEW.md). Phase d'audit uniquement : aucune construction ou validation visuelle déduite.
+**G08 — icônes, avatars et images, en cours.** Le code limitait le constructeur aux 18 premières icônes. Parmi les trois exemples mobile/tablette, l'utilisateur a choisi **C — recherche et choix récents**, puis validé la poursuite le 2026-09-29. Le sélecteur complet est intégré pour les routines, étapes et repères du calendrier; les 16 avatars et le repli immédiat d'OpenMoji le sont aussi. Contrôle visuel et autres emplacements restent ouverts dans la [fiche G08](./lots/G08/REVIEW.md). Le contrôle responsive est la dernière tâche de chaque écran.
 
 **G07 terminé et retiré de la todo active** le 2026-09-27 : bienvenue et nom de famille → code Parent → premier enfant → accueil `/routines`. Prototype validé, construction autorisée puis parcours complet vérifié sur installation web isolée, avec retours, rechargements, 320/390/768 px et thème sombre. [Fiche et preuves conservées](./lots/G07/REVIEW.md). Aucun lot actif ouvert ici.
 

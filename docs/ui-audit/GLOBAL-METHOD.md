@@ -32,6 +32,8 @@ Jeux de données : installation vide; famille avec un enfant et une routine; plu
 
 Matrice minimale : les trois destinations à 390 et 768 px dans les deux thèmes; 320 et 1440 px pour les limites de mise en page. Chaque panneau partagé reçoit une vérification clavier/focus/fermeture et un exemple de contenu long; les autres usages ont un contrôle ciblé des différences. Les états métier risqués sont rejoués sur la surface concernée, sans croiser artificiellement tous les états et toutes les tailles.
 
+**Dernière tâche de chaque écran : responsive.** Après ses autres tâches fonctionnelles et visuelles, vérifier l'écran à 320, 390, 768 et 1440 px, en clair et sombre lorsque le rendu change. Contrôler orientation tablette, contenu long, défilement jusqu'à la dernière action, absence de débordement ou d'élément caché, clavier/focus et cibles tactiles. Consigner les tailles réellement observées; ne marquer l'écran vérifié qu'après ce passage final. Ce contrôle final est ajouté en fin de chaque todo d'écran, même si un contrôle ciblé a déjà eu lieu pendant la construction.
+
 Contrôles techniques liés à l'usage : hydratation/persistance après relance, reprise après arrière-plan, liens directs/identifiants invalides, défilement des grandes listes, erreurs réseau et permission refusée, cohérence des dates/fuseaux, absence de double attribution et restauration des données. Mesurer les lenteurs réellement observées; une compilation de développement ne représente pas les performances de production. Ne pas introduire de backend, de télémétrie ou de dépendance lourde pour cet audit.
 
 ## Mesurer l'amélioration

@@ -5,7 +5,6 @@ import {
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
-  Image,
   useWindowDimensions,
   Modal,
   Pressable,
@@ -39,6 +38,7 @@ import { formatChildName } from '../../src/utils/children';
 import { useAppTheme } from '../../src/hooks/useAppTheme';
 import { useWeatherStore } from '../../src/stores/weatherStore';
 import { GuidedWeatherStep } from '../../src/features/routines/components/guided-weather-step';
+import { StepMedia } from '../../src/features/routines/components/StepMedia';
 import { getGuidedStepKind } from '../../src/features/routines/utils/guided-steps';
 import { selectActiveSteps } from '../../src/features/routines/select-active-steps';
 
@@ -542,9 +542,10 @@ export default function RunRoutineScreen() {
             </View>
           </Reanimated.View>
 
-          <Text style={[styles.runningRoutineName, { color: colors.textSecondary }]}>
-            {routine.icon} {routine.name}
-          </Text>
+          <View style={styles.runningRoutineRow}>
+            <OpenMoji emoji={routine.icon} size={22} />
+            <Text style={[styles.runningRoutineName, { color: colors.textSecondary }]}>{routine.name}</Text>
+          </View>
           <ProgressBar progress={progress} color={routine.color} height={10} />
 
           <View style={[styles.topCenterStatus, { maxWidth: centerColumnWidth }]}>
@@ -619,7 +620,7 @@ export default function RunRoutineScreen() {
                   {currentStep.title}
                 </Text>
                 {currentStep.mediaUri ? (
-                  <Image source={{ uri: currentStep.mediaUri }} style={[styles.stepMedia, isMobile && styles.stepMediaMobile]} />
+                  <StepMedia key={`${currentStep.id}:${currentStep.mediaUri}`} uri={currentStep.mediaUri} icon={currentStep.icon} title={currentStep.title} mobile={isMobile} colors={colors} />
                 ) : null}
                 {currentStep.instruction && !guidedKind ? (
                   <Text
@@ -730,10 +731,12 @@ const styles = StyleSheet.create({
   topBarMobile: {
     alignItems: 'flex-start',
   },
+  runningRoutineRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACING.xs, marginBottom: SPACING.sm },
   runningRoutineName: {
     fontSize: FONT_SIZE.md,
     fontWeight: '800',
-    marginBottom: SPACING.sm,
+    flexShrink: 1,
+    textAlign: 'center',
   },
   topBarBadges: {
     flexDirection: 'row',
@@ -934,16 +937,6 @@ const styles = StyleSheet.create({
   stepTitleMobile: {
     fontSize: FONT_SIZE.xxl - 2,
     lineHeight: 36,
-  },
-  stepMedia: {
-    width: 180,
-    height: 180,
-    borderRadius: RADIUS.xl,
-    marginTop: SPACING.md,
-  },
-  stepMediaMobile: {
-    width: 156,
-    height: 156,
   },
   stepInstruction: {
     fontSize: FONT_SIZE.lg,

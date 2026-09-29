@@ -13,9 +13,10 @@ type Props = {
   children: React.ReactNode;
   footer?: React.ReactNode;
   compact?: boolean;
+  centered?: boolean;
 };
 
-export function ResponsiveOverlay({ visible, title, subtitle, onClose, children, footer, compact = false }: Props) {
+export function ResponsiveOverlay({ visible, title, subtitle, onClose, children, footer, compact = false, centered = false }: Props) {
   const { width } = useWindowDimensions();
   const { colors } = useAppTheme();
   const reducedMotion = useReducedMotionPreference();
@@ -23,9 +24,9 @@ export function ResponsiveOverlay({ visible, title, subtitle, onClose, children,
 
   return (
     <Modal transparent visible={visible} animationType={reducedMotion ? 'none' : sidePanel ? 'fade' : 'slide'} onRequestClose={onClose} statusBarTranslucent>
-      <SafeAreaView style={[styles.safe, { backgroundColor: colors.overlay }]}>
+      <SafeAreaView style={[styles.safe, sidePanel && centered && styles.centeredSafe, { backgroundColor: colors.overlay }]}>
         <Pressable accessibilityRole="button" accessibilityLabel="Fermer" onPress={onClose} style={styles.backdrop} />
-        <View style={[styles.panel, sidePanel ? styles.sidePanel : styles.bottomSheet, { backgroundColor: colors.background, borderColor: colors.border }]}>
+        <View style={[styles.panel, sidePanel ? centered ? styles.centeredPanel : styles.sidePanel : styles.bottomSheet, { backgroundColor: colors.background, borderColor: colors.border }]}>
           {!sidePanel ? <View style={[styles.handle, { backgroundColor: colors.border }]} /> : null}
           <View style={styles.header}>
             <View style={styles.headerCopy}>
@@ -48,10 +49,12 @@ export function ResponsiveOverlay({ visible, title, subtitle, onClose, children,
 
 const styles = StyleSheet.create({
   safe: { flex: 1, justifyContent: 'flex-end' },
+  centeredSafe: { justifyContent: 'center', alignItems: 'center' },
   backdrop: { ...StyleSheet.absoluteFillObject },
   panel: { maxHeight: '92%', borderWidth: 1, overflow: 'hidden', ...SHADOWS.lg },
   bottomSheet: { width: '100%', borderTopLeftRadius: 28, borderTopRightRadius: 28, borderBottomWidth: 0 },
   sidePanel: { width: 520, maxWidth: '92%', height: '100%', maxHeight: '100%', alignSelf: 'flex-end', borderTopLeftRadius: 28, borderBottomLeftRadius: 28, borderRightWidth: 0 },
+  centeredPanel: { width: 640, maxWidth: '92%', maxHeight: '88%', borderRadius: 24 },
   handle: { width: 44, height: 5, borderRadius: 3, alignSelf: 'center', marginTop: SPACING.sm },
   header: { flexDirection: 'row', alignItems: 'flex-start', gap: SPACING.md, padding: SPACING.lg, paddingBottom: SPACING.md },
   headerCopy: { flex: 1, minWidth: 0 },

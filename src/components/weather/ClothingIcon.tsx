@@ -1,6 +1,6 @@
-import React from 'react';
-import { Image, ImageSourcePropType, Text } from 'react-native';
-import { OutfitVisualId } from '../../constants/weatherOutfits';
+import React, { useState } from 'react';
+import { Image, ImageSourcePropType, Text, View } from 'react-native';
+import { getOutfitVisualItem, OutfitVisualId } from '../../constants/weatherOutfits';
 
 const clothingMap: Record<string, ImageSourcePropType[]> = {
   bonnet: [
@@ -107,6 +107,10 @@ const clothingMap: Record<string, ImageSourcePropType[]> = {
 };
 
 const emojiFallbacks: Partial<Record<OutfitVisualId, string>> = {
+  bonnet: '🧢', bottes: '👢', casquette: '🧢', chaussettes: '🧦', chaussures: '👟',
+  doudou: '🧸', echarpe: '🧣', gants: '🧤', lunettes: '🕶️', manteau: '🧥',
+  pantalon: '👖', parapluie: '☂️', pull: '🧥', pyjamaEte: '🛌', pyjamaHiver: '🛌',
+  robe: '👗', short: '🩳', tshirt: '👕', tshirtML: '👕',
   bouteille: '\u{1F4A7}',
   bouteille_eau: '\u{1F4A7}',
   impermeable: '\u2602',
@@ -137,15 +141,28 @@ export function ClothingIcon({
 }) {
   const assets = clothingMap[code];
   if (assets?.length) {
-    return (
-      <Image
-        source={pickVariant(assets, variant)}
-        resizeMode="contain"
-        style={{ width: size, height: size }}
-      />
-    );
+    return <ClothingAsset key={`${code}:${variant}`} code={code} source={pickVariant(assets, variant)} size={size} />;
   }
 
-  const fallback = emojiFallbacks[code as OutfitVisualId] ?? code;
+  const fallback = emojiFallbacks[code as OutfitVisualId] ?? '👕';
   return <Text style={{ fontSize: size }}>{fallback}</Text>;
+}
+
+function ClothingAsset({ code, source, size }: { code: string; source: ImageSourcePropType; size: number }) {
+  const [loaded, setLoaded] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const fallback = emojiFallbacks[code as OutfitVisualId] ?? '👕';
+  const label = getOutfitVisualItem(code)?.label ?? 'Vêtement';
+
+  return <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+    {!loaded || failed ? <Text accessibilityLabel={label} style={{ fontSize: size * 0.75 }}>{fallback}</Text> : null}
+    {!failed ? <Image
+      source={source}
+      accessibilityLabel={label}
+      resizeMode="contain"
+      onLoad={() => setLoaded(true)}
+      onError={() => setFailed(true)}
+      style={{ width: size, height: size, position: 'absolute', opacity: loaded ? 1 : 0 }}
+    /> : null}
+  </View>;
 }
