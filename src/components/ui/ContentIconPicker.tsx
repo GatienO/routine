@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { MagnifyingGlass } from 'phosphor-react-native';
 import { ICON_PICKER_EMOJIS, ICON_PICKER_GROUPS } from '../../constants/icons';
 import { FONT_SIZE, SPACING, type ThemeColors } from '../../constants/theme';
@@ -37,7 +37,6 @@ type DialogProps = Omit<Props, 'onPress'> & {
 };
 
 export function ContentIconPickerDialog({ value, onChange, colors, kind, visible, onClose }: DialogProps) {
-  const { width } = useWindowDimensions();
   const [query, setQuery] = useState('');
   const [groupKey, setGroupKey] = useState('all');
   const [recent, setRecent] = useState(recentCache);
@@ -76,7 +75,7 @@ export function ContentIconPickerDialog({ value, onChange, colors, kind, visible
   return <ResponsiveOverlay visible={visible} centered title="Trouver une icône" subtitle={`${kind === 'étape' ? 'Pour l’étape' : kind === 'repère' ? 'Pour le repère' : 'Pour la routine'} · recherche, récents et catégories`} onClose={close}>
       <TextInput accessibilityLabel="Rechercher une icône" value={query} onChangeText={(text) => { setQuery(text); setVisibleCount(PAGE_SIZE); }} placeholder="Soleil, dent, école…" placeholderTextColor={colors.textLight} style={[styles.search, { color: colors.text, backgroundColor: colors.surface, borderColor: colors.border }]} />
       {!query && recent.length > 0 ? <View style={styles.section}><Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>CHOIX RÉCENTS</Text><View style={styles.grid}>{recent.map((emoji) => <IconButton key={`recent-${emoji}`} emoji={emoji} selected={emoji === value} onPress={() => pick(emoji)} colors={colors} />)}</View></View> : null}
-      <View style={styles.section}><Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>TOUTES LES CATÉGORIES</Text>{width >= 760 ? <View style={[styles.categories, styles.categoryWrap]}>{categories}</View> : <><ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categories}>{categories}</ScrollView><Text style={[styles.hint, { color: colors.textSecondary }]}>Glissez pour voir les autres catégories.</Text></>}</View>
+      <View style={styles.section}><Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>TOUTES LES CATÉGORIES</Text><View style={styles.categories}>{categories}</View></View>
       {showSelectedSeparately ? <View style={styles.section}><Text style={[styles.hint, { color: colors.textSecondary }]}>{ICON_PICKER_EMOJIS.includes(value) ? 'Pictogramme choisi' : 'Pictogramme actuel conservé'}</Text><IconButton emoji={value} selected onPress={() => pick(value)} colors={colors} /></View> : null}
       {results.length ? <><Text accessibilityLiveRegion="polite" style={[styles.hint, { color: colors.textSecondary }]}>{visibleResults.length} icône{visibleResults.length > 1 ? 's' : ''} sur {results.length}</Text><View style={styles.grid}>{visibleResults.map((emoji) => <IconButton key={emoji} emoji={emoji} selected={emoji === value} onPress={() => pick(emoji)} colors={colors} />)}</View>{visibleCount < results.length ? <Pressable accessibilityRole="button" accessibilityLabel="Voir plus d’icônes" onPress={() => setVisibleCount((count) => count + PAGE_SIZE)} style={[styles.more, { backgroundColor: colors.actionSoft }]}><Text style={[styles.triggerTitle, { color: colors.action }]}>Voir plus d’icônes</Text></Pressable> : null}</> : <View style={[styles.empty, { backgroundColor: colors.surfaceSecondary }]}><Text style={[styles.triggerTitle, { color: colors.text }]}>Aucune icône trouvée</Text><Text style={[styles.hint, { color: colors.textSecondary }]}>Essayez un autre mot ou choisissez une catégorie.</Text><Pressable accessibilityRole="button" onPress={() => { setQuery(''); setGroupKey('all'); setVisibleCount(PAGE_SIZE); }} style={[styles.reset, { backgroundColor: colors.actionSoft }]}><Text style={[styles.triggerTitle, { color: colors.action }]}>Voir toutes les icônes</Text></Pressable></View>}
     </ResponsiveOverlay>;
@@ -96,7 +95,7 @@ const styles = StyleSheet.create({
   triggerCopy: { flex: 1, minWidth: 0 }, triggerTitle: { fontSize: FONT_SIZE.sm, fontWeight: '800' }, hint: { fontSize: FONT_SIZE.xs, lineHeight: 18 },
   search: { minHeight: 50, borderWidth: 1, borderRadius: 15, paddingHorizontal: SPACING.md, fontSize: FONT_SIZE.md },
   section: { gap: SPACING.sm }, sectionTitle: { fontSize: FONT_SIZE.xs, fontWeight: '800' },
-  categories: { gap: SPACING.xs, paddingBottom: 2 }, categoryWrap: { flexDirection: 'row', flexWrap: 'wrap' }, category: { minHeight: 44, borderWidth: 1, borderRadius: 22, paddingHorizontal: SPACING.md, alignItems: 'center', justifyContent: 'center' }, categoryText: { fontSize: FONT_SIZE.xs, fontWeight: '700' },
+  categories: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.xs, paddingBottom: 2 }, category: { minHeight: 44, borderWidth: 1, borderRadius: 22, paddingHorizontal: SPACING.md, alignItems: 'center', justifyContent: 'center' }, categoryText: { fontSize: FONT_SIZE.xs, fontWeight: '700' },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm }, icon: { width: 54, height: 54, borderWidth: 1, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
   empty: { borderRadius: 16, padding: SPACING.lg, gap: SPACING.sm }, reset: { minHeight: 44, borderRadius: 13, alignSelf: 'flex-start', paddingHorizontal: SPACING.md, alignItems: 'center', justifyContent: 'center' },
   more: { minHeight: 44, borderRadius: 13, alignItems: 'center', justifyContent: 'center', paddingHorizontal: SPACING.md },
