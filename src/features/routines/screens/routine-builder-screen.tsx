@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { Pressable, SafeAreaView, ScrollView, StyleSheet, Switch, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowDown, ArrowLeft, ArrowUp, PencilSimple, Plus, SquaresFour, Trash } from 'phosphor-react-native';
@@ -18,8 +18,17 @@ import { formatDuration } from '../../../utils/date';
 import { formatChildName } from '../../../utils/children';
 
 const CATEGORIES = Object.entries(CATEGORY_CONFIG) as Array<[RoutineCategory, (typeof CATEGORY_CONFIG)[string]]>;
+const subscribeToRoutineHydration = (notify: () => void) => useRoutineStore.persist.onFinishHydration(notify);
+const routineHydratedSnapshot = () => useRoutineStore.persist.hasHydrated();
 
 export function RoutineBuilderScreen({ mode }: { mode: 'create' | 'edit' }) {
+  const routinesHydrated = useSyncExternalStore(subscribeToRoutineHydration, routineHydratedSnapshot, () => false);
+  const childrenHydrated = useChildrenStore((state) => state.hasHydrated);
+  if (!routinesHydrated || !childrenHydrated) return null;
+  return <HydratedRoutineBuilderScreen mode={mode} />;
+}
+
+function HydratedRoutineBuilderScreen({ mode }: { mode: 'create' | 'edit' }) {
   const router = useRouter();
   const params = useLocalSearchParams<{ id?: string; catalog?: string; mergeIds?: string }>();
   const { width } = useWindowDimensions();

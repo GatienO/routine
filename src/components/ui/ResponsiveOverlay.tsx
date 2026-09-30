@@ -1,5 +1,5 @@
-import React from 'react';
-import { Modal, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Modal, Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { X } from 'phosphor-react-native';
 import { FONT_SIZE, SHADOWS, SPACING } from '../../constants/theme';
 import { useAppTheme } from '../../hooks/useAppTheme';
@@ -21,6 +21,23 @@ export function ResponsiveOverlay({ visible, title, subtitle, onClose, children,
   const { colors } = useAppTheme();
   const reducedMotion = useReducedMotionPreference();
   const sidePanel = width >= 760;
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  useEffect(() => {
+    if (!visible || Platform.OS !== 'web' || typeof document === 'undefined') return;
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      onCloseRef.current();
+    };
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('keydown', closeOnEscape);
+      if (previousFocus?.isConnected) previousFocus.focus();
+    };
+  }, [visible]);
 
   return (
     <Modal transparent visible={visible} animationType={reducedMotion ? 'none' : sidePanel ? 'fade' : 'slide'} onRequestClose={onClose} statusBarTranslucent>

@@ -1,5 +1,6 @@
 import { useCallback, useRef, useSyncExternalStore } from 'react';
 import { useFocusEffect, useLocalSearchParams, usePathname, useRouter } from 'expo-router';
+import { Platform } from 'react-native';
 import { useAppStore } from '../stores/appStore';
 import { useChildrenStore } from '../stores/childrenStore';
 import { routeWithParams } from '../utils/pinNavigation';
@@ -18,7 +19,11 @@ export function useParentAccess() {
   const pathname = usePathname();
   const params = useLocalSearchParams<Record<string, string | string[]>>();
   const destination = useRef('/parent');
-  destination.current = pin ? routeWithParams(pathname, params) : '/parent';
+  const route = routeWithParams(pathname, params);
+  const browserQuery = Platform.OS === 'web' && typeof window !== 'undefined' && window.location.pathname === pathname
+    ? window.location.search
+    : '';
+  destination.current = pin ? browserQuery && !route.includes('?') ? `${pathname}${browserQuery}` : route : '/parent';
   const access = parentAccess(hydrated && childrenHydrated, unlocked, pin, childCount);
   useFocusEffect(useCallback(() => {
     if (access === 'locked') router.replace({ pathname: '/pin', params: { redirect: destination.current } });
