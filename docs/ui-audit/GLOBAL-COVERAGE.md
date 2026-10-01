@@ -1,5 +1,7 @@
 # Matrice de couverture — 2026-09-20
 
+Fond commun (2026-10-01) : neuf surfaces représentatives ont été rejouées en clair/sombre à 390 px, et Routines, Activités, Parent et `/child/summary` à 768 px en clair, sur une famille fictive isolée. Un chargement prématuré de `/child/summary` a été corrigé. [Captures et méthode](./global-evidence-2026-10-01/README.md). Les autres routes ne sont pas déclarées individuellement vérifiées par cet échantillon.
+
 G08 (2026-09-30) : le contrôle final a été rejoué sur export web local dans un profil Edge temporaire. Création/édition/réouverture de routine, étape, avatar et repère vérifiées; constructeur, sélecteur, Famille et calendrier Parent capturés à 320/390/768/1440 px en clair, avec contrôles sombres ciblés et défilement du sélecteur. Calendrier enfant, Activités et exécution fictive vus à 320 px. Repli OpenMoji vérifié avec CDN bloqué; fermeture Échap et retour du focus vérifiés. La [fiche G08](./lots/G08/REVIEW.md) garde les preuves et les limites, notamment l'absence de test sur la tablette physique et du grand texte système.
 
 G08 (2026-09-29) : sélecteurs routine/étape/repère et avatars Famille constatés sur le site publié à largeur 1175 px; recherche et catégorie ajoutée vérifiées sans sauvegarde. Calendrier enfant semaine, Activités et thème sombre vus en lecture seule. Tests web du choix au-delà des 40 premières icônes et du repli d'image importée réussis. Les corrections responsive 320 px sont intégrées dans le code mais non capturées sur cette largeur; aucune vérification native n'est revendiquée.

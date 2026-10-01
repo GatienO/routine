@@ -1,0 +1,9 @@
+# Fond commun — contrôle transversal local du 2026-10-01
+
+Le script [`check-shared-background-web.mjs`](../../../scripts/check-shared-background-web.mjs) sert l'export web local et ouvre un profil Edge temporaire. Il crée uniquement dans ce profil une famille fictive, un enfant, une routine et une exécution. Il capture les pages à 390 × 844 px dans les deux thèmes, puis Routines, Activités, Parent et le résumé enfant à 768 × 1024 px en thème clair. Il signale un écran vide, une redirection du résumé ou un débordement horizontal du document. Aucune donnée familiale du site publié n'est modifiée.
+
+Sur les captures, les deux ronds restent visibles sur les neuf surfaces : Routines, Activités, accueil Parent, liste des routines Parent, Famille, calendrier Parent, résumé avant lancement, calendrier enfant et exécution. Les cartes gardent leur surface opaque pour le texte. Exemples : [Routines](./routines-light-390.png), [Activités](./activities-light-390.png), [Parent](./parent-light-390.png), [résumé clair](./child-summary-light-390.png), [résumé sombre](./child-summary-dark-390.png), [exécution](./child-run-light-390.png).
+
+Le premier passage a révélé que l'ouverture directe de `/child/summary?routineIds=…&childIds=…` pouvait renvoyer à `/routines` avant le chargement des routines. Le résumé attend maintenant l'hydratation des stores Routine et Enfants. Le même scénario est ensuite passé sur cette URL dans les deux thèmes, avec la routine et ses étapes visibles.
+
+Ce contrôle est un **échantillon transversal**, pas une validation individuelle des 42 routes. Les vues non capturées héritent du même cadre racine selon la lecture du code; leur état métier spécifique n'est pas déduit de cette vérification. Les essais iOS/Android restent hors périmètre à la demande de l'utilisateur. Le travail reste local; aucun push n'est autorisé par cette preuve.

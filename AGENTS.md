@@ -162,6 +162,8 @@ Si une vérification ne peut pas être lancée, l'indiquer clairement.
 
 Ne pas supprimer ou réinitialiser des changements utilisateur.
 
+Ne jamais pousser vers un dépôt distant sans demander et recevoir l'accord explicite de l'utilisateur **juste avant chaque push**. Garder les modifications et les commits en local tant que cet accord n'a pas été donné.
+
 Avant un commit :
 
 ```bash

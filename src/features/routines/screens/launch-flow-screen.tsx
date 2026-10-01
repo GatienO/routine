@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, ArrowRight, CaretDown, CaretUp, Check, CheckCircle, Clock, PencilSimple, Play, UsersThree } from 'phosphor-react-native';
@@ -19,8 +19,17 @@ const STAGES: Array<{ id: LaunchStage; label: string }> = [
   { id: 'prepare', label: 'Préparer' }, { id: 'presence', label: 'Présence' }, { id: 'mood', label: 'Humeur' },
 ];
 const parseIds = (value?: string) => Array.from(new Set((value ?? '').split(',').map((id) => id.trim()).filter(Boolean)));
+const subscribeToRoutineHydration = (notify: () => void) => useRoutineStore.persist.onFinishHydration(notify);
+const routineHydratedSnapshot = () => useRoutineStore.persist.hasHydrated();
 
 export function LaunchFlowScreen() {
+  const routinesHydrated = useSyncExternalStore(subscribeToRoutineHydration, routineHydratedSnapshot, () => false);
+  const childrenHydrated = useChildrenStore((state) => state.hasHydrated);
+  if (!routinesHydrated || !childrenHydrated) return null;
+  return <HydratedLaunchFlowScreen />;
+}
+
+function HydratedLaunchFlowScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const { colors } = useAppTheme();
