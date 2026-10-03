@@ -11,6 +11,7 @@ import Reanimated, {
 } from 'react-native-reanimated';
 import { COLORS, FONT_SIZE, SPACING } from '../../constants/theme';
 import { useReducedMotionPreference } from '../../hooks/useReducedMotionPreference';
+import { useAppTheme } from '../../hooks/useAppTheme';
 
 export interface Stretch {
   id: string;
@@ -74,6 +75,7 @@ interface StretchingCardProps {
 
 export function StretchingCard({ stretch, remaining, current, total }: StretchingCardProps) {
   const reducedMotion = useReducedMotionPreference();
+  const { colors } = useAppTheme();
   const bounce = useSharedValue(1);
 
   useEffect(() => {
@@ -100,12 +102,12 @@ export function StretchingCard({ stretch, remaining, current, total }: Stretchin
       <Reanimated.Text style={[styles.emoji, emojiStyle]}>
         {stretch.emoji}
       </Reanimated.Text>
-      <Text style={styles.title}>{stretch.title}</Text>
-      <Text style={styles.instruction}>{stretch.instruction}</Text>
-      <View style={styles.timerBadge}>
-        <Text style={styles.timerText}>⏱️ {remaining}s</Text>
+      <Text style={[styles.title, { color: colors.text }]}>{stretch.title}</Text>
+      <Text style={[styles.instruction, { color: colors.textSecondary }]}>{stretch.instruction}</Text>
+      <View style={[styles.timerBadge, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.timerText, { color: colors.text }]}>⏱️ {remaining}s</Text>
       </View>
-      <Text style={styles.progressText}>
+      <Text style={[styles.progressText, { color: colors.textSecondary }]}>
         Étirement {current} / {total}
       </Text>
     </Reanimated.View>

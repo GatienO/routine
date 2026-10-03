@@ -50,3 +50,11 @@ it('keeps an optional step visible when a difficult mood is selected', () => {
   expect(tree).toContain('Première étape');
   expect(tree).toContain('1:00');
 });
+
+it.each(['sad', 'grumpy', 'angry'])('keeps six steps with mood %s, including two optional steps', (mood) => {
+  useMoodStore.getState().setMood('child', mood);
+  useRoutineStore.setState((state) => ({ routines: state.routines.map((routine) => ({ ...routine, steps: Array.from({ length: 6 }, (_, index) => ({ ...routine.steps[0], id: `step-${index}`, order: index, title: `Action ${index}`, isRequired: index > 1 })) })) }));
+  const tree = JSON.stringify(render(<RunRoutineScreen />).toJSON());
+  expect(tree).toContain('Action 0');
+  expect(tree).toContain('6');
+});

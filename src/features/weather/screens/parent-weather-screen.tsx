@@ -49,6 +49,7 @@ export function ParentWeatherScreen() {
   const [cityInput, setCityInput] = useState(weatherCity);
   const [childId, setChildId] = useState<string | undefined>(children[0]?.id);
   const contentWidth = Math.min(width - SPACING.lg * 2, CONTENT_MAX_WIDTH.lg);
+  const compactTabs = contentWidth < 380;
   const compactCards = contentWidth < 600;
   const timeConfig = useMemo(() => resolveWeeklyTimeConfig(configs, childId), [childId, configs]);
   const recommendation = useMemo(() => weather ? getClothingRecommendation(weather) : null, [weather]);
@@ -80,9 +81,9 @@ export function ParentWeatherScreen() {
             <View style={styles.headingCopy}><Text style={[styles.eyebrow, { color: colors.information }]}>MÉTÉO ET RYTHMES</Text><Text style={[styles.title, { color: colors.text }]}>Préparer sans compliquer.</Text><Text style={[styles.subtitle, { color: colors.textSecondary }]}>Le parent règle la source météo et les repères horaires. L’enfant observe le temps pendant la routine.</Text></View>
           </View>
 
-          <View style={[styles.tabs, { backgroundColor: colors.surfaceSecondary }]}>
-            <TabButton label="Lieu et météo" icon={<MapPin size={18} color={tab === 'location' ? colors.information : colors.textSecondary} />} active={tab === 'location'} onPress={() => setTab('location')} colors={colors} />
-            <TabButton label="Repères horaires" icon={<CloudSun size={19} color={tab === 'hours' ? colors.time : colors.textSecondary} />} active={tab === 'hours'} onPress={() => setTab('hours')} colors={colors} />
+          <View style={[styles.tabs, compactTabs && styles.tabsCompact, { backgroundColor: colors.surfaceSecondary }]}>
+            <TabButton label="Lieu et météo" icon={<MapPin size={18} color={tab === 'location' ? colors.information : colors.textSecondary} />} active={tab === 'location'} onPress={() => setTab('location')} colors={colors} compact={compactTabs} />
+            <TabButton label="Repères horaires" icon={<CloudSun size={19} color={tab === 'hours' ? colors.time : colors.textSecondary} />} active={tab === 'hours'} onPress={() => setTab('hours')} colors={colors} compact={compactTabs} />
           </View>
 
           {tab === 'location' ? (
@@ -111,8 +112,8 @@ export function ParentWeatherScreen() {
   );
 }
 
-function TabButton({ label, icon, active, onPress, colors }: { label: string; icon: React.ReactNode; active: boolean; onPress: () => void; colors: ThemeColors }) {
-  return <Pressable aria-selected={active} accessibilityRole="tab" accessibilityState={{ selected: active }} onPress={onPress} style={[styles.tab, active && { backgroundColor: colors.surface, ...SHADOWS.sm }]}>{icon}<Text style={[styles.tabText, { color: active ? colors.text : colors.textSecondary }]}>{label}</Text></Pressable>;
+function TabButton({ label, icon, active, onPress, colors, compact }: { label: string; icon: React.ReactNode; active: boolean; onPress: () => void; colors: ThemeColors; compact: boolean }) {
+  return <Pressable aria-selected={active} accessibilityRole="tab" accessibilityState={{ selected: active }} onPress={onPress} style={[styles.tab, compact && styles.tabCompact, active && { backgroundColor: colors.surface, ...SHADOWS.sm }]}>{icon}<Text style={[styles.tabText, compact && styles.tabTextCompact, { color: active ? colors.text : colors.textSecondary }]}>{label}</Text></Pressable>;
 }
 
 function ErrorCard({ code, colors, onChooseCity }: { code: WeatherErrorCode; colors: ThemeColors; onChooseCity: () => void }) {
@@ -138,7 +139,7 @@ function TimeStepper({ label, day, value, onChange, disabled = false, colors }: 
 const styles = StyleSheet.create({
   safe: { flex: 1 }, scroll: { padding: SPACING.lg, paddingBottom: 120 }, content: { gap: SPACING.lg },
   headingRow: { flexDirection: 'row', alignItems: 'flex-start', gap: SPACING.md }, back: { width: 48, height: 48, borderRadius: 15, borderWidth: 1, alignItems: 'center', justifyContent: 'center' }, headingCopy: { flex: 1, minWidth: 0, gap: 5 }, eyebrow: { fontSize: FONT_SIZE.xs, fontWeight: '800', letterSpacing: 0.8 }, title: { fontSize: FONT_SIZE.xxl, lineHeight: 39, fontWeight: '700', letterSpacing: -0.7 }, subtitle: { maxWidth: 680, fontSize: FONT_SIZE.sm, lineHeight: 21 },
-  tabs: { flexDirection: 'row', alignSelf: 'flex-start', padding: 5, borderRadius: 18, gap: 4 }, tab: { minHeight: 44, borderRadius: 14, paddingHorizontal: SPACING.md, flexDirection: 'row', alignItems: 'center', gap: 7 }, tabText: { fontSize: FONT_SIZE.sm, fontWeight: '700' },
+  tabs: { flexDirection: 'row', alignSelf: 'flex-start', padding: 5, borderRadius: 18, gap: 4 }, tabsCompact: { alignSelf: 'stretch' }, tab: { minHeight: 44, borderRadius: 14, paddingHorizontal: SPACING.md, flexDirection: 'row', alignItems: 'center', gap: 7 }, tabCompact: { flex: 1, minWidth: 0, paddingHorizontal: SPACING.xs, justifyContent: 'center' }, tabText: { fontSize: FONT_SIZE.sm, fontWeight: '700' }, tabTextCompact: { flexShrink: 1, textAlign: 'center' },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.md, alignItems: 'stretch' }, card: { borderRadius: 24, borderWidth: 1, padding: SPACING.lg, gap: SPACING.md, ...SHADOWS.sm }, settingsCard: { flex: 1, minWidth: 290 }, summaryCard: { flex: 1, minWidth: 280, alignItems: 'flex-start' }, compactCard: { minWidth: 0, flexBasis: '100%' }, cardIcon: { width: 62, height: 62, borderRadius: 20, alignItems: 'center', justifyContent: 'center' }, cardTitle: { fontSize: FONT_SIZE.xl, fontWeight: '700' }, cardText: { fontSize: FONT_SIZE.sm, lineHeight: 21 }, switchRow: { minHeight: 76, borderRadius: 18, padding: SPACING.md, flexDirection: 'row', alignItems: 'center', gap: SPACING.sm }, switchCopy: { flex: 1, minWidth: 0 }, field: { gap: SPACING.sm }, fieldTitle: { fontSize: FONT_SIZE.sm, fontWeight: '700' }, fieldHelp: { marginTop: 3, fontSize: FONT_SIZE.xs, lineHeight: 18 }, input: { minHeight: 52, borderRadius: 15, borderWidth: 1, paddingHorizontal: SPACING.md, fontSize: FONT_SIZE.md }, primaryButton: { minHeight: 52, borderRadius: 15, alignItems: 'center', justifyContent: 'center' }, primaryText: { fontSize: FONT_SIZE.sm, fontWeight: '800' }, errorCard: { borderRadius: 18, padding: SPACING.md }, errorTitle: { fontSize: FONT_SIZE.sm, fontWeight: '800' }, inlineActionButton: { minHeight: 44, alignSelf: 'flex-start', justifyContent: 'center' }, inlineAction: { fontSize: FONT_SIZE.sm, fontWeight: '800' },
   weatherEmoji: { fontSize: 52 }, temperature: { fontSize: 54, lineHeight: 58, fontWeight: '700' }, weatherPlace: { fontSize: FONT_SIZE.lg, fontWeight: '700' }, advice: { width: '100%', borderRadius: 18, padding: SPACING.md }, adviceTitle: { fontSize: FONT_SIZE.sm, fontWeight: '800' }, freshness: { fontSize: FONT_SIZE.xs, fontWeight: '700' },
   hoursPanel: { borderRadius: 24, borderWidth: 1, padding: SPACING.lg, gap: SPACING.lg, ...SHADOWS.sm }, chips: { gap: SPACING.sm }, chip: { minHeight: 44, borderRadius: 14, borderWidth: 1, paddingHorizontal: SPACING.md, alignItems: 'center', justifyContent: 'center' }, chipText: { fontSize: FONT_SIZE.sm, fontWeight: '700' }, quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm }, quickButton: { minHeight: 44, borderRadius: 14, paddingHorizontal: SPACING.md, alignItems: 'center', justifyContent: 'center' }, quickText: { fontSize: FONT_SIZE.xs, fontWeight: '700' }, days: { gap: SPACING.sm }, dayCard: { borderRadius: 19, borderWidth: 1, padding: SPACING.md, gap: SPACING.sm }, dayHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: SPACING.sm }, dayTitle: { fontSize: FONT_SIZE.md, fontWeight: '800' }, napRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs }, times: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm }, timeStepper: { flex: 1, minWidth: 155, gap: SPACING.xs }, timeLabel: { fontSize: FONT_SIZE.xs, fontWeight: '700' }, timeControls: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs }, stepButton: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' }, timeValue: { flex: 1, textAlign: 'center', fontSize: FONT_SIZE.md, fontWeight: '800', fontVariant: ['tabular-nums'] },

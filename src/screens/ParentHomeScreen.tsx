@@ -54,7 +54,7 @@ const SETTINGS = [
 
 export function ParentHomeScreen() {
   const router = useRouter();
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const { colors } = useAppTheme();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [tutorialOpen, setTutorialOpen] = useState(false);
@@ -68,6 +68,7 @@ export function ParentHomeScreen() {
   const rewards = useRealRewardStore((state) => state.realRewards);
   const contentWidth = Math.min(width - SPACING.lg * 2, CONTENT_MAX_WIDTH.lg);
   const compact = width < 720;
+  const shortLandscape = width >= 900 && height < 820;
   const activeRoutineCount = routines.filter((routine) => routine.isActive).length;
 
   if (!childrenHasHydrated) return null;
@@ -84,9 +85,9 @@ export function ParentHomeScreen() {
     <View style={[styles.gradient, { backgroundColor: 'transparent' }]}>
 
       <SafeAreaView style={styles.safe}>
-        <ScrollView contentContainerStyle={[styles.scroll, { alignItems: 'center' }]} showsVerticalScrollIndicator={false}>
-          <View style={[styles.content, { width: contentWidth, maxWidth: '100%' }]}>
-            <View style={styles.heading}>
+        <ScrollView contentContainerStyle={[styles.scroll, shortLandscape && styles.scrollShortLandscape, { alignItems: 'center' }]} showsVerticalScrollIndicator={false}>
+          <View style={[styles.content, shortLandscape && styles.contentShortLandscape, { width: contentWidth, maxWidth: '100%' }]}>
+            <View style={[styles.heading, shortLandscape && styles.headingShortLandscape]}>
               <Text accessibilityRole="header" style={[styles.title, { color: colors.text }]}>Espace parent</Text>
               <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
                 Préparez les routines et les repères.
@@ -142,6 +143,7 @@ export function ParentHomeScreen() {
                     style={[
                       styles.sectionCard,
                       compact && styles.sectionCardCompact,
+                      shortLandscape && styles.sectionCardShortLandscape,
                       { backgroundColor: colors.surface, borderColor: colors.border },
                     ]}
                   >
@@ -227,8 +229,11 @@ const styles = StyleSheet.create({
   gradient: { flex: 1 },
   safe: { flex: 1 },
   scroll: { padding: SPACING.lg, paddingBottom: SPACING.xl },
+  scrollShortLandscape: { paddingTop: SPACING.md, paddingBottom: SPACING.md },
   content: { gap: SPACING.lg },
+  contentShortLandscape: { gap: SPACING.md },
   heading: { gap: SPACING.sm, paddingTop: SPACING.sm },
+  headingShortLandscape: { paddingTop: 0 },
   eyebrow: { fontSize: FONT_SIZE.xs, fontWeight: '800', letterSpacing: 1 },
   title: { fontSize: FONT_SIZE.xxl, lineHeight: 38, fontWeight: '700', letterSpacing: -0.8 },
   subtitle: { maxWidth: 620, fontSize: FONT_SIZE.sm, lineHeight: 21 },
@@ -274,6 +279,7 @@ const styles = StyleSheet.create({
     ...SHADOWS.sm,
   },
   sectionCardCompact: { flexBasis: '100%', minHeight: 110 },
+  sectionCardShortLandscape: { minHeight: 110 },
   sectionIcon: { width: 52, height: 52, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
   sectionCopy: { flex: 1, minWidth: 0 },
   cardTitle: { fontSize: FONT_SIZE.md, fontWeight: '700' },

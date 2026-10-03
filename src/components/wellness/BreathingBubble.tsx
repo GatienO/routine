@@ -12,6 +12,7 @@ import Reanimated, {
 } from 'react-native-reanimated';
 import { COLORS, FONT_SIZE, SPACING } from '../../constants/theme';
 import { useReducedMotionPreference } from '../../hooks/useReducedMotionPreference';
+import { useAppTheme } from '../../hooks/useAppTheme';
 
 interface BreathingBubbleProps {
   /** Number of breathing cycles */
@@ -36,6 +37,7 @@ export function BreathingBubble({
   holdDuration = 2000,
 }: BreathingBubbleProps) {
   const reducedMotion = useReducedMotionPreference();
+  const { colors } = useAppTheme();
   const scale = useSharedValue(0.5);
   const opacity = useSharedValue(0.6);
   const [phase, setPhase] = useState<string>(PHASES[0]);
@@ -110,23 +112,23 @@ export function BreathingBubble({
   if (finished) {
     return (
       <View style={styles.container}>
-        <View style={[styles.bubble, styles.bubbleFinished]}>
+        <View style={[styles.bubble, styles.bubbleFinished, { borderColor: colors.success }]}>
           <Text style={styles.finishedEmoji}>😌</Text>
         </View>
-        <Text style={styles.phaseText}>Bien joué, tu es apaisé ! ✨</Text>
+        <Text style={[styles.phaseText, { color: colors.text }]}>Bien joué, tu es apaisé ! ✨</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Reanimated.View style={[styles.bubble, bubbleStyle]}>
+      <Reanimated.View style={[styles.bubble, { borderColor: colors.time }, bubbleStyle]}>
         <View style={styles.innerBubble}>
           <Text style={styles.breathEmoji}>🫧</Text>
         </View>
       </Reanimated.View>
-      <Text style={styles.phaseText}>{phase}</Text>
-      <Text style={styles.cycleText}>
+      <Text style={[styles.phaseText, { color: colors.text }]}>{phase}</Text>
+      <Text style={[styles.cycleText, { color: colors.textSecondary }]}>
         Respiration {currentCycle} / {cycles}
       </Text>
     </View>

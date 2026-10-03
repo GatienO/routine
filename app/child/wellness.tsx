@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   SafeAreaView,
+  ScrollView,
   TouchableOpacity,
 } from 'react-native';
 import Reanimated, {
@@ -23,6 +24,7 @@ import { AnimatedPressable } from '../../src/components/ui/AnimatedPressable';
 import { useRewardStore } from '../../src/stores/rewardStore';
 import { useRoutineStore } from '../../src/stores/routineStore';
 import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOWS } from '../../src/constants/theme';
+import { useAppTheme } from '../../src/hooks/useAppTheme';
 
 type Phase = 'intro' | 'breathing' | 'stretching' | 'done';
 
@@ -35,6 +37,7 @@ function pickRandomStretches(count: number) {
 
 export default function WellnessScreen() {
   const router = useRouter();
+  const { colors, isDark } = useAppTheme();
   const { addStars } = useRewardStore();
   const currentExecution = useRoutineStore((state) => state.currentExecution);
 
@@ -113,14 +116,14 @@ export default function WellnessScreen() {
   return (
     <View style={styles.gradient}>
       <SafeAreaView style={styles.safe}>
-        <View style={styles.container}>
+        <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
           {/* Top bar */}
           <Reanimated.View entering={FadeIn.duration(300)} style={styles.topBar}>
-            <TouchableOpacity onPress={handleQuit} style={styles.quitBtn}>
-              <Text style={styles.quitText}>✕</Text>
+            <TouchableOpacity onPress={handleQuit} style={[styles.quitBtn, { backgroundColor: colors.surface }]}>
+              <Text style={[styles.quitText, { color: colors.textSecondary }]}>✕</Text>
             </TouchableOpacity>
-            <View style={styles.phaseBadge}>
-              <Text style={styles.phaseLabel}>
+            <View style={[styles.phaseBadge, { backgroundColor: colors.surface }]}>
+              <Text style={[styles.phaseLabel, { color: colors.textSecondary }]}>
                 {phase === 'intro' && '🌙 Routine calme'}
                 {phase === 'breathing' && '🌬️ Respiration'}
                 {phase === 'stretching' && '🧘 Étirements'}
@@ -131,7 +134,7 @@ export default function WellnessScreen() {
           </Reanimated.View>
 
           {phase !== 'intro' && (
-          <ProgressBar progress={progress} color={COLORS.secondary} height={10} />
+          <ProgressBar progress={progress} color={colors.time} height={10} />
           )}
 
           {/* Content */}
@@ -139,38 +142,38 @@ export default function WellnessScreen() {
             {phase === 'intro' && (
               <Reanimated.View entering={FadeInDown.duration(500)} style={styles.introContainer}>
                 <Text style={styles.introEmoji}>🌙</Text>
-                <Text style={styles.introTitle}>Routine calme</Text>
-                <Text style={styles.introSubtitle}>
+                <Text style={[styles.introTitle, { color: colors.text }]}>Routine calme</Text>
+                <Text style={[styles.introSubtitle, { color: colors.textSecondary }]}>
                   Prends un moment pour te détendre avant de dormir 💤
                 </Text>
 
                 <View style={styles.introSteps}>
-                  <Reanimated.View entering={FadeInRight.delay(200)} style={styles.introStep}>
+                  <Reanimated.View entering={FadeInRight.delay(200)} style={[styles.introStep, { backgroundColor: colors.surface }]}>
                     <Text style={styles.introStepEmoji}>🌬️</Text>
                     <View style={styles.introStepInfo}>
-                      <Text style={styles.introStepTitle}>Respiration</Text>
-                      <Text style={styles.introStepDesc}>5 respirations profondes pour se calmer</Text>
+                      <Text style={[styles.introStepTitle, { color: colors.text }]}>Respiration</Text>
+                      <Text style={[styles.introStepDesc, { color: colors.textSecondary }]}>5 respirations profondes pour se calmer</Text>
                     </View>
                   </Reanimated.View>
-                  <Reanimated.View entering={FadeInRight.delay(400)} style={styles.introStep}>
+                  <Reanimated.View entering={FadeInRight.delay(400)} style={[styles.introStep, { backgroundColor: colors.surface }]}>
                     <Text style={styles.introStepEmoji}>🧘</Text>
                     <View style={styles.introStepInfo}>
-                      <Text style={styles.introStepTitle}>Étirements</Text>
-                      <Text style={styles.introStepDesc}>{STRETCH_COUNT} exercices doux pour le corps</Text>
+                      <Text style={[styles.introStepTitle, { color: colors.text }]}>Étirements</Text>
+                      <Text style={[styles.introStepDesc, { color: colors.textSecondary }]}>{STRETCH_COUNT} exercices doux pour le corps</Text>
                     </View>
                   </Reanimated.View>
-                  <Reanimated.View entering={FadeInRight.delay(600)} style={styles.introStep}>
+                  <Reanimated.View entering={FadeInRight.delay(600)} style={[styles.introStep, { backgroundColor: colors.surface }]}>
                     <Text style={styles.introStepEmoji}>⭐</Text>
                     <View style={styles.introStepInfo}>
-                      <Text style={styles.introStepTitle}>Récompense</Text>
-                      <Text style={styles.introStepDesc}>+3 étoiles pour prendre soin de toi !</Text>
+                      <Text style={[styles.introStepTitle, { color: colors.text }]}>Récompense</Text>
+                      <Text style={[styles.introStepDesc, { color: colors.textSecondary }]}>+3 étoiles pour prendre soin de toi !</Text>
                     </View>
                   </Reanimated.View>
                 </View>
 
                 <Reanimated.View entering={BounceIn.delay(800)}>
-                  <AnimatedPressable onPress={handleStart} style={styles.startButton} scaleDown={0.92}>
-                    <Text style={styles.startButtonText}>Commencer 🧘</Text>
+                  <AnimatedPressable onPress={handleStart} style={[styles.startButton, { backgroundColor: colors.time }]} scaleDown={0.92}>
+                    <Text style={[styles.startButtonText, { color: isDark ? COLORS.text : '#FFF' }]}>Commencer 🧘</Text>
                   </AnimatedPressable>
                 </Reanimated.View>
               </Reanimated.View>
@@ -178,7 +181,7 @@ export default function WellnessScreen() {
 
             {phase === 'breathing' && (
               <Reanimated.View entering={FadeIn.duration(600)} style={styles.centerContent}>
-                <Text style={styles.sectionHint}>Suis la bulle avec ta respiration…</Text>
+                <Text style={[styles.sectionHint, { color: colors.textSecondary }]}>Suis la bulle avec ta respiration…</Text>
                 <BreathingBubble cycles={5} onComplete={handleBreathingDone} />
               </Reanimated.View>
             )}
@@ -202,20 +205,20 @@ export default function WellnessScreen() {
             {phase === 'done' && (
               <Reanimated.View entering={SlideInUp.duration(600).springify()} style={styles.doneContainer}>
                 <Text style={styles.doneEmoji}>🌟</Text>
-                <Text style={styles.doneTitle}>Bravo !</Text>
-                <Text style={styles.doneSubtitle}>
+                <Text style={[styles.doneTitle, { color: colors.text }]}>Bravo !</Text>
+                <Text style={[styles.doneSubtitle, { color: colors.textSecondary }]}>
                   Tu as pris soin de toi ce soir.{'\n'}Bonne nuit ! 🌙💤
                 </Text>
-                <View style={styles.starsEarned}>
-                  <Text style={styles.starsText}>+3 ⭐</Text>
+                <View style={[styles.starsEarned, { backgroundColor: colors.surface }]}>
+                  <Text style={[styles.starsText, { color: colors.star }]}>+3 ⭐</Text>
                 </View>
-                <AnimatedPressable onPress={handleFinish} style={styles.finishButton} scaleDown={0.92}>
-                  <Text style={styles.finishButtonText}>Retour 🏠</Text>
+                <AnimatedPressable onPress={handleFinish} style={[styles.finishButton, { backgroundColor: colors.success }]} scaleDown={0.92}>
+                  <Text style={[styles.finishButtonText, { color: isDark ? COLORS.text : '#FFF' }]}>Retour 🏠</Text>
                 </AnimatedPressable>
               </Reanimated.View>
             )}
           </View>
-        </View>
+        </ScrollView>
       </SafeAreaView>
     </View>
   );
@@ -224,7 +227,7 @@ export default function WellnessScreen() {
 const styles = StyleSheet.create({
   gradient: { flex: 1 },
   safe: { flex: 1 },
-  container: { flex: 1, padding: SPACING.lg },
+  container: { flexGrow: 1, padding: SPACING.lg, paddingBottom: SPACING.xl },
   topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -252,7 +255,7 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
   },
   content: {
-    flex: 1,
+    flexGrow: 1,
     justifyContent: 'center',
   },
   centerContent: {

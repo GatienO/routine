@@ -79,7 +79,7 @@ export function FilterBar({ filters, resultCount, onChange, onReset, onSurprise 
       <Text accessibilityLiveRegion="polite" style={{ color: colors.textSecondary, fontSize: 13 }}>{resultCount} idée{resultCount > 1 ? 's' : ''}</Text>
       {count || filters.search ? <ToolbarButton label="Effacer" onPress={onReset} tone="ghost" /> : null}
     </View>
-    <ResponsiveOverlay visible={expanded} title="Affiner les idées" onClose={() => setExpanded(false)} footer={<ToolbarButton label={'Voir ' + resultCount + ' idées'} onPress={() => setExpanded(false)} />}>
+    <ResponsiveOverlay visible={expanded} title="Affiner les idées" onClose={() => setExpanded(false)} footer={<ToolbarButton label={`Voir ${resultCount} ${resultCount === 1 ? 'idée' : 'idées'}`} onPress={() => setExpanded(false)} />}>
       <ToolbarButton label="Effacer les filtres" onPress={onReset} tone="ghost" />
       {FILTER_GROUPS.map(group => <View key={group.id} style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 14, overflow: 'hidden' }}>
         <Pressable aria-expanded={openGroup === group.id} accessibilityRole="button" accessibilityState={{ expanded: openGroup === group.id }} onPress={() => setOpenGroup(openGroup === group.id ? null : group.id)} style={{ minHeight: 48, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 8 }}>

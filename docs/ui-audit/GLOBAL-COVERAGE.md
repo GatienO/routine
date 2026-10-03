@@ -1,5 +1,13 @@
 # Matrice de couverture — 2026-09-20
 
+G09 est clos à la demande de l'utilisateur le 2026-10-03. Le registre conserve 42 routes inventoriées, 40 observées au moins une fois dans ce lot et deux étapes d'onboarding non rejouées. Les autres réserves transversales restent explicites dans la [fiche G09](./lots/G09/REVIEW.md); clôture de la todo et vérification exhaustive sont deux états distincts. Aucun essai physique iOS/Android ni push.
+
+G09 (2026-10-03, seconde reprise) : cadre commun des trois accueils couvert en paysage web local; alias historiques Parent/Enfant/Activités suivis jusqu'à leur destination; première page d'onboarding observée à 320/390/768/1024 px sur origine vierge. Le résumé de lancement à 320 px a été corrigé pour afficher les titres d'étapes entiers. Les étapes Enfant/Fin du premier démarrage ne sont pas déclarées vérifiées par cette reprise. [Registre G09](./lots/G09/REVIEW.md).
+
+G09 (2026-10-03) : Pause et Bien-être corrigés pour le contraste sombre et le défilement sur petit écran; Célébration observée en lecture seule à 320 px. Ces passages ciblés ne constituent pas un parcours enfant complet. [Observations et limites](./lots/G09/REVIEW.md).
+
+Mise à jour du 2026-10-02 : [G09](./lots/G09/REVIEW.md) poursuit une **todo responsive** pour toutes les surfaces de cette matrice. L'accueil Parent en paysage court a été corrigé après reproduction web locale; les onglets Progrès et Météo ont été ajustés à 320 px. Plusieurs pages Parent et le calendrier enfant ont été observés à 320 px, sans parcours final exhaustif. L'inventaire ne vaut pas observation visuelle de chaque route; les tailles et limites figurent dans la fiche G09.
+
 Fond commun (2026-10-01) : neuf surfaces représentatives ont été rejouées en clair/sombre à 390 px, et Routines, Activités, Parent et `/child/summary` à 768 px en clair, sur une famille fictive isolée. Un chargement prématuré de `/child/summary` a été corrigé. [Captures et méthode](./global-evidence-2026-10-01/README.md). Les autres routes ne sont pas déclarées individuellement vérifiées par cet échantillon.
 
 G08 (2026-09-30) : le contrôle final a été rejoué sur export web local dans un profil Edge temporaire. Création/édition/réouverture de routine, étape, avatar et repère vérifiées; constructeur, sélecteur, Famille et calendrier Parent capturés à 320/390/768/1440 px en clair, avec contrôles sombres ciblés et défilement du sélecteur. Calendrier enfant, Activités et exécution fictive vus à 320 px. Repli OpenMoji vérifié avec CDN bloqué; fermeture Échap et retour du focus vérifiés. La [fiche G08](./lots/G08/REVIEW.md) garde les preuves et les limites, notamment l'absence de test sur la tablette physique et du grand texte système.

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, useWindowDimensions } from 'react-native';
 import Animated, { BounceIn, FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { CheckCircle, Coffee, Rocket } from 'phosphor-react-native';
@@ -9,6 +9,7 @@ import { Avatar } from '../../src/components/ui/Avatar';
 import { AnimatedPressable } from '../../src/components/ui/AnimatedPressable';
 import { AppPageHeader } from '../../src/components/ui/AppPageHeader';
 import { OpenMoji } from '../../src/components/ui/OpenMoji';
+import { useAppTheme } from '../../src/hooks/useAppTheme';
 import { COLORS, FONT_SIZE, RADIUS, SHADOWS, SPACING } from '../../src/constants/theme';
 import { formatChildName } from '../../src/utils/children';
 import { formatDuration } from '../../src/utils/date';
@@ -16,6 +17,7 @@ import { getGridItemWidth, getResponsiveColumns } from '../../src/utils/responsi
 
 export default function ChildRoutinePauseScreen() {
   const router = useRouter();
+  const { colors, isDark } = useAppTheme();
   const { width } = useWindowDimensions();
   const { getChild } = useChildrenStore();
   const { currentExecution, chainQueue, cancelExecution, getRoutine } = useRoutineStore();
@@ -69,7 +71,7 @@ export default function ChildRoutinePauseScreen() {
   return (
     <View style={styles.gradient}>
       <SafeAreaView style={styles.safe}>
-        <View style={styles.container}>
+        <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
           <AppPageHeader
             title="Pause"
             onBack={handleStop}
@@ -79,20 +81,20 @@ export default function ChildRoutinePauseScreen() {
             <View style={[styles.routineIcon, { backgroundColor: routine.color + '24' }]}>
               <OpenMoji emoji={routine.icon} size={64} />
             </View>
-            <View style={styles.pauseBadge}>
-              <Coffee size={18} weight="fill" color={COLORS.secondaryDark} />
-              <Text style={styles.pauseBadgeText}>Petite pause</Text>
+            <View style={[styles.pauseBadge, { backgroundColor: colors.secondaryLight }]}>
+              <Coffee size={18} weight="fill" color={colors.secondaryDark} />
+              <Text style={[styles.pauseBadgeText, { color: colors.secondaryDark }]}>Petite pause</Text>
             </View>
-            <Text style={styles.title}>Prochaine routine</Text>
-            <Text style={styles.routineName}>{routine.name}</Text>
-            <Text style={styles.subtitle}>
-              Les enfants sont deja valides. Respirez un instant, puis lancez la suite.
+            <Text style={[styles.title, { color: colors.textSecondary }]}>Prochaine routine</Text>
+            <Text style={[styles.routineName, { color: colors.text }]}>{routine.name}</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+              Les enfants sont déjà prêts. Respirez un instant, puis lancez la suite.
             </Text>
             <View style={styles.metaRow}>
-              <Text style={styles.metaPill}>{routine.steps.length} etapes</Text>
-              <Text style={styles.metaPill}>{formatDuration(totalDuration)}</Text>
+              <Text style={[styles.metaPill, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textSecondary }]}>{routine.steps.length} étapes</Text>
+              <Text style={[styles.metaPill, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textSecondary }]}>{formatDuration(totalDuration)}</Text>
               {remainingRoutineCount > 1 ? (
-                <Text style={styles.metaPill}>{remainingRoutineCount} routines restantes</Text>
+                <Text style={[styles.metaPill, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textSecondary }]}>{remainingRoutineCount} routines restantes</Text>
               ) : null}
             </View>
           </Animated.View>
@@ -120,9 +122,9 @@ export default function ChildRoutinePauseScreen() {
                       <CheckCircle size={22} weight="fill" color="#FFF" />
                     </View>
                   </View>
-                  <Text style={styles.childName}>{formatChildName(child.name)}</Text>
-                  <View style={styles.readyBubble}>
-                    <Text style={styles.readyText}>Pret</Text>
+                  <Text style={[styles.childName, { color: colors.text }]}>{formatChildName(child.name)}</Text>
+                  <View style={[styles.readyBubble, { backgroundColor: colors.surface }]}>
+                    <Text style={[styles.readyText, { color: colors.textSecondary }]}>Prêt</Text>
                   </View>
                 </View>
               </Animated.View>
@@ -137,11 +139,11 @@ export default function ChildRoutinePauseScreen() {
             >
               <View style={styles.startRow}>
                 <Rocket size={22} weight="fill" color="#FFF" />
-                <Text style={styles.startText}>Lancer la prochaine routine</Text>
+              <Text style={[styles.startText, { color: isDark ? COLORS.text : '#FFF' }]}>Lancer la prochaine routine</Text>
               </View>
             </AnimatedPressable>
           </Animated.View>
-        </View>
+        </ScrollView>
       </SafeAreaView>
     </View>
   );
@@ -151,9 +153,10 @@ const styles = StyleSheet.create({
   gradient: { flex: 1 },
   safe: { flex: 1 },
   container: {
-    flex: 1,
+    flexGrow: 1,
     padding: SPACING.lg,
     alignItems: 'center',
+    paddingBottom: SPACING.xl,
   },
   hero: {
     alignItems: 'center',
@@ -223,7 +226,6 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
   },
   grid: {
-    flex: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',

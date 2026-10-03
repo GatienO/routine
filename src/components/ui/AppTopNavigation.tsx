@@ -8,6 +8,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import { ArrowLeft, House } from 'phosphor-react-native';
+import { useAppTheme } from '../../hooks/useAppTheme';
 import { COLORS, FONT_SIZE, RADIUS, SHADOWS, SPACING, TOUCH } from '../../constants/theme';
 
 type AppTopNavigationProps = {
@@ -18,6 +19,7 @@ type AppTopNavigationProps = {
 };
 
 export function AppTopNavigation({ title, onBack, onHome, style }: AppTopNavigationProps) {
+  const { colors } = useAppTheme();
   return (
     <View style={[styles.container, style]}>
       <View style={styles.topRow}>
@@ -29,16 +31,16 @@ export function AppTopNavigation({ title, onBack, onHome, style }: AppTopNavigat
               accessibilityRole="button"
               accessibilityLabel="Retour"
               hitSlop={6}
-              style={styles.backButton}
+              style={[styles.backButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
             >
-              <ArrowLeft size={22} weight="bold" color={COLORS.textSecondary} />
+              <ArrowLeft size={22} weight="bold" color={colors.textSecondary} />
             </TouchableOpacity>
           ) : (
             <View style={styles.sideSpacer} />
           )}
         </View>
 
-        {title ? <Text style={styles.screenTitle}>{title}</Text> : <View style={styles.titleSpacer} />}
+        {title ? <Text style={[styles.screenTitle, { color: colors.text }]}>{title}</Text> : <View style={styles.titleSpacer} />}
 
         <View style={[styles.navSlot, onHome && styles.homeSlot]}>
           {onHome ? (
@@ -48,10 +50,10 @@ export function AppTopNavigation({ title, onBack, onHome, style }: AppTopNavigat
               accessibilityRole="button"
               accessibilityLabel="Accueil"
               hitSlop={6}
-              style={styles.homeButton}
+              style={[styles.homeButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
             >
-              <House size={18} weight="bold" color={COLORS.primaryDark} />
-              <Text style={styles.homeButtonText}>Accueil</Text>
+              <House size={18} weight="bold" color={colors.primaryDark} />
+              <Text style={[styles.homeButtonText, { color: colors.primaryDark }]}>Accueil</Text>
             </TouchableOpacity>
           ) : (
             <View style={styles.sideSpacer} />

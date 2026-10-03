@@ -1,30 +1,16 @@
 import { selectActiveSteps } from '../../src/features/routines/select-active-steps';
 import type { RoutineStep } from '../../src/types';
-
-const step = (id: string, isRequired?: boolean): RoutineStep => ({
-  id,
-  title: id,
-  icon: '⭐',
-  color: '#fff',
-  durationMinutes: 1,
-  instruction: '',
-  isRequired: isRequired as boolean,
-  order: 0,
+const steps: RoutineStep[] = Array.from({ length: 6 }, (_, index) => ({
+  id: String(index), title: `Étape ${index}`, icon: '⭐', color: '#fff',
+  durationMinutes: 1, instruction: '', isRequired: index < 4, order: index,
+}));
+it('includes all six steps, including optional steps', () => {
+  expect(selectActiveSteps(steps)).toEqual(steps);
+  expect(selectActiveSteps(steps)).toHaveLength(6);
 });
-
-describe('selectActiveSteps', () => {
-  it('keeps required steps during a difficult mood', () => {
-    const required = step('required', true);
-    expect(selectActiveSteps([step('optional', false), required], true)).toEqual([required]);
-  });
-
-  it('keeps an all-optional routine runnable', () => {
-    const optional = step('optional', false);
-    expect(selectActiveSteps([optional], true)).toEqual([optional]);
-  });
-
-  it('treats a saved step without isRequired as required', () => {
-    const legacy = step('legacy');
-    expect(selectActiveSteps([legacy, step('optional', false)], true)).toEqual([legacy]);
-  });
+it('uses the explicit selection and order without changing the routine', () => {
+  const prepared = [steps[5], steps[1], steps[0]];
+  expect(selectActiveSteps(steps, prepared)).toEqual(prepared);
+  expect(steps).toHaveLength(6);
+  expect(selectActiveSteps(steps)).toHaveLength(6);
 });

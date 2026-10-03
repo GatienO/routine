@@ -36,8 +36,6 @@ function HydratedLaunchFlowScreen() {
   const params = useLocalSearchParams<{ routineIds?: string; routineId?: string; childIds?: string; childId?: string; stage?: LaunchStage }>();
   const children = useChildrenStore((state) => state.children);
   const routines = useRoutineStore((state) => state.routines);
-  const pendingOrders = useRoutineStore((state) => state.pendingStepOrders);
-  const setPendingOrders = useRoutineStore((state) => state.setPendingStepOrders);
   const startExecution = useRoutineStore((state) => state.startExecution);
   const startChain = useRoutineStore((state) => state.startChain);
   const setMood = useMoodStore((state) => state.setMood);
@@ -47,16 +45,18 @@ function HydratedLaunchFlowScreen() {
   const [confirmedIds, setConfirmedIds] = useState<string[]>([]);
   const [moods, setMoods] = useState<Record<string, ChildMoodType>>({});
   const [orders, setOrders] = useState<Record<string, string[]>>({});
+  const [excludedIds, setExcludedIds] = useState<Record<string, string[]>>({});
   const launchLocked = useRef(false);
 
   const routineIds = useMemo(() => parseIds(params.routineIds ?? params.routineId), [params.routineId, params.routineIds]);
   const launchRoutines = useMemo(() => routineIds.map((id) => routines.find((routine) => routine.id === id)).filter((routine): routine is Routine => Boolean(routine)), [routineIds, routines]);
   const requestedIds = useMemo(() => parseIds(params.childIds ?? params.childId), [params.childId, params.childIds]);
   const selectedChildren = useMemo(() => children.filter((child) => selectedIds.includes(child.id)), [children, selectedIds]);
-  const hasEmptyRoutine = launchRoutines.some((routine) => routine.steps.length === 0);
+  const hasEmptyRoutine = launchRoutines.some((routine) => routine.steps.filter((step) => !excludedIds[routine.id]?.includes(step.id)).length === 0);
   const allPresent = selectedIds.length > 0 && selectedIds.every((id) => confirmedIds.includes(id));
   const moodChild = selectedChildren.find((child) => !moods[child.id]);
   const compact = width < 560;
+  const compactStepRows = width < 390;
   const contentWidth = Math.min(width - (width < 390 ? SPACING.md * 2 : SPACING.lg * 2), CONTENT_MAX_WIDTH.md);
 
   useEffect(() => {
@@ -69,10 +69,11 @@ function HydratedLaunchFlowScreen() {
 
   useEffect(() => {
     setOrders(launchRoutines.reduce<Record<string, string[]>>((next, routine) => {
-      next[routine.id] = (pendingOrders[routine.id] ?? routine.steps).map((step) => step.id);
+      next[routine.id] = routine.steps.map((step) => step.id);
       return next;
     }, {}));
-  }, [launchRoutines, pendingOrders]);
+    setExcludedIds({});
+  }, [launchRoutines]);
 
   useEffect(() => {
     if (routineIds.length && !launchRoutines.length) router.replace('/routines');
@@ -80,8 +81,8 @@ function HydratedLaunchFlowScreen() {
 
   if (!launchRoutines.length) return null;
   const leadRoutine = launchRoutines[0];
-  const duration = launchRoutines.reduce((sum, routine) => sum + routine.steps.reduce((stepSum, step) => stepSum + step.durationMinutes, 0), 0);
-  const stepCount = launchRoutines.reduce((sum, routine) => sum + routine.steps.length, 0);
+  const duration = launchRoutines.reduce((sum, routine) => sum + routine.steps.filter((step) => !excludedIds[routine.id]?.includes(step.id)).reduce((stepSum, step) => stepSum + step.durationMinutes, 0), 0);
+  const stepCount = launchRoutines.reduce((sum, routine) => sum + routine.steps.filter((step) => !excludedIds[routine.id]?.includes(step.id)).length, 0);
 
   const toggleChild = (childId: string) => {
     setSelectedIds((current) => current.includes(childId) ? current.filter((id) => id !== childId) : [...current, childId]);
@@ -98,7 +99,7 @@ function HydratedLaunchFlowScreen() {
   });
   const resolvedOrders = () => launchRoutines.reduce<Record<string, RoutineStep[]>>((next, routine) => {
     const byId = new Map(routine.steps.map((step) => [step.id, step]));
-    next[routine.id] = (orders[routine.id] ?? []).map((id) => byId.get(id)).filter((step): step is RoutineStep => Boolean(step));
+    next[routine.id] = (orders[routine.id] ?? routine.steps.map((step) => step.id)).filter((id) => !excludedIds[routine.id]?.includes(id)).map((id) => byId.get(id)).filter((step): step is RoutineStep => Boolean(step));
     return next;
   }, {});
   const goBack = () => stage === 'mood' ? setStage('presence') : stage === 'presence' ? setStage('prepare') : router.replace('/routines');
@@ -111,7 +112,6 @@ function HydratedLaunchFlowScreen() {
     if (launchLocked.current || !selectedIds.length || hasEmptyRoutine) return;
     launchLocked.current = true;
     const stepOrders = resolvedOrders();
-    setPendingOrders(stepOrders);
     const execution = launchRoutines.length > 1 ? startChain(routineIds, selectedIds, stepOrders) : startExecution(routineIds[0], selectedIds, stepOrders);
     if (!execution) { launchLocked.current = false; return; }
     router.replace('/child/run');
@@ -134,13 +134,23 @@ function HydratedLaunchFlowScreen() {
       </View>
       <View style={[styles.panel, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <View style={styles.sectionHeading}><Clock size={21} weight="bold" color={colors.time} /><Text style={[styles.sectionTitle, { color: colors.text }]}>Déroulé</Text></View>
+        <Text style={[styles.help, { color: colors.textSecondary }]}>Toutes les étapes sont prévues. Décochez ou réordonnez pour cette fois seulement. La routine enregistrée reste inchangée.</Text>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Tout rétablir" onPress={() => { setExcludedIds({}); setOrders(Object.fromEntries(launchRoutines.map((routine) => [routine.id, routine.steps.map((step) => step.id)]))); }} style={styles.editLink}><Text style={[styles.editLinkText, { color: colors.action }]}>Tout rétablir</Text></TouchableOpacity>
         {launchRoutines.map((routine) => <View key={routine.id} style={styles.routineBlock}>
           {launchRoutines.length > 1 ? <Text style={[styles.routineLabel, { color: colors.text }]}>{routine.name}</Text> : null}
           {(orders[routine.id] ?? routine.steps.map((step) => step.id)).map((stepId, index, order) => { const step = routine.steps.find((item) => item.id === stepId); return step ? (
-            <View key={step.id} style={[styles.stepRow, { borderColor: colors.divider }]}><View style={[styles.stepIndex, { backgroundColor: colors.timeSoft }]}><Text style={[styles.stepIndexText, { color: colors.time }]}>{index + 1}</Text></View><OpenMoji emoji={step.icon} size={27} /><View style={styles.stepCopy}><Text style={[styles.stepTitle, { color: colors.text }]} numberOfLines={2}>{step.title}</Text><Text style={[styles.stepMeta, { color: colors.textSecondary }]}>{formatDuration(step.durationMinutes)}</Text></View><View style={styles.orderButtons}><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Monter ${step.title}`} disabled={index === 0} onPress={() => moveStep(routine.id, step.id, -1)} style={styles.orderButton}><CaretUp size={16} weight="bold" color={index === 0 ? colors.textLight : colors.time} /></TouchableOpacity><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Descendre ${step.title}`} disabled={index === order.length - 1} onPress={() => moveStep(routine.id, step.id, 1)} style={styles.orderButton}><CaretDown size={16} weight="bold" color={index === order.length - 1 ? colors.textLight : colors.time} /></TouchableOpacity></View></View>
+            <View key={step.id} style={[styles.stepRow, compactStepRows && styles.stepRowCompact, { borderColor: colors.divider }]}>
+              <View style={[styles.stepMain, compactStepRows && styles.stepMainCompact]}>
+                <TouchableOpacity accessibilityRole="checkbox" accessibilityLabel={`Inclure ${step.title} pour cette fois`} accessibilityState={{ checked: !excludedIds[routine.id]?.includes(step.id) }} aria-checked={!excludedIds[routine.id]?.includes(step.id)} onPress={() => setExcludedIds((current) => { const excluded = current[routine.id] ?? []; return { ...current, [routine.id]: excluded.includes(step.id) ? excluded.filter((id) => id !== step.id) : [...excluded, step.id] }; })} style={styles.orderButton}><View style={[styles.choiceCheck, { borderColor: colors.action, backgroundColor: excludedIds[routine.id]?.includes(step.id) ? colors.surface : colors.action }]}>{!excludedIds[routine.id]?.includes(step.id) ? <Check size={14} weight="bold" color={colors.background} /> : null}</View></TouchableOpacity>
+                <View style={[styles.stepIndex, { backgroundColor: colors.timeSoft }]}><Text style={[styles.stepIndexText, { color: colors.time }]}>{index + 1}</Text></View>
+                <OpenMoji emoji={step.icon} size={27} />
+                <View style={styles.stepCopy}><Text style={[styles.stepTitle, { color: colors.text }]} numberOfLines={compactStepRows ? undefined : 2}>{step.title}</Text><Text style={[styles.stepMeta, { color: colors.textSecondary }]}>{formatDuration(step.durationMinutes)}</Text></View>
+              </View>
+              <View style={[styles.orderButtons, compactStepRows && styles.orderButtonsCompact]}><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Monter ${step.title}`} disabled={index === 0} onPress={() => moveStep(routine.id, step.id, -1)} style={styles.orderButton}><CaretUp size={16} weight="bold" color={index === 0 ? colors.textLight : colors.time} /></TouchableOpacity><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Descendre ${step.title}`} disabled={index === order.length - 1} onPress={() => moveStep(routine.id, step.id, 1)} style={styles.orderButton}><CaretDown size={16} weight="bold" color={index === order.length - 1 ? colors.textLight : colors.time} /></TouchableOpacity></View>
+            </View>
           ) : null; })}
         </View>)}
-        {hasEmptyRoutine ? <View style={[styles.warning, { backgroundColor: colors.attentionSoft }]}><Text style={[styles.warningText, { color: colors.attention }]}>Cette routine ne contient aucune étape. Ajoutez-en une avant de la lancer.</Text><TouchableOpacity accessibilityRole="button" onPress={() => router.push({ pathname: '/parent/edit-routine', params: { id: leadRoutine.id } })} style={styles.editLink}><PencilSimple size={17} color={colors.attention} /><Text style={[styles.editLinkText, { color: colors.attention }]}>Modifier</Text></TouchableOpacity></View> : null}
+        {hasEmptyRoutine ? <View style={[styles.warning, { backgroundColor: colors.attentionSoft }]}><Text style={[styles.warningText, { color: colors.attention }]}>Gardez au moins une étape par routine pour commencer.</Text><TouchableOpacity accessibilityRole="button" onPress={() => router.push({ pathname: '/parent/edit-routine', params: { id: leadRoutine.id } })} style={styles.editLink}><PencilSimple size={17} color={colors.attention} /><Text style={[styles.editLinkText, { color: colors.attention }]}>Modifier</Text></TouchableOpacity></View> : null}
       </View>
     </>
   );
@@ -153,19 +163,19 @@ function HydratedLaunchFlowScreen() {
 
   const disabled = stage === 'prepare' ? !selectedIds.length || hasEmptyRoutine : stage === 'presence' ? !allPresent : false;
   const primaryLabel = stage === 'prepare' ? 'Confirmer les participants' : stage === 'presence' ? 'Choisir les humeurs' : moodChild ? 'Passer cette humeur' : 'Commencer la routine';
-  const primaryAction = () => stage === 'prepare' ? setStage('presence') : stage === 'presence' ? setStage('mood') : moodChild ? setMoods((current) => ({ ...current, [moodChild.id]: 'motivated' })) : start();
+  const primaryAction = () => disabled ? undefined : stage === 'prepare' ? setStage('presence') : stage === 'presence' ? setStage('mood') : moodChild ? setMoods((current) => ({ ...current, [moodChild.id]: 'motivated' })) : start();
 
   return <View style={styles.gradient}><SafeAreaView style={styles.safe}><View style={[styles.shell, { width: contentWidth, maxWidth: '100%' }]}>
     <View style={styles.topBar}><TouchableOpacity accessibilityRole="button" accessibilityLabel="Retour" onPress={goBack} style={[styles.backButton, { backgroundColor: colors.surface, borderColor: colors.border }]}><ArrowLeft size={21} weight="bold" color={colors.text} /></TouchableOpacity><View style={styles.progressSteps}>{STAGES.map((item, index) => { const activeIndex = STAGES.findIndex((candidate) => candidate.id === stage); const active = index === activeIndex; const done = index < activeIndex; return <View key={item.id} style={styles.progressItem}><View style={[styles.progressDot, { backgroundColor: done || active ? colors.action : colors.surfaceSecondary, borderColor: done || active ? colors.action : colors.border }]}>{done ? <Check size={12} weight="bold" color={colors.background} /> : <Text style={[styles.progressNumber, { color: active ? colors.background : colors.textSecondary }]}>{index + 1}</Text>}</View>{!compact ? <Text style={[styles.progressLabel, { color: active ? colors.text : colors.textSecondary }]}>{item.label}</Text> : null}</View>; })}</View></View>
     <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">{stage === 'prepare' ? prepare : stage === 'presence' ? presence : mood}</ScrollView>
-    <View style={[styles.footer, { backgroundColor: colors.navigationBackdrop, borderColor: colors.border }]}><TouchableOpacity accessibilityRole="button" onPress={goBack} style={[styles.secondaryButton, { borderColor: colors.border }]}><Text style={[styles.secondaryButtonText, { color: colors.text }]}>Retour</Text></TouchableOpacity><TouchableOpacity aria-disabled={disabled} accessibilityRole="button" accessibilityState={{ disabled }} disabled={disabled} onPress={primaryAction} activeOpacity={0.84} style={[styles.primaryButton, { backgroundColor: disabled ? colors.surfaceSecondary : colors.action }]}><Text style={[styles.primaryButtonText, { color: disabled ? colors.textLight : colors.background }]}>{primaryLabel}</Text><ArrowRight size={19} weight="bold" color={disabled ? colors.textLight : colors.background} /></TouchableOpacity></View>
+    <View style={[styles.footer, { backgroundColor: colors.navigationBackdrop, borderColor: colors.border }]}><TouchableOpacity accessibilityRole="button" onPress={goBack} style={[styles.secondaryButton, { borderColor: colors.border }]}><Text style={[styles.secondaryButtonText, { color: colors.text }]}>Retour</Text></TouchableOpacity><TouchableOpacity aria-disabled={disabled} accessibilityRole="button" accessibilityLabel={primaryLabel} accessibilityState={{ disabled }} disabled={disabled} onPress={primaryAction} activeOpacity={0.84} style={[styles.primaryButton, { backgroundColor: disabled ? colors.surfaceSecondary : colors.action }]}><Text style={[styles.primaryButtonText, { color: disabled ? colors.textLight : colors.background }]}>{primaryLabel}</Text><ArrowRight size={19} weight="bold" color={disabled ? colors.textLight : colors.background} /></TouchableOpacity></View>
   </View></SafeAreaView></View>;
 }
 
 const styles = StyleSheet.create({
   gradient: { flex: 1 }, safe: { flex: 1, alignItems: 'center' }, shell: { flex: 1 }, topBar: { minHeight: 72, paddingHorizontal: SPACING.sm, flexDirection: 'row', alignItems: 'center', gap: SPACING.md }, backButton: { width: 46, height: 46, borderRadius: 15, borderWidth: 1, alignItems: 'center', justifyContent: 'center' }, progressSteps: { flex: 1, flexDirection: 'row', justifyContent: 'flex-end', gap: SPACING.md }, progressItem: { flexDirection: 'row', alignItems: 'center', gap: 6 }, progressDot: { width: 27, height: 27, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center' }, progressNumber: { fontSize: FONT_SIZE.xs, fontWeight: '800' }, progressLabel: { fontSize: FONT_SIZE.xs, fontWeight: '700' }, scroll: { padding: SPACING.sm, paddingBottom: SPACING.xl, gap: SPACING.md },
   hero: { borderRadius: 24, padding: SPACING.lg, flexDirection: 'row', alignItems: 'center', gap: SPACING.md }, heroIcon: { width: 74, height: 74, borderRadius: 22, alignItems: 'center', justifyContent: 'center' }, heroCopy: { flex: 1, minWidth: 0, gap: 4 }, eyebrow: { fontSize: FONT_SIZE.xs, fontWeight: '800', letterSpacing: 0.8 }, title: { fontSize: FONT_SIZE.xl, lineHeight: 29, fontWeight: '800' }, subtitle: { fontSize: FONT_SIZE.sm, lineHeight: 20 }, panel: { borderRadius: 22, borderWidth: 1, padding: SPACING.md, gap: SPACING.md, ...SHADOWS.sm }, sectionHeading: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm }, sectionTitle: { fontSize: FONT_SIZE.lg, fontWeight: '800' }, help: { fontSize: FONT_SIZE.sm, lineHeight: 20, marginTop: -SPACING.sm },
-  childrenGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm }, childChoice: { minWidth: 150, flexGrow: 1, minHeight: 76, borderRadius: 18, borderWidth: 1.5, padding: SPACING.sm, flexDirection: 'row', alignItems: 'center', gap: SPACING.sm }, childName: { flex: 1, minWidth: 0, fontSize: FONT_SIZE.md, fontWeight: '700' }, choiceCheck: { width: 25, height: 25, borderRadius: 13, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' }, routineBlock: { gap: 2 }, routineLabel: { fontSize: FONT_SIZE.sm, fontWeight: '800', marginBottom: SPACING.xs }, stepRow: { minHeight: 66, flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, borderBottomWidth: 1 }, stepIndex: { width: 30, height: 30, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }, stepIndexText: { fontSize: FONT_SIZE.sm, fontWeight: '800' }, stepCopy: { flex: 1, minWidth: 0 }, stepTitle: { fontSize: FONT_SIZE.sm, fontWeight: '700' }, stepMeta: { fontSize: FONT_SIZE.xs, marginTop: 2 }, orderButtons: { flexDirection: 'row' }, orderButton: { width: 36, height: 44, alignItems: 'center', justifyContent: 'center' },
+  childrenGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm }, childChoice: { minWidth: 150, flexGrow: 1, minHeight: 76, borderRadius: 18, borderWidth: 1.5, padding: SPACING.sm, flexDirection: 'row', alignItems: 'center', gap: SPACING.sm }, childName: { flex: 1, minWidth: 0, fontSize: FONT_SIZE.md, fontWeight: '700' }, choiceCheck: { width: 25, height: 25, borderRadius: 13, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' }, routineBlock: { gap: 2 }, routineLabel: { fontSize: FONT_SIZE.sm, fontWeight: '800', marginBottom: SPACING.xs }, stepRow: { minHeight: 66, flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, borderBottomWidth: 1 }, stepRowCompact: { flexDirection: 'column', alignItems: 'stretch', paddingVertical: SPACING.sm }, stepMain: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: SPACING.sm }, stepMainCompact: { flex: 0, width: '100%' }, stepIndex: { width: 30, height: 30, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }, stepIndexText: { fontSize: FONT_SIZE.sm, fontWeight: '800' }, stepCopy: { flex: 1, minWidth: 0 }, stepTitle: { fontSize: FONT_SIZE.sm, fontWeight: '700' }, stepMeta: { fontSize: FONT_SIZE.xs, marginTop: 2 }, orderButtons: { flexDirection: 'column' }, orderButtonsCompact: { flexDirection: 'row', justifyContent: 'flex-end' }, orderButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   warning: { borderRadius: 16, padding: SPACING.md, gap: SPACING.sm }, warningText: { fontSize: FONT_SIZE.sm, lineHeight: 20, fontWeight: '600' }, editLink: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 6 }, editLinkText: { fontSize: FONT_SIZE.sm, fontWeight: '800' }, centerStage: { flex: 1, minHeight: 520, alignItems: 'center', justifyContent: 'center', paddingVertical: SPACING.lg }, stageEmoji: { fontSize: 45 }, stageTitle: { fontSize: FONT_SIZE.xl, fontWeight: '800', textAlign: 'center', marginTop: SPACING.sm }, stageHelp: { maxWidth: 440, fontSize: FONT_SIZE.sm, lineHeight: 21, textAlign: 'center', marginTop: SPACING.sm, marginBottom: SPACING.lg },
   presenceGrid: { width: '100%', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: SPACING.md }, presenceCard: { minWidth: 180, maxWidth: 260, flexGrow: 1, minHeight: 220, borderRadius: 26, borderWidth: 2, padding: SPACING.lg, alignItems: 'center', justifyContent: 'center', gap: SPACING.md, ...SHADOWS.sm }, presenceName: { fontSize: FONT_SIZE.lg, fontWeight: '800' }, presenceStatus: { minHeight: 44, borderRadius: 22, paddingHorizontal: SPACING.md, flexDirection: 'row', alignItems: 'center', gap: 6 }, presenceStatusText: { fontSize: FONT_SIZE.sm, fontWeight: '800' }, moodGrid: { width: '100%', maxWidth: 560, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: SPACING.sm }, moodCard: { width: 112, minHeight: 112, borderRadius: 24, borderWidth: 1, alignItems: 'center', justifyContent: 'center', gap: SPACING.xs, ...SHADOWS.sm }, moodLabel: { fontSize: FONT_SIZE.sm, fontWeight: '700' }, readyCard: { width: '100%', maxWidth: 440, minHeight: 150, borderRadius: 26, alignItems: 'center', justifyContent: 'center', gap: SPACING.md }, readyText: { fontSize: FONT_SIZE.lg, fontWeight: '800', textAlign: 'center' },
   footer: { borderTopWidth: 1, padding: SPACING.sm, flexDirection: 'row', gap: SPACING.sm }, secondaryButton: { minHeight: 54, borderRadius: 17, borderWidth: 1, paddingHorizontal: SPACING.md, alignItems: 'center', justifyContent: 'center' }, secondaryButtonText: { fontSize: FONT_SIZE.sm, fontWeight: '700' }, primaryButton: { minHeight: 54, flex: 1, borderRadius: 17, paddingHorizontal: SPACING.md, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACING.sm }, primaryButtonText: { fontSize: FONT_SIZE.sm, fontWeight: '800', textAlign: 'center', flexShrink: 1 },

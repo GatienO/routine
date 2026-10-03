@@ -21,6 +21,36 @@ beforeEach(() => {
 });
 
 describe('routineStore', () => {
+  test.each(['finish', 'cancel'] as const)('temporary selection is isolated and resets after %s', (end) => {
+    const routine = useRoutineStore.getState().addRoutine({
+      childId: 'child', name: 'Six étapes', icon: '⭐', color: '#fff', category: 'morning', isActive: true,
+      steps: Array.from({ length: 6 }, (_, index) => ({ id: String(index), title: `Étape ${index}`, icon: '⭐', color: '#fff', durationMinutes: 1, instruction: '', isRequired: index < 4, order: index })),
+    });
+    const selected = [routine.steps[5], routine.steps[1], routine.steps[0]];
+    const execution = useRoutineStore.getState().startExecution(routine.id, ['child'], { [routine.id]: selected });
+    expect(execution?.customStepOrder?.map((step) => step.id)).toEqual(['5', '1', '0']);
+    expect(execution?.customStepOrder?.[0]).not.toBe(selected[0]);
+    const partialize = useRoutineStore.persist.getOptions().partialize!;
+    const persisted = partialize(useRoutineStore.getState()) as ReturnType<typeof useRoutineStore.getState>;
+    expect(persisted.currentExecution?.customStepOrder).toEqual(selected);
+    expect(persisted.routines[0].steps).toHaveLength(6);
+    if (end === 'finish') useRoutineStore.getState().finishExecution();
+    else useRoutineStore.getState().cancelExecution();
+    expect(useRoutineStore.getState().startExecution(routine.id)?.customStepOrder).toEqual(routine.steps);
+    expect(useRoutineStore.getState().getRoutine(routine.id)).toEqual(routine);
+  });
+
+  test('each routine in a chain uses its own temporary selection', () => {
+    const add = (name: string) => useRoutineStore.getState().addRoutine({ childId: 'child', name, icon: '⭐', color: '#fff', category: 'morning', isActive: true, steps: Array.from({ length: 3 }, (_, index) => ({ id: `${name}-${index}`, title: 'Étape', icon: '⭐', color: '#fff', durationMinutes: 1, instruction: '', isRequired: true, order: index })) });
+    const first = add('first'); const second = add('second');
+    useRoutineStore.getState().startChain([first.id, second.id], ['child'], { [first.id]: [first.steps[2]], [second.id]: [second.steps[1]] });
+    expect(useRoutineStore.getState().currentExecution?.customStepOrder).toEqual([first.steps[2]]);
+    useRoutineStore.getState().finishExecution();
+    expect(useRoutineStore.getState().nextInChain()?.customStepOrder).toEqual([second.steps[1]]);
+    useRoutineStore.getState().finishExecution();
+    expect(useRoutineStore.getState().pendingStepOrders).toEqual({});
+    expect(useRoutineStore.getState().startExecution(second.id)?.customStepOrder).toHaveLength(3);
+  });
   test('addRoutine creates a routine with generated id', () => {
     const routine = useRoutineStore.getState().addRoutine({
       childId: 'child-1',

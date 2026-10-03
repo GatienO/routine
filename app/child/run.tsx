@@ -23,7 +23,7 @@ import { useRoutineStore } from '../../src/stores/routineStore';
 import { useRewardStore } from '../../src/stores/rewardStore';
 import { useMoodStore } from '../../src/stores/moodStore';
 import { useChildrenStore } from '../../src/stores/childrenStore';
-import { MOOD_CONFIG, isNegativeMood } from '../../src/constants/moods';
+import { MOOD_CONFIG } from '../../src/constants/moods';
 import { ProgressBar } from '../../src/components/ui/ProgressBar';
 import { X, ArrowRight, CheckCircle, Pause, Play, ShieldCheck, SkipForward } from 'phosphor-react-native';
 import { CircularTimer } from '../../src/components/ui/CircularTimer';
@@ -264,10 +264,8 @@ export default function RunRoutineScreen() {
 
   const activeSteps = useMemo(() => {
     if (!routine) return [];
-    const baseSteps =
-      currentExecution?.customStepOrder?.length ? currentExecution.customStepOrder : routine.steps;
-    return selectActiveSteps(baseSteps, Boolean(currentMood && isNegativeMood(currentMood)));
-  }, [routine, currentMood, currentExecution?.customStepOrder]);
+    return selectActiveSteps(routine.steps, currentExecution?.customStepOrder);
+  }, [routine, currentExecution?.customStepOrder]);
 
   const participantChildren = useMemo(() => {
     const ids =

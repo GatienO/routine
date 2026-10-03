@@ -79,6 +79,7 @@ export function ProgressScreen({
   );
   const [creatorOpen, setCreatorOpen] = useState(false);
   const contentWidth = Math.min(width - SPACING.lg * 2, CONTENT_MAX_WIDTH.lg);
+  const compactTabs = contentWidth < 380;
   const child = children.find((item) => item.id === childId);
   const rewards = childId ? getRewards(childId) : null;
   const childExecutions = useMemo(
@@ -208,7 +209,7 @@ export function ProgressScreen({
             ) : null}
           </View>
           <View
-            style={[styles.tabs, { backgroundColor: colors.surfaceSecondary }]}
+            style={[styles.tabs, compactTabs && styles.tabsCompact, { backgroundColor: colors.surfaceSecondary }]}
           >
             <TabButton
               label="Vue d’ensemble"
@@ -221,6 +222,7 @@ export function ProgressScreen({
                 />
               }
               active={tab === "overview"}
+              compact={compactTabs}
               onPress={() => setTab("overview")}
               colors={colors}
             />
@@ -235,6 +237,7 @@ export function ProgressScreen({
                 />
               }
               active={tab === "rewards"}
+              compact={compactTabs}
               onPress={() => setTab("rewards")}
               colors={colors}
             />
@@ -769,12 +772,14 @@ function TabButton({
   label,
   icon,
   active,
+  compact,
   onPress,
   colors,
 }: {
   label: string;
   icon: React.ReactNode;
   active: boolean;
+  compact: boolean;
   onPress: () => void;
   colors: ThemeColors;
 }) {
@@ -785,6 +790,7 @@ function TabButton({
       onPress={onPress}
       style={[
         styles.tab,
+        compact && styles.tabCompact,
         active && { backgroundColor: colors.surface, ...SHADOWS.sm },
       ]}
     >
@@ -792,6 +798,7 @@ function TabButton({
       <Text
         style={[
           styles.tabText,
+          compact && styles.tabTextCompact,
           { color: active ? colors.text : colors.textSecondary },
         ]}
       >
@@ -890,6 +897,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     gap: 4,
   },
+  tabsCompact: { alignSelf: "stretch" },
   tab: {
     minHeight: 44,
     borderRadius: 14,
@@ -898,7 +906,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 7,
   },
+  tabCompact: { flex: 1, minWidth: 0, paddingHorizontal: SPACING.xs, justifyContent: "center" },
   tabText: { fontSize: FONT_SIZE.sm, fontWeight: "700" },
+  tabTextCompact: { flexShrink: 1, textAlign: "center" },
   childTabs: { gap: SPACING.sm },
   childTab: {
     minHeight: 48,
