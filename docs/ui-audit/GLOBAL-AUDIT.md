@@ -1,5 +1,9 @@
 # Audit global — bilan et suivi
 
+## Correctif local après G09 — barre basse de la tablette, 2026-10-03
+
+Signalement utilisateur : bande beige sous la navigation et demande d'onglets fixés en bas pour toute taille d'écran. Cause possible établie dans le code web : `#root` appliquait `safe-area-inset-bottom` en plus de la barre et n'avait qu'une hauteur minimale; l'effet exact de l'inset sur la tablette n'a pas été mesuré. Correction ciblée du cadre web : hauteur dynamique fixe de `body`/`#root`, suppression de l'inset bas doublé et barre web en `position: fixed; bottom: 0`. Le comportement natif reste inchangé. Contrôle local sur Routines aux sept formats, puis Parent et Activités à 320 px et en paysage tablette; les dernières actions restent atteignables au-dessus de la barre. Détails dans la fiche [G09](./lots/G09/REVIEW.md). **Aucun push : l'utilisateur l'exclut pour cette demande.**
+
 ## Complément de réserves G09 — 2026-10-03
 
 Après la clôture, l'utilisateur demande d'examiner les réserves restantes. Sur profil fictif local, le PIN erroné et son retour, le filtre Activités combiné à une recherche absente, puis les 98 cartes chargées jusqu'à la dernière ont été vérifiés à 320 px; la grille complète ne déborde pas à 1024 px. Une nouvelle origine de test `localhost.:8099` est prête à l'étape de création du code Parent, après le nom « Famille Test G09 ». La création et la confirmation de ce nouveau code sont laissées à l'utilisateur, conformément à la règle de sécurité de l'outil de navigateur; les écrans Enfant et Fin seront vérifiés après cette étape. Le clavier virtuel réel et le texte système agrandi ne sont pas attestés par le navigateur utilisé. [Preuves et limites](./lots/G09/REVIEW.md). Aucun push.

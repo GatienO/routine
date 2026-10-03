@@ -62,6 +62,7 @@ export function AppBottomNavigation({ onHeightChange }: { onHeightChange?: (heig
 
   return (
     <View
+      nativeID="app-bottom-navigation"
       onLayout={(event) => onHeightChange?.(event.nativeEvent.layout.height)}
       style={[
         styles.wrap,
